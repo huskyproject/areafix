@@ -1,3 +1,9 @@
+2004-02-09 Monday 17:09  andrew_ladutsko
+
+	* areafix/query.h (1.3), src/areafix.c (1.20), src/query.c (1.9):
+	when doing forward request try to find an already requsted area in
+	queue file
+
 2004-01-21 Wednesday 04:04  andr_lukyanov
 
 	* make/makefile.mvc (1.6): Fix MSVC compilation
