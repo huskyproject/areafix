@@ -1,3 +1,12 @@
+2004-12-14 Tuesday 23:05  andrew_ladutsko
+
+	* src/areafix.c (1.33): fixed adding original request text after
+	message splitting
+
+2004-12-14 Tuesday 23:02  andrew_ladutsko
+
+	* src/areafix.c (1.32): fixed reply message splitting
+
 2004-12-10 Friday 18:38  andrew_ladutsko
 
 	* src/areafix.c (1.31): fixed not killing the msgbase when
