@@ -82,6 +82,10 @@ HUSKYEXT int (*hook_afixcmd)(char **report, int cmd, char *aka, char *line);
 /* possible usage: perl_afixreq */
 HUSKYEXT int (*hook_afixreq)(s_message *msg, hs_addr pktOrigAddr);
 
+/* return 1 to update robot's msg text and/or headers */
+/* possible usage: perl_robotmsg */
+HUSKYEXT int (*hook_robotmsg)(s_message *msg, char *type);
+
 #ifdef __cplusplus
 }
 #endif

@@ -2117,6 +2117,8 @@ void RetMsg(s_message *msg, s_link *link, char *report, char *subj)
         }
 
         nfree(reply);
+
+        if (hook_robotmsg) (*hook_robotmsg)(tmpmsg, af_robot->name);
 /*
         processNMMsg(tmpmsg, NULL, getRobotsArea(af_config),
             0, MSGLOCAL);
