@@ -438,7 +438,10 @@ int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act
 
     if (uplink->msg == NULL) {
       msg = makeMessage(uplink->ourAka, &(uplink->hisAka), af_config->sysop,
-                        r->name, r->pwd, 1, r->reportsAttr ? r->reportsAttr : af_robot->reportsAttr);
+                        r->name ? r->name : af_robot->name, 
+                        r->pwd ? r->pwd : "", 
+                        1, 
+                        r->reportsAttr ? r->reportsAttr : af_robot->reportsAttr);
       msg->text = createKludges(af_config, NULL, uplink->ourAka, &(uplink->hisAka),
                                 af_versionStr);
       if (r->reportsFlags)
@@ -1367,7 +1370,10 @@ int pauseArea(e_pauseAct pauseAct, s_link *searchLink, s_area *searchArea) {
       r = (*call_getLinkRobot)(uplink);
 
       msg = makeMessage(uplink->ourAka, &(uplink->hisAka), af_config->sysop,
-                        r->name, r->pwd, 1, r->reportsAttr ? r->reportsAttr : af_robot->reportsAttr);
+                        r->name ? r->name : af_robot->name, 
+                        r->pwd ? r->pwd : "", 
+                        1, 
+                        r->reportsAttr ? r->reportsAttr : af_robot->reportsAttr);
       msg->text = createKludges(af_config, NULL, uplink->ourAka, &(uplink->hisAka),
                       af_versionStr);
       if (r->reportsFlags)
@@ -2755,7 +2761,9 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
         s_message *msg;
 
         msg = makeMessage(fromLink->ourAka, &(fromLink->hisAka), af_config->sysop,
-                          rf->name, rf->pwd, 1, 
+                          rf->name ? rf->name : af_robot->name, 
+                          rf->pwd ? rf->pwd : "", 
+                          1, 
                           rf->reportsAttr ? rf->reportsAttr : af_robot->reportsAttr);
         msg->text = createKludges(af_config, NULL, fromLink->ourAka,
                        &(fromLink->hisAka), af_versionStr);
@@ -2787,7 +2795,9 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
         s_message *msg;
 
         msg = makeMessage(toLink->ourAka, &(toLink->hisAka), af_config->sysop,
-                          rt->name, rt->pwd, 1, 
+                          rt->name ? rt->name : af_robot->name, 
+                          rt->pwd ? rt->pwd : "", 
+                          1, 
                           rt->reportsAttr ? rt->reportsAttr : af_robot->reportsAttr);
         msg->text = createKludges(af_config, NULL, toLink->ourAka,
                        &(toLink->hisAka), af_versionStr);
