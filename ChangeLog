@@ -1,3 +1,8 @@
+2004-01-08 Thursday 15:56  andrew_ladutsko
+
+	* areafix/areafix.h (1.5), src/areafix.c (1.15): implemented %from
+	areafix command
+
 2004-01-07 Wednesday 16:38  andrew_ladutsko
 
 	* .cvs2cl (1.1): no message
