@@ -509,10 +509,10 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     /*  create flag */
     if (ff) {
-	if (NULL == (f = fopen(af_config->aacFlag,"a")))
-	    w_log(LL_ERR, "Could not open autoAreaCreate flag: %s", af_config->aacFlag);
+	if (NULL == (f = fopen(ff, "a")))
+	    w_log(LL_ERR, "Could not open autoAreaCreate flag: %s", ff);
 	else {
-	    w_log(LL_FLAG, "Created autoAreaCreate flag: %s", af_config->aacFlag);
+	    w_log(LL_FLAG, "Created autoAreaCreate flag: %s", ff);
 	    fclose(f);
 	}
     }
