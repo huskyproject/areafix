@@ -2069,7 +2069,7 @@ void sendAreafixMessages()
 
 int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 {
-    unsigned int security=1, notforme = 0;
+    unsigned int security = 0, notforme = 0;
     s_link *link = NULL;
     s_link *tmplink = NULL;
     /* s_message *linkmsg; */
