@@ -971,6 +971,8 @@ char *subscribe(s_link *link, char *cmd) {
                 if(changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,3)==ADD_OK) {
                     Addlink(af_config, link, area);
                     if (af_app->module != M_HTICK) fixRules(link, area->areaName);
+                    if ((af_config->autoAreaPause & pause) && (link->Pause & pause))
+                        pauseAreas(0, link, area);
                     w_log(LL_AREAFIX, "%sfix: %s subscribed to area \'%s\'", _AF,
                         aka2str(link->hisAka),line);
                 } else {
