@@ -2112,7 +2112,12 @@ void RetMsg(s_message *msg, s_link *link, char *report, char *subj)
                 xstrscat(&split,"\r",NULL);
         } else {
             p = text + msgsize;
-            while (*p != '\r') p--;
+            while (p > text && *p != '\r') p--;
+            if (p == text) {
+                p = text + msgsize;
+                while (p > text && *p != ' ' && *p != '\t') p--;
+                if (p == text) p = text + msgsize;
+            }
             *p = '\000';
             len = p - text;
             split = (char*)(*call_smalloc)(len+strlen(splitStr ? splitStr : splitted)+3+1);
