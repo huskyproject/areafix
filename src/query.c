@@ -992,7 +992,7 @@ void af_QueueUpdate()
     {
         if (tmpmsg[i])
         {
-            xscatprintf(&tmpmsg[i]->text, "\r\r--- %s %sfix\r", _AF, af_versionStr);
+            xscatprintf(&tmpmsg[i]->text, "\r\r--- %s %sfix\r", af_versionStr, _AF);
             tmpmsg[i]->textLength = strlen(tmpmsg[i]->text);
 /*
             processNMMsg(tmpmsg[i], NULL,
