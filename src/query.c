@@ -218,7 +218,7 @@ char* makeAreaParam(s_link *creatingLink, s_link_robot *r, char* c_area, char* m
             nfree(desc);
         }
     }
-    if (*newAC) xstrcat(&buff, newAC);
+    if (newAC && (*newAC)) xstrcat(&buff, newAC);
     nfree(newAC);
     return buff;
 }
