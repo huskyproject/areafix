@@ -1,3 +1,26 @@
+2005-01-09 Sunday 17:28  val_khokhlov
+
+	* src/: areafix.c (1.44), callback.c (1.7), query.c (1.21): make
+	callback for getArea(), use baseDir from s_link_robot
+
+2005-01-09 Sunday 17:28  val_khokhlov
+
+	* areafix/callback.h (1.9): make callback for getArea()
+
+2005-01-09 Sunday 16:50  val_khokhlov
+
+	* src/areafix.c (1.43): enable sending echo rules for filefix too
+
+2005-01-09 Sunday 16:46  val_khokhlov
+
+	* src/areafix.c (1.42): enable sending echo rules for filefix too
+
+2005-01-09 Sunday 16:17  val_khokhlov
+
+	* areafix/callback.h (1.8), src/areafix.c (1.41), src/callback.c
+	(1.6), src/query.c (1.20): move area name validation code to
+	hpt/htick
+
 2005-01-02 Sunday 16:45  val_khokhlov
 
 	* src/areafix.c (1.40): move some vars from s_link into
