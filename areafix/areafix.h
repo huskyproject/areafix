@@ -74,6 +74,7 @@ extern "C" {
 #define FROM        23
 #define DONE        100
 #define STAT        101
+#define RESEND      102
 #define AFERROR     255
 
 typedef struct linkdata {
