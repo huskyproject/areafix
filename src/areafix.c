@@ -885,7 +885,7 @@ char *subscribe(s_link *link, char *cmd) {
         } else {
             if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,0)==ADD_OK) {
                 Addlink(af_config, link, area);
-                if (af_app->module != M_HTICK) fixRules(link, area->areaName);
+                fixRules(link, area->areaName);
                 xscatprintf(&report," %s %s  added\r", an, print_ch(49-strlen(an),'.'));
                 w_log(LL_AREAFIX, "%s: %s subscribed to area \'%s\'", af_robot->name, aka2str(link->hisAka), an);
                 if (af_robot->autoAreaPause) {
@@ -957,7 +957,7 @@ char *subscribe(s_link *link, char *cmd) {
             if ( !isLinkOfArea(link, area) ) {
                 if(changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,3)==ADD_OK) {
                     Addlink(af_config, link, area);
-                    if (af_app->module != M_HTICK) fixRules(link, area->areaName);
+                    fixRules(link, area->areaName);
                     if (af_robot->autoAreaPause && (link->Pause & af_pause))
                         pauseArea(ACT_PAUSE, NULL, area);
                     w_log(LL_AREAFIX, "%s: %s subscribed to area \'%s\'", af_robot->name,
@@ -973,7 +973,7 @@ char *subscribe(s_link *link, char *cmd) {
                 aka2str(link->hisAka), line );
 
         } else {
-            if (af_app->module != M_HTICK) fixRules (link, line);
+            fixRules (link, line);
         }
         }
 	}
