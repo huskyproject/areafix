@@ -28,7 +28,7 @@
 
 #include <fidoconf/fidoconf.h>
 #include <fidoconf/arealist.h>
-#include <areafix/areafix.h>
+#include "areafix.h"
 
 /* set to &safe_strdup for hpt */
 extern char* (*call_sstrdup)(const char *);
