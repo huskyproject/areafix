@@ -2429,7 +2429,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
     if ( report != NULL ) {
         if (af_robot->queryReports) {
             preport = list (lt_linked, link, NULL);/*linked (link);*/
-            xstrcat(&report, preport);
+            xstrscat(&report, "\r", preport, NULL);
             nfree(preport);
         }
         RetMsg(msg, link, report, "Areafix reply: node change request");
