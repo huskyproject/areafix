@@ -1,0 +1,3 @@
+fidoconf:
+  new keywords in s_link: filefixReportsAttr, filefixReportsFlags
+  new keywords in s_config: newFileAreaRefuseFile, filefixQueueFile

@@ -1,0 +1,60 @@
+# $Id$
+#
+# Microsoft Visual C++ Makefile for build static program(s)
+# No support for the Husky build environment.
+#
+# Tested on MS Visual C 6.0
+#
+include makefile.inc
+
+## programs ##
+
+CC	= cl
+AR	= lib
+LINK	= link
+RANLIB	=
+RM	= del
+
+## file suffixes ##
+_C	= .c
+_OBJ	= .obj
+_LIB	= .lib
+_EXE	= .exe
+_DLL	= .dll
+_EXP	= .exp
+_ILK	= .ilk
+_PDB	= .pdb
+
+## program options ##
+CFLAGS=-nologo -Zp1
+CINCL= -I$(H_DIR) -I..\..\fidoconf -I..\..\smapi -I..\..\huskylib -I..\..\areafix $(HPTZIPI) $(PERLI)
+LFLAGS=
+CDEFS =-D__NT__ -D_CONSOLE $(HPTZIPD) $(PERLD)
+COPT	= -Ob2
+
+EXENAMEFLAG=-Fe
+
+# List of HUSKY libraries required to build binary file(s)
+LIBS	= ..\..\fidoconf\make\fconfmvc.lib \
+          ..\..\smapi\make\smapimvc.lib \
+	  ..\..\huskylib\make\huskymvc.lib
+
+default:
+	@echo Run 'make static' to build static version of $(LIBNAME)$(_LIB)
+	@echo Run 'make all' to build all above
+
+all: static
+
+static: $(LIBNAME)$(_LIB)
+
+{$(_SRC_DIR)}.c$(_OBJ):
+	@$(CC) $(CFLAGS) $(CINCL) $(CDEFS) $(COPT) -c $<
+
+$(LIBNAME)$(_LIB): $(OBJS)
+        $(AR) /out:$(LIBNAME)$(_LIB) $(OBJS)
+
+clean:
+	-$(RM) $(RMOPT) *$(_OBJ)
+
+distclean: clean
+	-$(RM) $(RMOPT) $(PROGRAMS)
