@@ -1,3 +1,7 @@
+2005-03-03 Thursday 10:29  mche
+
+	* src/query.c (1.23): null-pointer validation
+
 2005-02-27 Sunday 20:25  val_khokhlov
 
 	* src/query.c (1.22): fix a bug with "(null)" appearing in reports
