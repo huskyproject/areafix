@@ -1,3 +1,12 @@
+2004-01-20 Tuesday 16:38  andrew_ladutsko
+
+	* src/areafix.c (1.19): functions arcmailsize(), pktsize(), rsb(),
+	rules() and change_pwd() merged into change_token()
+
+2004-01-20 Tuesday 07:37  andr_lukyanov
+
+	* make/makefile.mvc (1.5): Fix MSVC compilation
+
 2004-01-17 Saturday 08:56  andrew_ladutsko
 
 	* src/query.c (1.8): another try to add support for several entrys
