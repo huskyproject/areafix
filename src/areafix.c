@@ -136,28 +136,30 @@ char *list(s_listype type, s_link *link, char *cmdline) {
     int grps = (af_config->listEcho == lemGroup) || (af_config->listEcho == lemGroupName);
 
     if (cmdline) pattern = getPatternFromLine(cmdline, &reversed);
-    if ((pattern) && (strlen(pattern)>60 || !isValidConference(pattern))) {
-        w_log(LL_FUNC, "areafix::list() FAILED (error request line)");
-        return errorRQ(cmdline);
+    if (af_app->module != M_HTICK) {
+      if ((pattern) && (strlen(pattern)>60 || !isValidConference(pattern))) {
+          w_log(LL_FUNC, "areafix::list() FAILED (error request line)");
+          return errorRQ(cmdline);
+      }
     }
 
     switch (type) {
       case lt_all:
-        xscatprintf(&report, "Available areas for %s\r\r", aka2str(link->hisAka));
+        xscatprintf(&report, "Available %sareas for %s\r\r", af_app->module == M_HTICK ? "file" : "", aka2str(link->hisAka));
         break;
       case lt_linked:
-        xscatprintf(&report, "%s areas for %s\r\r",
+        xscatprintf(&report, "%s %sareas for %s\r\r", af_app->module == M_HTICK ? "file" : "",
                     ((link->Pause & ECHOAREA) == ECHOAREA) ? "Passive" : "Active", aka2str(link->hisAka));
         break;
       case lt_unlinked:
-        xscatprintf(&report, "Unlinked areas for %s\r\r", aka2str(link->hisAka));
+        xscatprintf(&report, "Unlinked %sareas for %s\r\r", af_app->module == M_HTICK ? "file" : "", aka2str(link->hisAka));
         break;
     }
 
     al = newAreaList(af_config);
-    for (i=active=avail=0; i< af_config->echoAreaCount; i++) {
-		
-	area = &(af_config->echoAreas[i]);
+    cnt = af_app->module == M_HTICK ? af_config->fileAreaCount : af_config->echoAreaCount;
+    for (i=active=avail=0; i<cnt; i++) {
+        area = af_app->module == M_HTICK ? &(af_config->fileAreas[i]) : &(af_config->echoAreas[i]);
 	rc = subscribeCheck(area, link);
 
         if ( (type == lt_all && rc < 2)
@@ -248,14 +250,15 @@ char *help(s_link *link) {
     int i=1;
     char *help;
     long endpos;
+    char *hf = af_app->module == M_HTICK ? af_config->filefixhelp : af_config->areafixhelp;
 
-    if (af_config->areafixhelp!=NULL) {
-	if ((f=fopen(af_config->areafixhelp,"r")) == NULL) {
-	    w_log (LL_ERR, "areafix: cannot open help file \"%s\": %s",
-	           af_config->areafixhelp, strerror(errno));
+    if (hf != NULL) {
+        if ((f=fopen(hf, "r")) == NULL) {
+            w_log (LL_ERR, "%sfix: cannot open help file \"%s\": %s", _AF,
+                   hf, strerror(errno));
 	    if (!af_quiet)
-		fprintf(stderr,"areafix: cannot open help file \"%s\": %s\n",
-		        af_config->areafixhelp, strerror(errno));
+                fprintf(stderr,"%sfix: cannot open help file \"%s\": %s\n", _AF,
+                        hf, strerror(errno));
 	    return NULL;
 	}
 		
@@ -272,7 +275,7 @@ char *help(s_link *link) {
 
 	fclose(f);
 
-	w_log(LL_AREAFIX, "areafix: help sent to %s",link->name);
+        w_log(LL_AREAFIX, "%sfix: help sent to %s", _AF, link->name);
 
 	return help;
     }
@@ -305,14 +308,22 @@ char *available(s_link *link, char *cmdline)
     unsigned int halcnt=0, isuplink;
 
     pattern = getPatternFromLine(cmdline, &reversed);
-    if ((pattern) && (strlen(pattern)>60 || !isValidConference(pattern))) {
-        w_log(LL_FUNC, "areafix::avail() FAILED (error request line)");
-        return errorRQ(cmdline);
+
+    if (af_app->module != M_HTICK) {
+      if ((pattern) && (strlen(pattern)>60 || !isValidConference(pattern))) {
+          w_log(LL_FUNC, "areafix::avail() FAILED (error request line)");
+          return errorRQ(cmdline);
+      }
     }
 
     for (j = 0; j < af_config->linkCount; j++)
     {
+        int fr_on = 0;
+        char *frf = NULL;
+
 	uplink = af_config->links[j];
+        fr_on = af_app->module == M_HTICK ? uplink->forwardFileRequests : uplink->forwardRequests;
+        frf = af_app->module == M_HTICK ? uplink->forwardFileRequestFile : uplink->forwardRequestFile;
 
 	found = 0;
 	isuplink = 0;
@@ -320,12 +331,11 @@ char *available(s_link *link, char *cmdline)
 	    if (strcmp(link->AccessGrp[k], uplink->LinkGrp) == 0)
 		found = 1;
 
-	if ((uplink->forwardRequests && uplink->forwardRequestFile) &&
-	    ((uplink->LinkGrp == NULL) || (found != 0)))
+        if ((fr_on && frf) && ((uplink->LinkGrp == NULL) || (found != 0)))
 	{
-	    if ((f=fopen(uplink->forwardRequestFile,"r")) == NULL) {
-		w_log(LL_ERR, "areafix: cannot open forwardRequestFile \"%s\": %s",
-		      uplink->forwardRequestFile, strerror(errno));
+            if ((f=fopen(frf,"r")) == NULL) {
+                w_log(LL_ERR, "%sfix: cannot open forwardRequestFile \"%s\": %s", _AF,
+                      frf, strerror(errno));
  		continue;
 	    }
 
@@ -416,7 +426,7 @@ char *available(s_link *link, char *cmdline)
 
     if (report==NULL) {
 	xstrcat(&report, "\r  no links for creating Available Area List\r");
-	w_log(LL_AREAFIX, "areafix: no links for creating Available Area List");
+        w_log(LL_AREAFIX, "%sfix: no links for creating Available Area List", _AF);
     }
     return report;
 }
