@@ -97,6 +97,25 @@ typedef enum { ACT_PAUSE, ACT_UNPAUSE } e_pauseAct;
 
 HUSKYEXT int init_areafix(char *robotName);
 
+/* export for htick */
+HUSKYEXT unsigned char RetFix;
+HUSKYEXT char *list(s_listype type, s_link *link, char *cmdline);
+HUSKYEXT char *help(s_link *link);
+HUSKYEXT char *available(s_link *link, char *cmdline);
+HUSKYEXT int changeconfig(char *fileName, s_area *area, s_link *link, int action);
+HUSKYEXT int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink);
+HUSKYEXT char *subscribe(s_link *link, char *cmd);
+HUSKYEXT char *errorRQ(char *line);
+HUSKYEXT char *unsubscribe(s_link *link, char *cmd);
+HUSKYEXT char *pause_link(s_link *link);
+HUSKYEXT char *resume_link(s_link *link);
+HUSKYEXT void preprocText(char *split, s_message *msg, char *reply, s_link *link);
+HUSKYEXT char *textHead(void);
+HUSKYEXT char *areaStatus(char *report, char *preport);
+HUSKYEXT void RetMsg(s_message *msg, s_link *link, char *report, char *subj);
+HUSKYEXT void sendAreafixMessages();
+/* end of list */
+
 HUSKYEXT char *print_ch(int len, char ch);
 HUSKYEXT int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd);
 HUSKYEXT void afix(hs_addr addr, char *cmd);
