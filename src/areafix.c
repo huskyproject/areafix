@@ -1054,41 +1054,49 @@ char *do_delete(s_link *link, s_area *area) {
     /* unsubscribe from downlinks */
     xscatprintf(&report, " %s %s  deleted\r", an, print_ch(49-strlen(an), '.'));
     for (i=0; i<area->downlinkCount; i++) {
-	if (addrComp(area->downlinks[i]->link->hisAka, link->hisAka))
-	    forwardRequestToLink(an, area->downlinks[i]->link, NULL, 2);
-/*   todo: advanced features
 	if (addrComp(area->downlinks[i]->link->hisAka, link->hisAka)) {
-            s_link *dwlink;
-            dwlink = area->downlinks[i]->link;
+
+            s_link *dwlink = area->downlinks[i]->link;
 
 	    if (dwlink->unsubscribeOnAreaDelete)
                 forwardRequestToLink(an, dwlink, NULL, 2);
+
             if (dwlink->sendNotifyMessages) {
                 s_message *tmpmsg = NULL;
+                char *robot, *pwd, *flags, *from;
+                long attrs;
+
+                if (af_app->module == M_HTICK) {
+                    from = af_config->filefixFromName ? af_config->filefixFromName : af_versionStr;
+                    robot = dwlink->RemoteFileRobotName ? dwlink->RemoteFileRobotName : "filefix";
+                    pwd = dwlink->fileFixPwd ? dwlink->fileFixPwd : "\x00";
+                    attrs = dwlink->filefixReportsAttr ? dwlink->filefixReportsAttr : af_config->filefixReportsAttr;
+                    flags = dwlink->filefixReportsFlags ? dwlink->filefixReportsFlags : af_config->filefixReportsFlags;
+                } else {
+                    from = af_config->areafixFromName ? af_config->areafixFromName : af_versionStr;
+                    robot = dwlink->RemoteRobotName ? dwlink->RemoteRobotName : "areafix";
+                    pwd = dwlink->areaFixPwd ? dwlink->areaFixPwd : "\x00";
+                    attrs = dwlink->areafixReportsAttr ? dwlink->areafixReportsAttr : af_config->areafixReportsAttr;
+                    flags = dwlink->areafixReportsFlags ? dwlink->areafixReportsFlags : af_config->areafixReportsFlags;
+                }
 
                 tmpmsg = makeMessage(dwlink->ourAka, &(dwlink->hisAka),
-                    config->filefixFromName ? config->filefixFromName : versionStr,
-                    dwlink->name, "Notification message", 1,
-                    dwlink->filefixReportsAttr ? dwlink->filefixReportsAttr : config->filefixReportsAttr);
-                tmpmsg->text = createKludges(config, NULL, dwlink->ourAka,
-                    &(dwlink->hisAka), versionStr);
-                if (dwlink->filefixReportsFlags)
-                    xstrscat(&(tmpmsg->text), "\001FLAGS ", dwlink->filefixReportsFlags, "\r",NULL);
-                else if (config->filefixReportsFlags)
-                    xstrscat(&(tmpmsg->text), "\001FLAGS ", config->filefixReportsFlags, "\r",NULL);
+                    from, dwlink->name, "Notification message", 1, attrs);
+                tmpmsg->text = createKludges(af_config, NULL, dwlink->ourAka,
+                    &(dwlink->hisAka), af_versionStr);
+                if (flags)
+                    xstrscat(&(tmpmsg->text), "\001FLAGS ", flags, "\r", NULL);
 
                 xscatprintf(&tmpmsg->text, "\r Area \'%s\' is deleted.\r", area->areaName);
                     xstrcat(&tmpmsg->text, "\r Do not forget to remove it from your configs.\r");
-                xscatprintf(&tmpmsg->text, "\r\r--- %s filefix\r", versionStr);
+                xscatprintf(&tmpmsg->text, "\r\r--- %s %sfix\r", af_versionStr, _AF);
 
                 tmpmsg->textLength = strlen(tmpmsg->text);
-                writeNetmail(tmpmsg, getRobotsArea(config)->areaName);
-                freeMsgBuffers(tmpmsg);
-                w_log( LL_AREAFIX, "filefix: write notification msg for %s",aka2str(dwlink->hisAka));
+                (*call_sendMsg)(tmpmsg);
                 nfree(tmpmsg);
+                w_log( LL_AREAFIX, "%sfix: Write notification msg for %s", _AF, aka2str(dwlink->hisAka));
             }
         }
-*/
     }
     /* remove area from config-file */
     if( changeconfig ((af_cfgFile) ? af_cfgFile : getConfigFileName(),  area, link, 4) != DEL_OK) {
