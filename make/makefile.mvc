@@ -67,7 +67,7 @@ $(TARGETLIB): $(OBJS)
 	$(AR) /out:$(LIBNAME)$(_LIB) $(OBJS)
 
 $(TARGETDLL):
-	!$(MAKE) -f makefile.mvc CFLAGS="$(CFLAGS) $(CFLAGS_DLL) -DDLLEXPORT" $(OBJS)
+	!$(MAKE) -f makefile.mvc CFLAGS="$(CFLAGS) $(CFLAGS_DLL)" $(OBJS)
 	$(LINK) $(LFLAGS_DLL) /out:$(TARGETDLL) $(OBJS) $(LIBS)
 
 clean:
