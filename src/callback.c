@@ -39,6 +39,7 @@ void* (*call_srealloc)(void *, size_t) = NULL;
 
 s_link_robot* (*call_getLinkRobot)(s_link *link) = NULL;
 
+int (*call_isValid)(const char *) = NULL;
 int (*call_sendMsg)(s_message *) = NULL;
 int (*call_writeMsgToSysop)(s_message *) = NULL;
 

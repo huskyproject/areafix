@@ -80,16 +80,6 @@ s_query_areas *queryAreasHead = NULL;
 extern char       *af_versionStr;
 
 
-int isValidConference(const char *s) {
-    /*  according to FSC-0074 with lowercase symbols */
-    /*  lowercase symbols only for internal use */
-    while (*s) {
-        if ( !(*s >= 33 && *s <= 126) ) return 0;
-        s++;
-    }
-    return 1;
-}
-
 int checkRefuse(char *areaName)
 {
     FILE *fp;
@@ -251,14 +241,15 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     w_log( LL_FUNC, "%s::autoCreate() begin", __FILE__ );
 
-    if (af_app->module == M_HPT) {
-      if (strlen(c_area)>60){
-         w_log( LL_FUNC, "%s::autoCreate() rc=11", __FILE__ );
-         return BM_AREATAG_TOO_LONG;
-      }
-      if (!isValidConference(c_area) || isPatternLine(c_area)){
+    if (isPatternLine(c_area)) {
          w_log( LL_FUNC, "%s::autoCreate() rc=7", __FILE__ );
          return BM_ILLEGAL_CHARS;
+    }
+    if (call_isValid) {
+      int rc = (*call_isValid)(c_area);
+      if (rc != 0) {
+         w_log( LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, rc );
+         return rc;
       }
     }
 

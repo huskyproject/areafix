@@ -137,11 +137,9 @@ char *list(s_listype type, s_link *link, char *cmdline) {
     int grps = (af_config->listEcho == lemGroup) || (af_config->listEcho == lemGroupName);
 
     if (cmdline) pattern = getPatternFromLine(cmdline, &reversed);
-    if (af_app->module != M_HTICK) {
-      if ((pattern) && (strlen(pattern)>60 || !isValidConference(pattern))) {
-          w_log(LL_FUNC, "areafix::list() FAILED (error request line)");
-          return errorRQ(cmdline);
-      }
+    if (call_isValid && (*call_isValid)(pattern) != 0) {
+      w_log(LL_FUNC, "%s::list() FAILED (error request line)", af_robot->name);
+      return errorRQ(cmdline);
     }
 
     switch (type) {
@@ -314,11 +312,9 @@ char *available(s_link *link, char *cmdline)
 
     pattern = getPatternFromLine(cmdline, &reversed);
 
-    if (af_app->module != M_HTICK) {
-      if ((pattern) && (strlen(pattern)>60 || !isValidConference(pattern))) {
-          w_log(LL_FUNC, "areafix::avail() FAILED (error request line)");
-          return errorRQ(cmdline);
-      }
+    if (call_isValid && (*call_isValid)(pattern) != 0) {
+      w_log(LL_FUNC, "%s::avail() FAILED (error request line)", af_robot->name);
+      return errorRQ(cmdline);
     }
 
     for (j = 0; j < af_config->linkCount; j++)
@@ -835,12 +831,9 @@ char *subscribe(s_link *link, char *cmd) {
 
     if (*line=='+') line++; while (*line==' ') line++;
 	
-    if (af_app->module != M_HTICK) {
-      if (strlen(line)>60 || !isValidConference(line)) {
-        report = errorRQ(line);
-        w_log(LL_FUNC, "%s::subscribe() FAILED (error request line) rc=%s", __FILE__, report);
-        return report;
-      }
+    if (call_isValid && (*call_isValid)(line) != 0) {
+      w_log(LL_FUNC, "%s::subscribe() FAILED (error request line) rc=%s", af_robot->name, report);
+      return report;
     }
 
     cnt = *(af_robot->areaCount);

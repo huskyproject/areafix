@@ -43,6 +43,8 @@ HUSKYEXT void* (*call_smalloc)(size_t);
 /* set to &safe_realloc for hpt */
 HUSKYEXT void* (*call_srealloc)(void *, size_t);
 
+/* validate a conference name */
+HUSKYEXT int (*call_isValid)(const char *);
 /* send a netmail message */
 HUSKYEXT int (*call_sendMsg)(s_message *);
 /* send a message to sysop */
