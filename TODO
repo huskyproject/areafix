@@ -4,4 +4,4 @@ fidoconf:
 
 
 areafix.c:
-  distinguish areafix and filefix in forwardRequestToLink() and below
+  distinguish areafix and filefix in do_delete() and below
