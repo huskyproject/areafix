@@ -64,7 +64,7 @@ HUSKYEXT int (*hook_onDeleteArea)(s_link *link, s_area *area);
 
 /* do program-dependent stuff when rescanning area */
 /* possible usage: afRescanArea */
-HUSKYEXT int (*hook_onRescanArea)(char **report, s_link *link, s_area *area, long rescanCount);
+HUSKYEXT int (*hook_onRescanArea)(char **report, s_link *link, s_area *area, long rescanCount, long rescanAfter);
 
 /* call after config has been changed */
 /* possible usage: perl_invalidate */

@@ -1475,7 +1475,7 @@ char *info_link(s_link *link)
 
 char *rescan(s_link *link, char *cmd) {
     unsigned int i, c, rc = 0;
-    long rescanCount = -1;
+    long rescanCount = -1, rescanAfter = 0;
     char *report = NULL, *line, *countstr, *an, *end;
     s_area *area;
 
@@ -1492,15 +1492,23 @@ char *rescan(s_link *link, char *cmd) {
     while (*countstr && (!isspace(*countstr))) countstr++; /*  skip areatag */
     while (*countstr && (*countstr == ' ' || *countstr == '\t')) countstr++;
     if (strncasecmp(countstr, "/R",2)==0) {
-	countstr += 2;
-	if (*countstr == '=') countstr++;
+	  countstr += 2;
+	  if (*countstr == '=') countstr++;
     }
-    if (strncasecmp(countstr, "R=",2)==0) {
-	countstr += 2;
+    else if (strncasecmp(countstr, "R=",2)==0) {
+	  countstr += 2;
     }
 	
     if (*countstr != '\0') {
-	rescanCount = strtol(countstr, NULL, 10);
+      char *endptr;
+	  rescanCount = strtoul(countstr, &endptr, 10);
+	  if (endptr && *endptr) {
+	    while (isspace(*endptr)) endptr++;
+	    if (*endptr == 'd' || *endptr == 'D') {
+	      rescanAfter = time(NULL) - (rescanCount*24*3600L);
+	      rescanCount = -1;
+	    }
+	  }
     }
 
     end = strpbrk(line, " \t");
@@ -1518,29 +1526,29 @@ char *rescan(s_link *link, char *cmd) {
 	switch (rc) {
 	case 0:
             if (hook_onRescanArea)
-              (*hook_onRescanArea)(&report, link, area, rescanCount);
+              (*hook_onRescanArea)(&report, link, area, rescanCount, rescanAfter);
             else {
          	xscatprintf(&report," %s %s  rescan is not supported\r",
          		    line, print_ch(49-strlen(line), '.'));
-         	w_log(LL_AREAFIX, "areafix: Area \'%s\' rescan is not supported", line);
+         	w_log(LL_AREAFIX, "areafix: Rescan is not supported for area \'%s\'", line);
             }
 	    if (!isPatternLine(line)) i = af_config->echoAreaCount;
 	    break;
 	case 1: if (isPatternLine(line)) continue;
-	    w_log(LL_AREAFIX, "areafix: Area \'%s\' not linked for rescan to %s",
+	    w_log(LL_AREAFIX, "areafix: Area \'%s\' is not linked for rescan to %s",
 		  area->areaName, aka2str(link->hisAka));
-	    xscatprintf(&report, " %s %s  not linked for rescan\r",
+	    xscatprintf(&report, " %s %s  is not linked for rescan\r",
 			an, print_ch(49-strlen(an), '.'));
 	    break;
-	default: w_log(LL_AREAFIX, "areafix: Area \'%s\' not access for %s",
+	default: w_log(LL_AREAFIX, "areafix: No access to area \'%s\' for %s",
 		       area->areaName, aka2str(link->hisAka));
 	    break;
 	}
     }
     if (report == NULL) {
-	xscatprintf(&report," %s %s  not linked for rescan\r",
+	xscatprintf(&report," %s %s  is not linked for rescan\r",
 		    line, print_ch(49-strlen(line), '.'));
-	w_log(LL_AREAFIX, "areafix: Area \'%s\' not linked for rescan", line);
+	w_log(LL_AREAFIX, "areafix: Area \'%s\' is not linked for rescan", line);
     }
     return report;
 }

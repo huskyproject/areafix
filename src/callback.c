@@ -46,7 +46,7 @@ int (*call_writeMsgToSysop)(s_message *) = NULL;
 
 void (*hook_onAutoCreate)(char *c_area, char *descr, hs_addr pktOrigAddr, ps_addr forwardAddr) = NULL;
 int (*hook_onDeleteArea)(s_link *link, s_area *area) = NULL;
-int (*hook_onRescanArea)(char **report, s_link *link, s_area *area, long rescanCount) = NULL;
+int (*hook_onRescanArea)(char **report, s_link *link, s_area *area, long rescanCount, long rescanAfter) = NULL;
 void (*hook_onConfigChange)(e_perlconftype confType) = NULL;
 int (*hook_echolist)(char **report, s_listype type, ps_arealist al, char *aka) = NULL;
 int (*hook_afixcmd)(char **report, int cmd, char *aka, char *line) = NULL;
