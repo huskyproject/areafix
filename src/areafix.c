@@ -312,7 +312,7 @@ char *available(s_link *link, char *cmdline)
 
     pattern = getPatternFromLine(cmdline, &reversed);
 
-    if (call_isValid && (*call_isValid)(pattern) != 0) {
+    if (call_isValid && pattern && (*call_isValid)(pattern) != 0) {
       w_log(LL_FUNC, "%s::avail() FAILED (error request line)", af_robot->name);
       return errorRQ(cmdline);
     }
