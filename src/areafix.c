@@ -188,12 +188,12 @@ char *list(s_listype type, s_link *link, char *cmdline) {
                 /* if matches pattern and not reversed (or vise versa) */
                 if (patimat(area->areaName, pattern)!=reversed)
                 {
-                    addAreaListItem(al,rc==0, area->msgbType!=MSGTYPE_PASSTHROUGH, import, export, mandatory, area->areaName,area->description,area->group);
+                    addAreaListItem(al,rc==0, getLinkRescanAccess(area, link), import, export, mandatory, area->areaName,area->description,area->group);
                     if (rc==0) active++; avail++;
                 }
             } else
             {
-                addAreaListItem(al,rc==0, area->msgbType!=MSGTYPE_PASSTHROUGH, import, export, mandatory, area->areaName,area->description,area->group);
+                addAreaListItem(al,rc==0, getLinkRescanAccess(area, link), import, export, mandatory, area->areaName,area->description,area->group);
                 if (rc==0) active++; avail++;
             }
 	} /* end add line */
