@@ -1031,7 +1031,8 @@ char *errorRQ(char *line) {
 
 char *do_delete(s_link *link, s_area *area) {
     char *report = NULL, *an = area->areaName;
-    unsigned int i=0;
+    unsigned int i = 0, *cnt;
+    ps_area areas;
 
     if(!link)
     {
@@ -1048,10 +1049,43 @@ char *do_delete(s_link *link, s_area *area) {
     for (i=0; i<area->downlinkCount; i++) {
 	if (addrComp(area->downlinks[i]->link->hisAka, link->hisAka))
 	    forwardRequestToLink(an, area->downlinks[i]->link, NULL, 2);
+/*   todo: advanced features
+	if (addrComp(area->downlinks[i]->link->hisAka, link->hisAka)) {
+            s_link *dwlink;
+            dwlink = area->downlinks[i]->link;
+
+	    if (dwlink->unsubscribeOnAreaDelete)
+                forwardRequestToLink(an, dwlink, NULL, 2);
+            if (dwlink->sendNotifyMessages) {
+                s_message *tmpmsg = NULL;
+
+                tmpmsg = makeMessage(dwlink->ourAka, &(dwlink->hisAka),
+                    config->filefixFromName ? config->filefixFromName : versionStr,
+                    dwlink->name, "Notification message", 1,
+                    dwlink->filefixReportsAttr ? dwlink->filefixReportsAttr : config->filefixReportsAttr);
+                tmpmsg->text = createKludges(config, NULL, dwlink->ourAka,
+                    &(dwlink->hisAka), versionStr);
+                if (dwlink->filefixReportsFlags)
+                    xstrscat(&(tmpmsg->text), "\001FLAGS ", dwlink->filefixReportsFlags, "\r",NULL);
+                else if (config->filefixReportsFlags)
+                    xstrscat(&(tmpmsg->text), "\001FLAGS ", config->filefixReportsFlags, "\r",NULL);
+
+                xscatprintf(&tmpmsg->text, "\r Area %s is deleted.\r", area->areaName);
+                    xstrcat(&tmpmsg->text, "\r Do not forget to remove it from your configs.\r");
+                xscatprintf(&tmpmsg->text, "\r\r--- %s filefix\r", versionStr);
+
+                tmpmsg->textLength = strlen(tmpmsg->text);
+                writeNetmail(tmpmsg, getRobotsArea(config)->areaName);
+                freeMsgBuffers(tmpmsg);
+                w_log( LL_AREAFIX, "filefix: write notification msg for %s",aka2str(dwlink->hisAka));
+                nfree(tmpmsg);
+            }
+        }
+*/
     }
     /* remove area from config-file */
     if( changeconfig ((af_cfgFile) ? af_cfgFile : getConfigFileName(),  area, link, 4) != DEL_OK) {
-       w_log( LL_AREAFIX, "areafix: can't remove area from af_config: %s", strerror(errno));
+       w_log( LL_AREAFIX, "%sfix: can't remove area from af_config: %s", _AF, strerror(errno));
     }
 
     /* delete msgbase and dupebase for the area */
@@ -1063,21 +1097,20 @@ char *do_delete(s_link *link, s_area *area) {
 
     if (hook_onDeleteArea) hook_onDeleteArea(link, area); // new!!!
 
-    w_log( LL_AREAFIX, "areafix: area %s deleted by %s",
+    w_log( LL_AREAFIX, "%sfix: area %s deleted by %s", _AF,
                   an, aka2str(link->hisAka));
 
     /* delete the area from in-core af_config */
-    for (i=0; i<af_config->echoAreaCount; i++)
-    {
-        if (stricmp(af_config->echoAreas[i].areaName, an)==0)
-            break;
+    cnt   = af_app->module == M_HTICK ? &af_config->fileAreaCount : &af_config->echoAreaCount;
+    areas = af_app->module == M_HTICK ? af_config->fileAreas : af_config->echoAreas;
+    for (i = 0; i < (*cnt); i++) {
+        if (stricmp(areas[i].areaName, an) == 0) break;
     }
-    if (i<af_config->echoAreaCount && area==&(af_config->echoAreas[i])) {
+    if (i < (*cnt) && area == &(areas[i])) {
         fc_freeEchoArea(area);
-        for (; i<af_config->echoAreaCount-1; i++)
-            memcpy(&(af_config->echoAreas[i]), &(af_config->echoAreas[i+1]),
-            sizeof(s_area));
-        af_config->echoAreaCount--;
+        for (; i < (*cnt)-1; i++)
+            memcpy(&(areas[i]), &(areas[i+1]), sizeof(s_area));
+        (*cnt)--;
         RebuildEchoAreaTree(af_config);
     }
     return report;
@@ -1088,14 +1121,16 @@ char *delete(s_link *link, char *cmd) {
     char *line, *report = NULL, *an;
     s_area *area;
 
+    w_log(LL_FUNC, __FILE__ "::delete(...,%s)", cmd);
+
     for (line = cmd + 1; *line == ' ' || *line == '\t'; line++);
 
     if (*line == 0) return errorRQ(cmd);
 
-    area = getArea(af_config, line);
-    if (area == &(af_config->badArea)) {
+    area = af_app->module == M_HTICK ? getFileArea(line) : getArea(af_config, line);
+    if ((af_app->module == M_HTICK && !area) || area == &(af_config->badArea)) {
 	xscatprintf(&report, " %s %s  not found\r", line, print_ch(49-strlen(line), '.'));
-	w_log(LL_AREAFIX, "areafix: area %s is not found", line);
+	w_log(LL_AREAFIX, "%sfix: area %s is not found", _AF, line);
 	return report;
     }
     rc = subscribeCheck(area, link);
@@ -1106,18 +1141,18 @@ char *delete(s_link *link, char *cmd) {
 	break;
     case 1:
 	xscatprintf(&report, " %s %s  not linked\r", an, print_ch(49-strlen(an), '.'));
-	w_log(LL_AREAFIX, "areafix: area %s is not linked to %s",
+	w_log(LL_AREAFIX, "%sfix: area %s is not linked to %s", _AF,
 	      an, aka2str(link->hisAka));
 	return report;
     case 2:
 	xscatprintf(&report, " %s %s  no access\r", an, print_ch(49-strlen(an), '.'));
-	w_log(LL_AREAFIX, "areafix: area %s -- no access for %s", an, aka2str(link->hisAka));
+	w_log(LL_AREAFIX, "%sfix: area %s -- no access for %s", _AF, an, aka2str(link->hisAka));
 	return report;
     }
     if (link->LinkGrp == NULL || (area->group && strcmp(link->LinkGrp, area->group))) {
 	xscatprintf(&report, " %s %s  delete not allowed\r",
 		    an, print_ch(49-strlen(an), '.'));
-	w_log(LL_AREAFIX, "areafix: area %s delete not allowed for %s",
+	w_log(LL_AREAFIX, "%sfix: area %s delete not allowed for %s", _AF,
 	      an, aka2str(link->hisAka));
 	return report;
     }
@@ -1125,9 +1160,11 @@ char *delete(s_link *link, char *cmd) {
 }
 
 char *unsubscribe(s_link *link, char *cmd) {
-    unsigned int i, rc = 2, j=(unsigned int)I_ERR, from_us=0, matched = 0;
+    unsigned int i, rc = 2, j=(unsigned int)I_ERR, from_us=0, matched = 0, cnt;
     char *line, *an, *report = NULL;
     s_area *area;
+    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
+    int pause = af_app->module == M_HTICK ? FILEAREA : ECHOAREA;
 
     w_log(LL_FUNC,__FILE__ ":%u:unsubscribe() begin", __LINE__);
     line = cmd;
@@ -1135,9 +1172,10 @@ char *unsubscribe(s_link *link, char *cmd) {
     if (line[1]=='-') return NULL;
     line++;
     while (*line==' ') line++;
-	
-    for (i = 0; i< af_config->echoAreaCount; i++) {
-        area = &(af_config->echoAreas[i]);
+
+    cnt = af_app->module == M_HTICK ? af_config->fileAreaCount : af_config->echoAreaCount;
+    for (i = 0; i < cnt; i++) {
+        area = af_app->module == M_HTICK ? &(af_config->fileAreas[i]) : &(af_config->echoAreas[i]);
         an = area->areaName;
 
         rc = subscribeAreaCheck(area, line, link);
@@ -1163,7 +1201,7 @@ char *unsubscribe(s_link *link, char *cmd) {
                         (area->downlinkCount == 1) &&
                         (area->downlinks[0]->link->hisAka.point == 0))
                     {
-                        if(af_config->areafixQueueFile)
+                        if (qf)
                         {
                             af_CheckAreaInQuery(an, &(area->downlinks[0]->link->hisAka), NULL, ADDIDLE);
                             j = changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,7);
@@ -1176,14 +1214,14 @@ char *unsubscribe(s_link *link, char *cmd) {
                     else
                     {
                         j = changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,7);
-                        if (j == DEL_OK && af_config->autoAreaPause && !area->paused && (link->Pause & ECHOAREA) != ECHOAREA)
+                        if (j == DEL_OK && (af_config->autoAreaPause & pause) && !area->paused && !(link->Pause & pause))
                             pauseAreas(0,NULL,area);
                     }
                     if (j != DEL_OK) {
-                        w_log(LL_AREAFIX, "areafix: %s doesn't unlinked from %s",
+                        w_log(LL_AREAFIX, "%sfix: %s doesn't unlinked from %s", _AF,
                             aka2str(link->hisAka), an);
                     } else {
-                        w_log(LL_AREAFIX,"areafix: %s unlinked from %s",aka2str(link->hisAka),an);
+                        w_log(LL_AREAFIX,"%sfix: %s unlinked from %s", _AF, aka2str(link->hisAka),an);
                         if (af_send_notify)
                             forwardRequestToLink(area->areaName,link, NULL, 1);
                     }
@@ -1195,7 +1233,7 @@ char *unsubscribe(s_link *link, char *cmd) {
                 else if ( (area->downlinkCount==1) &&
                           (area->downlinks[0]->link->hisAka.point == 0 ||
                            area->downlinks[0]->defLink) ) {
-                    if(af_config->areafixQueueFile) {
+                    if (qf) {
                         af_CheckAreaInQuery(an, &(area->downlinks[0]->link->hisAka), NULL, ADDIDLE);
                     } else {
                         forwardRequestToLink(area->areaName,
@@ -1207,8 +1245,15 @@ char *unsubscribe(s_link *link, char *cmd) {
                 }
                 j = changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,6);
 /*                if ( (j == DEL_OK) && area->msgbType!=MSGTYPE_PASSTHROUGH ) */
-                if (j == DEL_OK && area->fileName && area->killMsgBase)
+                if (j == DEL_OK) switch (af_app->module) {
+                  case M_HTICK:
+                    if (af_config->autoAreaPause & FILEAREA)
+                      pauseAreas(0, NULL, area);
+                    break;
+                  default:
+                    if (area->fileName && area->killMsgBase)
                        MsgDeleteBase(area->fileName, (word) area->msgbType);
+                }
             }
             if (j == DEL_OK){
                 xscatprintf(&report," %s %s  unlinked\r",an,print_ch(49-strlen(an),'.'));
@@ -1222,35 +1267,36 @@ char *unsubscribe(s_link *link, char *cmd) {
                 continue;
             }
             if (area->hide) {
-                i = af_config->echoAreaCount;
+                i = cnt;
                 break;
             }
             xscatprintf(&report, " %s %s  not linked\r",
                 an, print_ch(49-strlen(an), '.'));
-            w_log(LL_AREAFIX, "areafix: area %s is not linked to %s",
+            w_log(LL_AREAFIX, "%sfix: area %s is not linked to %s", _AF,
                 area->areaName, aka2str(link->hisAka));
             break;
         case 5:
             xscatprintf(&report, " %s %s  unlink is not possible\r",
                 an, print_ch(49-strlen(an), '.'));
-            w_log(LL_AREAFIX, "areafix: area %s -- unlink is not possible for %s",
+            w_log(LL_AREAFIX, "%sfix: area %s -- unlink is not possible for %s", _AF,
                 area->areaName, aka2str(link->hisAka));
             break;
         default:
             break;
         }
     }
-    if(af_config->areafixQueueFile)
+    if (qf)
         report = af_Req2Idle(line, report, link->hisAka);
     if (report == NULL) {
         if (matched) {
-            xscatprintf(&report, " %s %s  no areas to unlink\r",
-                line, print_ch(49-strlen(line), '.'));
-            w_log(LL_AREAFIX, "areafix: no areas to unlink");
+            xscatprintf(&report, " %s %s  no %sareas to unlink\r",
+                line, print_ch(49-strlen(line), '.'),
+                af_app->module == M_HTICK ? "file" : "");
+            w_log(LL_AREAFIX, "%sfix: no areas to unlink", _AF);
         } else {
             xscatprintf(&report, " %s %s  not found\r",
                 line, print_ch(49-strlen(line), '.'));
-            w_log(LL_AREAFIX, "areafix: area %s is not found", line);
+            w_log(LL_AREAFIX, "%sfix: area %s is not found", _AF, line);
         }
     }
     w_log(LL_FUNC,__FILE__ ":%u:unsubscribe() end", __LINE__);
@@ -1260,17 +1306,19 @@ char *unsubscribe(s_link *link, char *cmd) {
 /* if act==0 pause area, if act==1 unpause area */
 /* returns 0 if no messages to links were created */
 int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
-  unsigned int i, j, linkCount;
+  unsigned int i, j, k, linkCount, cnt;
   unsigned int rc = 0;
+  int pause = af_app->module == M_HTICK ? FILEAREA : ECHOAREA;
 
   if (!searchLink && !searchArea) return rc;
 
-  for (i=0; i < af_config->echoAreaCount; i++) {
+  cnt = af_app->module == M_HTICK ? af_config->fileAreaCount : af_config->echoAreaCount;
+  for (i = 0; i < cnt; i++) {
     s_link *uplink;
     s_area *area;
     s_message *msg;
 
-    area = &(af_config->echoAreas[i]);
+    area = af_app->module == M_HTICK ? &(af_config->fileAreas[i]) : &(af_config->echoAreas[i]);
     if (act==0 && (area->paused || area->noautoareapause || area->msgbType!=MSGTYPE_PASSTHROUGH)) continue;
     if (act==1 && (!area->paused)) continue;
     if (searchArea && searchArea != area) continue;
@@ -1278,7 +1326,7 @@ int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
 
     linkCount = 0;
     for (j=0; j < area->downlinkCount; j++) { /* try to find uplink */
-      if ( (area->downlinks[j]->link->Pause & ECHOAREA) != ECHOAREA &&
+      if ( !(area->downlinks[j]->link->Pause & pause) &&
            (!searchLink || addrComp(searchLink->hisAka, area->downlinks[j]->link->hisAka)!=0) ) {
         linkCount++;
         if (area->downlinks[j]->defLink) uplink = area->downlinks[j]->link;
@@ -1290,34 +1338,47 @@ int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
     /* change af_config */
     if (act==0) { /* make area paused */
       if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,NULL,8)==ADD_OK) {
-        w_log(LL_AREAFIX, "areafix: area %s is paused (uplink: %s)",
+        w_log(LL_AREAFIX, "%sfix: area %s is paused (uplink: %s)", _AF,
                  area->areaName, aka2str(uplink->hisAka));
       } else {
-        w_log(LL_AREAFIX, "areafix: error pausing area %s", area->areaName);
+        w_log(LL_AREAFIX, "%sfix: error pausing area %s", _AF, area->areaName);
         continue;
       }
     } else if (act==1) { /* make area non paused */
       if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,NULL,9)==ADD_OK) {
-        w_log(LL_AREAFIX, "areafix: area %s is not paused any more (uplink: %s)",
+        w_log(LL_AREAFIX, "%sfix: area %s is not paused any more (uplink: %s)", _AF,
                  area->areaName, aka2str(uplink->hisAka));
       } else {
-        w_log(LL_AREAFIX, "areafix: error unpausing area %s", area->areaName);
+        w_log(LL_AREAFIX, "%sfix: error unpausing area %s", _AF, area->areaName);
         continue;
       }
     }
 
     /* write messages */
     if (uplink->msg == NULL) {
+      char *robotName, *robotPwd, *reportsFlags;
+      int reportsAttr;
+
+      if (af_app->module == M_HTICK) {
+        robotName = uplink->RemoteFileRobotName ? uplink->RemoteFileRobotName : "filefix";
+        robotPwd = uplink->fileFixPwd ? uplink->fileFixPwd : "\x00";
+        reportsAttr = uplink->filefixReportsAttr ? uplink->filefixReportsAttr : af_config->filefixReportsAttr;
+        reportsFlags = uplink->filefixReportsFlags;
+        if (!reportsFlags) reportsFlags = af_config->filefixReportsFlags;
+      } else {
+        robotName = uplink->RemoteRobotName ? uplink->RemoteRobotName : "areafix";
+        robotPwd = uplink->areaFixPwd ? uplink->areaFixPwd : "\x00";
+        reportsAttr = uplink->areafixReportsAttr ? uplink->areafixReportsAttr : af_config->areafixReportsAttr;
+        reportsFlags = uplink->areafixReportsFlags;
+        if (!reportsFlags) reportsFlags = af_config->areafixReportsFlags;
+      }
+
       msg = makeMessage(uplink->ourAka, &(uplink->hisAka), af_config->sysop,
-      uplink->RemoteRobotName ? uplink->RemoteRobotName : "areafix",
-      uplink->areaFixPwd ? uplink->areaFixPwd : "\x00", 1,
-      uplink->areafixReportsAttr ? uplink->areafixReportsAttr : af_config->areafixReportsAttr);
+                        robotName, robotPwd, 1, reportsAttr);
       msg->text = createKludges(af_config, NULL, uplink->ourAka, &(uplink->hisAka),
                       af_versionStr);
-      if (uplink->areafixReportsFlags)
-        xstrscat(&(msg->text), "\001FLAGS ", uplink->areafixReportsFlags, "\r",NULL);
-      else if (af_config->areafixReportsFlags)
-        xstrscat(&(msg->text), "\001FLAGS ", af_config->areafixReportsFlags, "\r",NULL);
+      if (reportsFlags)
+        xstrscat(&(msg->text), "\001FLAGS ", reportsFlags, "\r",NULL);
       uplink->msg = msg;
     } else msg = uplink->msg;
 
@@ -1332,87 +1393,53 @@ int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
   return rc;
 }
 
-char *pause_link(s_link *link)
+/* mode = 0 to make passive, 1 to make active */
+char *pause_resume_link(s_link *link, int mode)
 {
    char *tmp, *report = NULL;
+   int state, pause;
 
-   if ((link->Pause & ECHOAREA) != ECHOAREA) {
-      if (Changepause((af_cfgFile) ? af_cfgFile : getConfigFileName(), link, 0,ECHOAREA) == 0)
+   pause = af_app->module == M_HTICK ? FILEAREA : ECHOAREA;
+   state = (link->Pause & pause) ? 0 : 1; /* 0 = passive, 1 = active */
+
+   if (state != mode) {
+      unsigned int i, j, areaCount = 0;
+      ps_area areas = NULL;
+
+      if (Changepause(af_cfgFile ? af_cfgFile : getConfigFileName(), link, 0, pause) == 0)
          return NULL;
 
+      if (theApp.module == M_HPT)
       {
-          unsigned int i, j, areaCount = 0;
-          ps_area areas = NULL;
+          areaCount = theApp.config->echoAreaCount;
+          areas     = theApp.config->echoAreas;
+      }
+      else if (theApp.module == M_HTICK)
+      {
+          areaCount = theApp.config->fileAreaCount;
+          areas     = theApp.config->fileAreas;
+      }
 
-          if (theApp.module == M_HPT)
-          {
-              areaCount = theApp.config->echoAreaCount;
-              areas     = theApp.config->echoAreas;
-          }
-          else if (theApp.module == M_HTICK)
-          {
-              areaCount = theApp.config->fileAreaCount;
-              areas     = theApp.config->fileAreas;
-          }
-
-          for (i = 0; i < areaCount; i++)
-              for (j = 0; j < areas[i].downlinkCount; j++)
-                  if (link == areas[i].downlinks[j]->link)
-                      setLinkAccess(theApp.config, &(areas[i]), areas[i].downlinks[j]);
-       }
+      for (i = 0; i < areaCount; i++)
+          for (j = 0; j < areas[i].downlinkCount; j++)
+              if (link == areas[i].downlinks[j]->link)
+                  setLinkAccess(af_config, &(areas[i]), areas[i].downlinks[j]);
+      /* update perl vars */
+      if (hook_onConfigChange) (*hook_onConfigChange)();
    }
-   xstrcat(&report, " System switched to passive\r");
-   tmp = list (lt_linked, link, NULL);/*linked (link);*/
+   xstrscat(&report, " System switched to ", mode ? "active" : "passive", "\r", NULL);
+   tmp = list(lt_linked, link, NULL);/*linked (link);*/
    xstrcat(&report, tmp);
    nfree(tmp);
 
    /* check for areas with one link alive and others paused */
-   if (af_config->autoAreaPause)
+   if (af_config->autoAreaPause & pause)
        pauseAreas(0, link, NULL);
 
    return report;
 }
-char *resume_link(s_link *link)
-{
-    char *tmp, *report = NULL;
-
-    if ((link->Pause & ECHOAREA) == ECHOAREA) {
-	if (Changepause((af_cfgFile) ? af_cfgFile : getConfigFileName(), link,0,ECHOAREA) == 0)
-	    return NULL;
-
-        {
-            unsigned int i, j, areaCount = 0;
-            ps_area areas = NULL;
-
-            if (theApp.module == M_HPT)
-            {
-                areaCount = theApp.config->echoAreaCount;
-                areas     = theApp.config->echoAreas;
-            }
-            else if (theApp.module == M_HTICK)
-            {
-                areaCount = theApp.config->fileAreaCount;
-                areas     = theApp.config->fileAreas;
-            }
-
-            for (i = 0; i < areaCount; i++)
-                for (j = 0; j < areas[i].downlinkCount; j++)
-                    if (link == areas[i].downlinks[j]->link)
-                        setLinkAccess(theApp.config, &(areas[i]), areas[i].downlinks[j]);
-         }
-    }
-
-    xstrcat(&report, " System switched to active\r");
-    tmp = list (lt_linked, link, NULL);/*linked (link);*/
-    xstrcat(&report, tmp);
-    nfree(tmp);
-
-    /* check for paused areas with this link */
-    if (af_config->autoAreaPause)
-        pauseAreas(1, link, NULL);
-
-    return report;
-}
+char *pause_link(s_link *link)  { return pause_resume_link(link, 0); }
+char *resume_link(s_link *link) { return pause_resume_link(link, 1); }
 
 char *info_link(s_link *link)
 {
