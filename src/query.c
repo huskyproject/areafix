@@ -143,8 +143,7 @@ char* makeAreaParam(s_link *creatingLink, s_link_robot *r, char* c_area, char* m
     msgbtype = fc_stristr(newAC, "-b ");
 
     if(!msgbDir)
-        msgbDir=(creatingLink->msgBaseDir) ?
-        creatingLink->msgBaseDir : af_config->msgBaseDir;
+        msgbDir = creatingLink->areafix.baseDir ? creatingLink->areafix.baseDir : af_config->msgBaseDir;
 
     quote_areaname = strchr(TRUE_COMMENT "\"", *c_area) ? "\"" : "";
 
@@ -280,7 +279,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     if (af_config->createFwdNonPass == 0 && forwardAddr)
         msgbDir = pass;
     else
-        msgbDir = creatingLink->msgBaseDir;
+        msgbDir = r->baseDir;
 
     if (af_robot->queueFile)
     {
@@ -311,17 +310,15 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
                 for(j = 0; j < af_config->addrCount; j++)
                     if (addrComp(areaNode->downlinks[i],af_config->addr[j])==0)
                     {
-                        bDir = (creatingLink->fileBaseDir) ? creatingLink->fileBaseDir : af_config->fileAreaBaseDir;
-                        msgbDir = creatingLink->msgBaseDir; 
+                        bDir = (creatingLink->filefix.baseDir) ? creatingLink->filefix.baseDir : af_config->fileAreaBaseDir;
+                        msgbDir = creatingLink->areafix.baseDir; 
                         break;
                     }
         }
     }
 
     /*  making address of uplink */
-    xstrcat(&hisaddr, 
-            aka2str(af_app->module == M_HTICK ? creatingLink->hisAka : pktOrigAddr)
-           );
+    xstrcat(&hisaddr, aka2str(pktOrigAddr));
 
     /* HPT stuff */
     if (af_app->module == M_HPT) {
@@ -340,7 +337,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
       else strLower(fileechoFileName);
 
       if (bDir==NULL)
-          bDir = (creatingLink->fileBaseDir) ? creatingLink->fileBaseDir : af_config->fileAreaBaseDir;
+          bDir = (creatingLink->filefix.baseDir) ? creatingLink->filefix.baseDir : af_config->fileAreaBaseDir;
 
       if( strcasecmp(bDir,"passthrough") )
       {
@@ -486,11 +483,10 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     if (hook_onAutoCreate) (*hook_onAutoCreate)(c_area, descr, pktOrigAddr, forwardAddr);
 
-    if (af_app->module == M_HPT) {
-      /* check if downlinks are already paused, pause area if it is so */
-      /* skip if forwardAddr is NULL: will be checked in subscribe() */
-      if (af_robot->autoAreaPause && area->msgbType == MSGTYPE_PASSTHROUGH && forwardAddr == NULL)
-        if (pauseArea(ACT_PAUSE, NULL, area)) sendAreafixMessages();
+    /* check if downlinks are already paused, pause area if it is so */
+    /* skip if forwardAddr is NULL: will be checked in subscribe() */
+    if (af_robot->autoAreaPause && area->msgbType == MSGTYPE_PASSTHROUGH && forwardAddr == NULL) {
+      if (pauseArea(ACT_PAUSE, NULL, area)) sendAreafixMessages();
     }
 
     nfree(hisaddr);
@@ -966,13 +962,8 @@ void af_QueueUpdate()
             w_log( LL_AREAFIX, "%s: request for %s is going to be killed", af_robot->name, tmpNode->name);
             dwlink = getLinkFromAddr(af_config, tmpNode->downlinks[0]);
             /* delete area from config, unsubscribe at downlinks */
-            if (af_app->module == M_HTICK) {
-              delarea = getFileArea(tmpNode->name);
-              if (delarea != NULL) do_delete(dwlink, delarea);
-            } else {
-              delarea = getArea(af_config, tmpNode->name);
-              if (delarea != &(af_config->badArea)) do_delete(dwlink, delarea);
-            }
+            delarea = (*call_getArea)(tmpNode->name);
+            if (delarea) do_delete(dwlink, delarea);
             /* unsubscribe at uplink */
             if (dwlink) forwardRequestToLink(tmpNode->name, dwlink, NULL, 2);
         }

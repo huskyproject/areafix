@@ -449,38 +449,21 @@ int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act
     } else msg = uplink->msg;
 	
     if (act==0) {
-      if (af_app->module == M_HTICK) {
-        if (getFileArea(areatag) == NULL) {
+        if ((*call_getArea)(areatag) == NULL) {
             if (af_robot->queueFile) {
                 af_CheckAreaInQuery(areatag, &(uplink->hisAka), &(dwlink->hisAka), ADDFREQ);
             }
             else {
-                base = uplink->fileBaseDir;
-                if (af_config->createFwdNonPass==0) uplink->fileBaseDir = pass;
+                base = r->baseDir;
+                if (af_config->createFwdNonPass==0) r->baseDir = pass;
                 /*  create from own address */
-                if (isOurAka(af_config,dwlink->hisAka)) uplink->fileBaseDir = base;
+                if (isOurAka(af_config,dwlink->hisAka)) r->baseDir = base;
                 strUpper(areatag);
                 autoCreate(areatag, NULL, uplink->hisAka, &(dwlink->hisAka));
-                uplink->fileBaseDir = base;
+                r->baseDir = base;
             }
         }
-      } else {
-        if (getArea(af_config, areatag) == &(af_config->badArea)) {
-            if(af_robot->queueFile) {
-                af_CheckAreaInQuery(areatag, &(uplink->hisAka), &(dwlink->hisAka), ADDFREQ);
-            }
-            else {
-                base = uplink->msgBaseDir;
-                if (af_config->createFwdNonPass==0) uplink->msgBaseDir = pass;
-                /*  create from own address */
-                if (isOurAka(af_config,dwlink->hisAka)) uplink->msgBaseDir = base;
-                strUpper(areatag);
-                autoCreate(areatag, NULL, uplink->hisAka, &(dwlink->hisAka));
-                uplink->msgBaseDir = base;
-            }
-        }
-      }
-    xstrscat(&msg->text, "+", areatag, "\r", NULL);
+        xstrscat(&msg->text, "+", areatag, "\r", NULL);
     } else if (act==1) {
         xscatprintf(&(msg->text), "-%s\r", areatag);
     } else {
@@ -616,7 +599,7 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
 
             if (af_app->module == M_HTICK) {
               char *tmp = NULL;
-              bDir = link->fileBaseDir ? link->fileBaseDir : af_config->fileAreaBaseDir;
+              bDir = link->filefix.baseDir ? link->filefix.baseDir : af_config->fileAreaBaseDir;
 
               if (link->autoFileCreateSubdirs) {
                   char *cp;
@@ -953,7 +936,7 @@ char *subscribe(s_link *link, char *cmd) {
 		w_log(LL_AREAFIX, "%s: Request forwarded to area \'%s\'", af_robot->name, line);
         if (!af_robot->queueFile && isOurAka(af_config,link->hisAka)==0)
         {
-            area = af_app->module == M_HTICK ? getFileArea(line) : getArea(af_config, line);
+            area = (*call_getArea)(line);
             if ( !isLinkOfArea(link, area) ) {
                 if(changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,3)==ADD_OK) {
                     Addlink(af_config, link, area);
@@ -1118,11 +1101,11 @@ char *delete(s_link *link, char *cmd) {
 
     if (*line == 0) return errorRQ(cmd);
 
-    area = af_app->module == M_HTICK ? getFileArea(line) : getArea(af_config, line);
-    if ((af_app->module == M_HTICK && !area) || area == &(af_config->badArea)) {
-	xscatprintf(&report, " %s %s  not found\r", line, print_ch(49-strlen(line), '.'));
-	w_log(LL_AREAFIX, "%s: Not found area \'%s\'", af_robot->name, line);
-	return report;
+    area = (*call_getArea)(line);
+    if (!area) {
+  	  xscatprintf(&report, " %s %s  not found\r", line, print_ch(49-strlen(line), '.'));
+      w_log(LL_AREAFIX, "%s: Not found area \'%s\'", af_robot->name, line);
+      return report;
     }
     rc = subscribeCheck(area, link);
     an = area->areaName;
@@ -2854,6 +2837,6 @@ int init_areafix(char *robotName) {
   if (call_sstrdup == NULL) call_sstrdup = &sstrdup;
   if (call_smalloc == NULL) call_smalloc = &smalloc;
   if (call_srealloc == NULL) call_srealloc = &srealloc;
-  if (!call_sendMsg || !call_writeMsgToSysop || !call_getLinkRobot) return 0;
+  if (!call_sendMsg || !call_writeMsgToSysop || !call_getLinkRobot || !call_getArea) return 0;
   return 1;
 }
