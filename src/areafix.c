@@ -2555,7 +2555,7 @@ void afix(hs_addr addr, char *cmd)
 /* mode==1 - resubscribe mode (fromLink -> toLink)*/
 int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
     ps_area       areas = NULL;
-    unsigned int  i, j, count, addMode, areaCount = 0;
+    unsigned int  i, j, count, addMode, areaCount = 0, reversed;
     s_link        *fromLink = NULL, *toLink = NULL;
     char          *fromCmd  = NULL, *toCmd  = NULL;
     char          *fromAka  = NULL, *toAka  = NULL;
@@ -2578,6 +2578,15 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
             return 1;
         }
         toAka = (*call_sstrdup)(aka2str(toLink->hisAka));
+    }
+
+    if (pattern) {
+        if ((strlen(pattern) > 2) && (pattern[0] == '!') && (isspace(pattern[1]))) {
+            reversed = 1;
+            pattern++;
+            while (isspace(pattern[0])) pattern++;
+        } else reversed = 0;
+        if (strlen(pattern) == 0) pattern = NULL;
     }
 
     if (af_app->module == M_HTICK) {
@@ -2618,8 +2627,10 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
 
     count = 0;
     for (i = 0; i < areaCount; i++) {
-        if (patimat(areas[i].areaName, pattern) == 0)
+
+        if ((pattern) && (patimat(areas[i].areaName, pattern) == reversed))
             continue;
+
         for (j = 0; j < areas[i].downlinkCount; j++) {
 
             if (fromLink != areas[i].downlinks[j]->link)
