@@ -1,3 +1,8 @@
+2005-02-03 Thursday 18:54  val_khokhlov
+
+	* areafix/callback.h (1.10), src/areafix.c (1.49), src/callback.c
+	(1.8): allow rescan by date (/r=30d or /r=30 days)
+
 2005-01-14 Friday 20:16  val_khokhlov
 
 	* src/areafix.c (1.48): if remote robot's name isn't set use
