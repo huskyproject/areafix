@@ -731,11 +731,11 @@ static int compare_links_priority(const void *a, const void *b) {
     int ib = *((int*)b);
     unsigned int pa, pb;
     if (af_app->module == M_HTICK) {
-      pa = af_config->links[ia]->forwardAreaPriority;
-      pb = af_config->links[ib]->forwardAreaPriority; 
-    } else {
       pa = af_config->links[ia]->forwardFilePriority;
       pb = af_config->links[ib]->forwardFilePriority;
+    } else {
+      pa = af_config->links[ia]->forwardAreaPriority;
+      pb = af_config->links[ib]->forwardAreaPriority; 
     }
     if (pa < pb) return -1;
     else if(pa > pb) return 1;
