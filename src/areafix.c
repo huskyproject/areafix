@@ -1918,6 +1918,45 @@ char *change_pwd(s_link *link, char *cmdline)
     return report;
 }
 
+/* if any text is returned, it should be treated as a failure report
+   and message processing should be stopped */
+char *change_link(s_link **link, s_link *origlink, char *cmdline)
+{
+    char *report = NULL, *addr = NULL;
+    s_link *newlink = NULL;
+
+    w_log(LL_FUNC, __FILE__ "::change_link()");
+
+    if (!origlink->allowRemoteControl) {
+        w_log(LL_AREAFIX, "%sfix: Remote control is not allowed for link %s", _AF, aka2str(origlink->hisAka));
+        xstrcat(&report, "Remote control is not allowed to you, the rest of message is skipped.\r\r");
+        return report;
+    }
+
+    if (cmdline[0] == '%') cmdline++; /* exclude '%' sign */
+    while((strlen(cmdline) > 0) && isspace(cmdline[0])) cmdline++; /* exclude spaces between '%' and command */
+    while((strlen(cmdline) > 0) && !isspace(cmdline[0])) cmdline++; /* exclude command */
+    while((strlen(cmdline) > 0) && isspace(cmdline[0])) cmdline++; /* exclude spaces between command and rest of line */
+
+    addr = strtok(cmdline, "\0");
+    if (addr == NULL) {
+        w_log(LL_AREAFIX, "%sfix: Address is missing in FROM command", _AF);
+        xstrcat(&report, "Invalid request. Address is required. Please read help.\r\r");
+        return report;
+    }
+    newlink = getLink(af_config, addr);
+    if (newlink == NULL) {
+        w_log(LL_AREAFIX, "%sfix: Link %s not found in config", _AF, addr);
+        xscatprintf(&report, "Link %s not found, the rest of message is skipped.\r\r", addr);
+        return report;
+    }
+
+    *link = newlink;
+    w_log(LL_AREAFIX, "%sfix: Link changed to %s", _AF, aka2str((*link)->hisAka));
+    w_log(LL_FUNC, __FILE__ "::change_link() OK");
+    return NULL;
+}
+
 int tellcmd(char *cmd) {
     char *line;
 
@@ -1958,6 +1997,7 @@ int tellcmd(char *cmd) {
         if (strncasecmp(line,"filefixpwd",10)==0) return FILEFIXPWD;
         if (strncasecmp(line,"pktpwd",6)==0) return PKTPWD;
         if (strncasecmp(line,"ticpwd",6)==0) return TICPWD;
+        if (strncasecmp(line,"from",4)==0) return FROM;
         return AFERROR;
     case '\001': return NOTHING;
     case '\000': return NOTHING;
@@ -2060,6 +2100,9 @@ char *processcmd(s_link *link, char *line, int cmd) {
     case TICPWD:
         RetFix=cmd;
         report = change_pwd(link, line);
+        break;
+    case FROM:         /* command is processed in processAreafix() */
+        RetFix=FROM;
         break;
     case AFERROR: report = errorRQ(line);
         RetFix=STAT;
@@ -2278,7 +2321,10 @@ void sendAreafixMessages()
 int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 {
     unsigned int security = 0, notforme = 0;
-    s_link *link = NULL;
+    s_link *curlink = NULL;  /* perform areafix changes on this link */
+                             /* can be changed by %from command */
+    s_link *link = NULL;  /* whom to send areafix reports */
+                          /* i.e. original sender of message */
     s_link *tmplink = NULL;
     /* s_message *linkmsg; */
     /* s_pktHeader header; */
@@ -2358,6 +2404,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
         link = getLinkFromAddr(af_config, msg->origAddr);
 
     if (!security) {
+        curlink = link;
 	textBuff = (*call_sstrdup)(msg->text);
         tmp = textBuff;
 	token = strseparate (&tmp, "\n\r");
@@ -2365,7 +2412,10 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 	    while ((*token == ' ') || (*token == '\t')) token++;
 	    while(isspace(token[strlen(token)-1])) token[strlen(token)-1]='\0';
             w_log(LL_AREAFIX, "Process command: %s", token);
-	    preport = processcmd( link, token, tellcmd (token) );
+	    preport = processcmd( curlink, token, tellcmd (token) );
+            if (RetFix == FROM && preport == NULL) {
+                preport = change_link(&curlink, link, token);
+            }
 	    if (preport != NULL) {
 		switch (RetFix) {
 		case LIST:
@@ -2423,6 +2473,10 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 		case PKTPWD:
 		case TICPWD:
 		    RetMsg(msg, link, preport, "Areafix reply: password change request");
+		    break;
+		case FROM:
+		    RetMsg(msg, link, preport, "Areafix reply: link change request");
+                    RetFix = DONE; /* error changing link, rest of message should be skipped */
 		    break;
 		default:
 		    w_log(LL_ERR,"Unknown areafix command:%s", token);

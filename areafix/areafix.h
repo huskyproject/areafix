@@ -71,6 +71,7 @@ extern "C" {
 #define FILEFIXPWD  20
 #define PKTPWD      21
 #define TICPWD      22
+#define FROM        23
 #define DONE        100
 #define STAT        101
 #define AFERROR     255
