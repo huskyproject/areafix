@@ -1,0 +1,116 @@
+# $Id$
+# Makefile to build AREAFIX with cross-compiler Mingw32 on unix
+# No support for the Husky build environment.
+
+# Uncomment this for compile info for gdb and display more compiler warnings
+DEBUG	= -g -pedantic
+
+# Uncomment this for strip all simbols from binaries to reduce file sizes
+#STRIP	= -s
+
+
+## programs ##
+
+CC	= gcc
+AR	= ar
+RANLIB	= ranlib
+LINK	= ld
+ARCHIVER= zip
+
+ifeq ($(OSTYPE),msys)
+RM	= rm
+else
+RM	= del
+endif
+
+## file suffixes ##
+
+_C	= .c
+_OBJ	= .o
+_LIB	= .a
+_EXE	= .exe
+_DLL	= .dll
+
+## program options ##
+
+CDEFS	=
+CFLAGS	= -Wno-long-long -Wall -O3
+LFLAGS	=
+OBJOPT	= -c
+LIBOPT	= -static
+DLLOPT  =
+NAMEOPT	= -o
+ARFLAGS	= r
+ARCFLAGS= -9 -j
+
+ifeq ($(RM),rm)
+RMFLAGS	= -f
+else
+RMFLAGS	=
+endif
+
+## Library filename elements ##
+
+LIBPREFIX=lib
+DLLPREFIX=
+LIBSUFFIX=mgw
+DLLSUFFIX=
+
+## Binary package name ##
+
+PACKAGENAME=$(LIBNAME)$(LIBSUFFIX)
+
+## make directives ##
+
+.PHONY:	distclean clean all static dll programs default doc package
+
+## Default make rule ##
+
+default:
+	@echo Run 'make dll' to build dll version ($(TARGETDLL))
+	@echo Run 'make static' to build static version ($(TARGETLIB))
+
+## include common makefiles part ##
+
+include makefile.inc
+
+# libraries need to build binary file
+LIBS	+=	..\..\fidoconf\make\$(LIBPREFIX)fidoconfig$(LIBSUFFIX).$(_LIB) \
+		..\..\smapi\make\$(LIBPREFIX)smapi$(LIBSUFFIX).$(_LIB) \
+		..\..\huskylib\make\$(LIBPREFIX)husky$(LIBSUFFIX).$(_LIB)
+
+## other, usualy not modify below ##
+
+## Additions (add into end of strings) ##
+CFLAGS	+= -I$(H_DIR) -I../../huskylib -I../../smapi -I../../fidoconf $(DEBUG)
+
+## make rules ##
+
+static:	$(TARGETLIB)
+dll:	$(TARGETDLL)
+
+
+%$(_OBJ): $(_SRC_DIR)%$(_C)
+	@echo Compiling $<
+	@$(CC) $(CFLAGS) $(CDEFS) $(OBJOPT) $<
+
+$(TARGETLIB):	$(OBJS)
+	@echo Creating $(TARGETLIB)
+	@$(AR) $(ARFLAGS) $@ $?
+	@$(RANLIB) $@
+	
+$(TARGETDLL):	$(OBJS)
+	@echo Creating $(TARGETDLL)
+	@$(CC) $(DLLOPT) $(CFLAGS) $(NAMEOPT)$@ $^
+
+
+clean:
+	@echo Deleting *$(_OBJ)
+	@-$(RM) $(RMOPT) *$(_OBJ)
+
+distclean: clean
+	@echo Deleting $(TARGETDLL)
+	@-$(RM) $(RMOPT) $(TARGETDLL)
+	@echo Deleting $(TARGETLIB)
+	@-$(RM) $(RMOPT) $(TARGETLIB)
+
