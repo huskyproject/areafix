@@ -1,3 +1,9 @@
+2004-12-25 Saturday 21:47  val_khokhlov
+
+	* areafix/afglobal.h (1.4), areafix/areafix.h (1.9), src/afglobal.c
+	(1.4), src/areafix.c (1.34), src/query.c (1.15): multi-robot
+	support, global config parameters only
+
 2004-12-14 Tuesday 23:05  andrew_ladutsko
 
 	* src/areafix.c (1.33): fixed adding original request text after
