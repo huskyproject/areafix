@@ -1,3 +1,7 @@
+2005-03-04 Friday 14:23  mche
+
+	* areafix/areafix.h (1.11): macro redifinition fixed
+
 2005-03-03 Thursday 10:29  mche
 
 	* src/query.c (1.23): null-pointer validation
