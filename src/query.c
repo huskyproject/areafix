@@ -60,6 +60,9 @@
 #include <global.h>
 #include <toss.h>
 */
+
+#define DLLEXPORT
+#include <huskylib/huskyext.h>
 #include <areafix.h>
 #include <query.h>
 #include <afglobal.h>
@@ -662,7 +665,7 @@ char* af_GetQFlagName()
 {
     char *chanagedflag = NULL;
     char *logdir       = NULL;
-    char *czChangFlg   = af_app->module == M_HTICK ? czChangFlg_htick : czChangFlg_hpt;
+    const char *czChangFlg   = af_app->module == M_HTICK ? czChangFlg_htick : czChangFlg_hpt;
 
 #ifdef DEBUG_HPT
 w_log(LL_FUNC, "af_GetQFlagName(): begin");

@@ -28,6 +28,8 @@
 #include <fidoconf/fidoconf.h>
 #include <fidoconf/arealist.h>
 
+#define DLLEXPORT
+#include <huskylib/huskyext.h>
 #include "areafix.h"
 #include "callback.h"
 

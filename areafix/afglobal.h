@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 #include <huskylib/compiler.h>
-#include <huskylib/huskylib.h>
+#include <huskylib/huskyext.h>
 #include <fidoconf/fidoconf.h>
 
 HUSKYEXT s_fidoconfig* af_config;

@@ -78,6 +78,9 @@
 #include <hpt.h>
 #include <dupe.h>
 */
+
+#define DLLEXPORT
+#include <huskylib/huskyext.h>
 #include <areafix.h>
 #include <query.h>
 #include <afglobal.h>

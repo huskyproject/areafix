@@ -25,6 +25,12 @@
 
 #include <fidoconf/fidoconf.h>
 
+/* export functions from DLL */
+#define DLLEXPORT
+#include <huskylib/huskyext.h>
+
+#include <afglobal.h>
+
 s_fidoconfig* af_config           = NULL;
 char*         af_cfgFile          = NULL;
 char*         af_versionStr       = NULL;

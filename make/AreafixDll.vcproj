@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="msvcrtd.lib Kernel32.lib"
+				AdditionalDependencies="msvcrtd.lib Kernel32.lib fidoconf.lib huskylib.lib smapi.lib"
 				OutputFile="..\..\nd_d\bin/areafix.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
@@ -102,7 +102,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="msvcrt.lib Kernel32.lib fidoconf.lib"
+				AdditionalDependencies="msvcrt.lib Kernel32.lib fidoconf.lib huskylib.lib smapi.lib"
 				OutputFile="..\..\nd_r\bin/areafix.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
