@@ -1,3 +1,8 @@
+2004-11-17 Wednesday 23:20  andrew_ladutsko
+
+	* areafix/areafix.h (1.8), src/areafix.c (1.29), src/query.c
+	(1.14): autoAreaPause rewritten
+
 2004-07-31 Saturday 14:56  andrew_ladutsko
 
 	* src/areafix.c (1.28): Added ability to specify link rights to
