@@ -1,3 +1,8 @@
+2005-01-02 Sunday 16:45  val_khokhlov
+
+	* src/areafix.c (1.40): move some vars from s_link into
+	s_link_robot
+
 2004-12-31 Friday 20:26  val_khokhlov
 
 	* areafix/areafix.h (1.10): declare some functions as exportable to
