@@ -991,13 +991,17 @@ void af_QueueUpdate()
             tmpNode->eTime = tnow + af_config->killedRequestTimeout*secInDay;
             tmpNode->linksCount = 1;
             w_log( LL_AREAFIX, "%sfix: request for %s is going to be killed", _AF, tmpNode->name);
+            dwlink = getLinkFromAddr(af_config, tmpNode->downlinks[0]);
+            /* delete area from config, unsubscribe at downlinks */
             if (af_app->module == M_HTICK) {
               delarea = getFileArea(tmpNode->name);
-              if (delarea != NULL) do_delete(NULL, delarea);
+              if (delarea != NULL) do_delete(dwlink, delarea);
             } else {
               delarea = getArea(af_config, tmpNode->name);
-              if (delarea != &(af_config->badArea)) do_delete(NULL, delarea);
+              if (delarea != &(af_config->badArea)) do_delete(dwlink, delarea);
             }
+            /* unsubscribe at uplink */
+            if (dwlink) forwardRequestToLink(tmpNode->name, dwlink, NULL, 2);
         }
     }
     /* send notification messages */
