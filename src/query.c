@@ -582,9 +582,18 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
             /* FIND: find any type entry but continue searching in hope */
             /* to find an entry with right uplink */
             if( act == FIND &&
-                (!areaNode || (!uplink || addrComp(tmpNode->next->downlinks[0], *uplink) == 0 )) ) {
+                ( !areaNode || (!uplink || addrComp(tmpNode->next->downlinks[0], *uplink) == 0 )) ) {
                    w_log(LL_DEBUGF, "af_CheckAreaInQuery() found!");
                    areaNode = tmpNode->next;
+            }
+
+            /* FINDFREQ: if entry is @freq, then area is already requested */
+            /* at uplink, an entry should be unique in queue */
+            if( act == FINDFREQ &&
+                stricmp(tmpNode->next->type,czFreqArea) == 0 ) {
+                   w_log(LL_DEBUGF, "af_CheckAreaInQuery() found!");
+                   areaNode = tmpNode->next;
+                   break;
             }
 
             /* DELIDLE: no entry should be found or an @idle entry  */
@@ -615,6 +624,7 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
     switch( act )
     {
     case FIND:
+    case FINDFREQ:
         if( !bFind )
             tmpNode = NULL;
         break;

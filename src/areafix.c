@@ -970,8 +970,16 @@ char *subscribe(s_link *link, char *cmd) {
                   af_app->module == M_HTICK ? "File" : "");
         } else
         if (link->denyFRA==0) {
+            s_query_areas *node = NULL;
+            /*  check if area is already requested */
+            if (qf && (node = af_CheckAreaInQuery(line,NULL,NULL,FINDFREQ)) != NULL) {
+                af_CheckAreaInQuery(line, &(node->downlinks[0]), &(link->hisAka), ADDFREQ);
+		xscatprintf(&report, " %s %s  request forwarded\r",
+			    line, print_ch(49-strlen(line), '.'));
+                w_log(LL_AREAFIX, "%sfix: Area \'%s\' is already requested at %s", _AF, line, aka2str(node->downlinks[0]));
+	    }
 	    /*  try to forward request */
-	    if ((rc=forwardRequest(line, link, NULL))==2) {
+            else if ((rc=forwardRequest(line, link, NULL))==2) {
 		xscatprintf(&report, " %s %s  no uplinks to forward\r",
 			    line, print_ch(49-strlen(line), '.'));
 		w_log(LL_AREAFIX, "%sfix: No uplinks to forward area \'%s\'", _AF, line);
