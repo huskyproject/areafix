@@ -2622,12 +2622,14 @@ void afix(hs_addr addr, char *cmd)
 /* mode==1 - resubscribe mode (fromLink -> toLink)*/
 int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
     ps_area       areas = NULL;
-    unsigned int  i, j, count, addMode, areaCount = 0, reversed;
+    unsigned int  i, j, k, count, addMode, areaCount = 0, reversed;
     s_link        *fromLink = NULL, *toLink = NULL;
     char          *fromCmd  = NULL, *toCmd  = NULL;
     char          *fromAka  = NULL, *toAka  = NULL;
     char          *fromRobot, *fromPwd, *fromFlags, *toRobot, *toPwd, *toFlags;
+    char          *exclMask;
     int           fromAttrs, toAttrs;
+    s_arealink    *arealink = NULL;
 
     w_log(LL_START, "Start relink...");
 
@@ -2645,6 +2647,9 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
             return 1;
         }
         toAka = (*call_sstrdup)(aka2str(toLink->hisAka));
+
+        /* allocate memory to check for read/write access for new link */
+        arealink = (s_arealink*) scalloc(1, sizeof(s_arealink));
     }
 
     if (pattern) {
@@ -2707,6 +2712,53 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
 
             /* resubscribe */
             if (mode) {
+
+                /* check if new link would have full access to area */
+                /* report to log and skip relink/resubscribe if not */
+                arealink->link = toLink;
+                setLinkAccess(af_config, &areas[i], arealink);
+
+                if (af_config->readOnlyCount) {
+                    for (k=0; k < af_config->readOnlyCount; k++) {
+                        if(af_config->readOnly[k].areaMask[0] != '!') {
+                            if (patimat(areas[i].areaName, af_config->readOnly[k].areaMask) &&
+                                patmat(toAka, af_config->readOnly[k].addrMask)) {
+                                    arealink->import = 0;
+                            }
+                        } else {
+                            exclMask = af_config->readOnly[k].areaMask;
+                            exclMask++;
+                            if (patimat(areas[i].areaName, exclMask) &&
+                                patmat(toAka, af_config->readOnly[k].addrMask)) {
+                                    arealink->import = 1;
+                            }
+                        }
+                    }
+                }
+                
+                if (af_config->writeOnlyCount) {
+                    for (k=0; k < af_config->writeOnlyCount; k++) {
+                        if(af_config->writeOnly[k].areaMask[0] != '!') {
+                            if (patimat(areas[i].areaName, af_config->writeOnly[k].areaMask) &&
+                                patmat(toAka, af_config->writeOnly[k].addrMask)) {
+                                    arealink->export = 0;
+                            }
+                        } else {
+                            exclMask = af_config->writeOnly[k].areaMask;
+                            exclMask++;
+                            if (patimat(areas[i].areaName, exclMask) &&
+                                patmat(toAka, af_config->writeOnly[k].addrMask)) {
+                                    arealink->export = 1;
+                            }
+                        }
+                    }
+                }
+
+                if ((arealink->export == 0) || (arealink->import == 0)) {
+                    w_log(LL_AREAFIX, "%sfix: Link %s will not have full access (export=%s import=%s) to %sarea %s, skipped",
+                           _AF, toAka, arealink->export?"on":"off", arealink->import?"on":"off", af_app->module == M_HTICK ? "file" : "", areas[i].areaName);
+                    continue;
+                }
 
                 /* unsubscribe fromLink from area */
                 if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),
@@ -2827,6 +2879,7 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
 
     nfree(fromAka);
     nfree(toAka);
+    nfree(arealink);
 
     w_log(LL_AREAFIX, "%s %i %sarea(s)", mode ? "Resubscribed" : "Relinked",
              count, af_app->module == M_HTICK ? "file" : "");
