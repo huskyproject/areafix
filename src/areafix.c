@@ -781,7 +781,7 @@ int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink) {
                         break;
                     else rc = 2;
                 } else { /*  unconditional forward request */
-                    if (dwlink->denyUFRA==0)
+                    if (r->denyUFRA==0)
                         break;
                     else rc = 2;
                 }
@@ -824,6 +824,7 @@ char *subscribe(s_link *link, char *cmd) {
     unsigned int i, rc=4, found=0, matched=0, cnt;
     char *line, *an=NULL, *report = NULL;
     s_area *area=NULL;
+    s_link_robot *r = (*call_getLinkRobot)(link);
 
     w_log(LL_FUNC, "%s::subscribe(...,%s)", __FILE__, cmd);
 
@@ -938,7 +939,7 @@ char *subscribe(s_link *link, char *cmd) {
             w_log(LL_WARN, "%s: Can't forward request for %s \'%s\' : refused by newAreaRefuseFile\n", 
                   af_robot->name, af_robot->strA, line);
         } else
-        if (link->denyFRA==0) {
+        if (r->denyFRA==0) {
             s_query_areas *node = NULL;
             /* check if area is already requested */
             if (af_robot->queueFile && (node = af_CheckAreaInQuery(line,NULL,NULL,FINDFREQ)) != NULL) {
@@ -1456,6 +1457,7 @@ char *info_link(s_link *link)
 {
     char *report=NULL, *ptr, linkAka[SIZE_aka2str];
     unsigned int i;
+    s_link_robot *r = (*call_getLinkRobot)(link);
 
     sprintf(linkAka,aka2str(link->hisAka));
     xscatprintf(&report, "Here is some information about our link:\r\r");
@@ -1469,7 +1471,7 @@ char *info_link(s_link *link)
     xscatprintf(&report, "             Packet size: unlimited\r");
     xscatprintf(&report, "     Arcmail bundle size: %u kbytes\r", link->arcmailSize!=0 ? link->arcmailSize :
                       (af_config->defarcmailSize ? af_config->defarcmailSize : 500));
-    xscatprintf(&report, " Forward requests access: %s\r", link->denyFRA ? "off" : "on");
+    xscatprintf(&report, " Forward requests access: %s\r", r->denyFRA ? "off" : "on");
     xscatprintf(&report, "Compression: ");
 
     if (link->packerDef==NULL)
@@ -2281,7 +2283,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 
     /*  2nd security check. link, areafixing & password. */
     if (!security && !force_pwd) {
-        if (link->AreaFix==1) {
+        if (!rlink->on) {
             if (rlink->pwd) {
                 if (stricmp(rlink->pwd, msg->subjectLine)==0) security=0;
                 else security=3; /* password error */
