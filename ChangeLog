@@ -1,3 +1,12 @@
+2004-05-09 Sunday 16:44  andrew_ladutsko
+
+	* TODO (1.5): update TODO
+
+2004-05-09 Sunday 15:42  andrew_ladutsko
+
+	* src/areafix.c (1.23): do not resubscribe an area and write a
+	warning message to log if new link will not have full access to it
+
 2004-05-07 Friday 18:42  andrew_ladutsko
 
 	* areafix/areafix.h (1.6), areafix/callback.h (1.5), src/areafix.c
