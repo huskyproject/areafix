@@ -5,3 +5,5 @@ fidoconf:
 
 areafix.c:
   distinguish areafix and filefix in info_link() and below
+
+? change area's group to new link's group when resubscribing
