@@ -27,9 +27,9 @@ _PDB	= .pdb
 
 ## program options ##
 CFLAGS=-nologo -Zp1
-CINCL= -I$(H_DIR) -I..\..\fidoconf -I..\..\smapi -I..\..\huskylib -I..\..\areafix $(HPTZIPI) $(PERLI)
+CINCL= -I$(H_DIR) -I..\..\fidoconf -I..\..\smapi -I..\..\huskylib
 LFLAGS=
-CDEFS =-D__NT__ -D_CONSOLE $(HPTZIPD) $(PERLD)
+CDEFS =-D__NT__ -D_CONSOLE
 COPT	= -Ob2
 
 EXENAMEFLAG=-Fe
