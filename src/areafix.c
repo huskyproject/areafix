@@ -1426,7 +1426,7 @@ int pauseArea(e_pauseAct pauseAct, s_link *searchLink, s_area *searchArea) {
     rc = 1;
   }
 
-  w_log(LL_AREAFIX, "pauseArea() end");
+  w_log(LL_DEBUG, "pauseArea() end");
 
   return rc;
 }
