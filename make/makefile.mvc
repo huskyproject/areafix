@@ -44,20 +44,27 @@ LIBS	= ..\..\fidoconf\make\fconfmvc.lib \
 
 default:
 	@echo Run 'make static' to build static version ($(TARGETLIB))
+	@echo Run 'make programs' to build dynamic version ($(PROGRAMS))
 	@echo Run 'make dll' to build dynamic version ($(TARGETDLL))
+	@echo Run 'make dllprograms' to build dynamic version ($(TARGETDLL)
+	@echo $(PROGRAMS))
 	@echo Run 'make all' to build all above
 
-all: static dll
+all: programs dllprograms
 
 static: $(TARGETLIB)
 
+programs: static $(PROGRAMS)
+
 dll: $(TARGETDLL)
+
+dllprograms: dll $(PROGRAMS)
 
 {$(_SRC_DIR)}.c$(_OBJ):
 	@$(CC) $(CFLAGS) $(CINCL) $(CDEFS) $(COPT) -c $<
 
 $(TARGETLIB): $(OBJS)
-        $(AR) /out:$(LIBNAME)$(_LIB) $(OBJS)
+	$(AR) /out:$(LIBNAME)$(_LIB) $(OBJS)
 
 $(TARGETDLL):
 	!$(MAKE) -f makefile.mvc CFLAGS="$(CFLAGS) $(CFLAGS_DLL) -DDLLEXPORT" $(OBJS)
@@ -69,4 +76,4 @@ clean:
 distclean: clean
 	-$(RM) $(RMOPT) $(TARGETLIB)
 	-$(RM) $(RMOPT) $(TARGETDLL)
-	-$(RM) $(RMOPT) $(TARGETDLL).*
+	-$(RM) $(RMOPT) *$(_EXP)
