@@ -546,19 +546,76 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
     s_query_areas *areaNode = NULL;
     s_query_areas *tmpNode  = NULL;
 
+    w_log(LL_FUNC, "af_CheckAreaInQuery(%s, %s, %s, %s)",
+           areatag ? areatag : "",
+           uplink ? aka2str(*uplink) : "",
+           dwlink ? aka2str(*dwlink) : "",
+           act==FIND ? "FIND" : (act==ADDFREQ ? "ADDFREQ" : (act==ADDIDLE ? "ADDIDLE" : "DELIDLE")));
+
     if( !queryAreasHead ) af_OpenQuery();
     tmpNode = queryAreasHead;
-    while(tmpNode->next && !bFind)
+
+    /* there may be several entrys for one area in queue, for example, */
+    /* killed request for one uplink and freq request for another */
+
+    /* there may be several @kill entrys for an area, but only one @freq or @idle */
+
+    w_log(LL_DEBUGF, "af_CheckAreaInQuery() begin search");
+
+    while(tmpNode->next)
     {
+        w_log(LL_DEBUGF, "af_CheckAreaInQuery() check area=%s, type=%s, uplink=%s",
+               tmpNode->next->name ? tmpNode->next->name : NULL,
+               tmpNode->next->type, aka2str(tmpNode->next->downlinks[0]));
+
         if( tmpNode->next->name && !stricmp(areatag, tmpNode->next->name) )
-            bFind = 1;
+        {
+            /* ADDFREQ: no entry should be found or any type entry */
+            /* with right uplink if specified */
+            if( act == ADDFREQ &&
+                addrComp(tmpNode->next->downlinks[0], *uplink) == 0 ) {
+                   w_log(LL_DEBUGF, "af_CheckAreaInQuery() found!");
+                   areaNode = tmpNode->next;
+                   break;
+            }
+
+            /* FIND: find any type entry but continue searching in hope */
+            /* to find an entry with right uplink */
+            if( act == FIND &&
+                (!areaNode || (!uplink || addrComp(tmpNode->next->downlinks[0], *uplink) == 0 )) ) {
+                   w_log(LL_DEBUGF, "af_CheckAreaInQuery() found!");
+                   areaNode = tmpNode->next;
+            }
+
+            /* DELIDLE: no entry should be found or an @idle entry  */
+            if( act == DELIDLE &&
+                stricmp(tmpNode->next->type,czIdleArea) == 0 ) {
+                   w_log(LL_DEBUGF, "af_CheckAreaInQuery() found!");
+                   areaNode = tmpNode->next;
+                   break;
+            }
+
+            /* ADDIDLE: no entry should be found */
+        }
         tmpNode = tmpNode->next;
+    }
+
+    w_log(LL_DEBUGF, "af_CheckAreaInQuery() end search");
+
+    if (areaNode) {
+        tmpNode = areaNode;
+        bFind = 1;
+        w_log(LL_DEBUGF, "af_CheckAreaInQuery() found area=%s, type=%s, uplink=%s",
+               tmpNode->name ? tmpNode->name : NULL, tmpNode->type,
+               aka2str(tmpNode->downlinks[0]));
+    } else {
+        w_log(LL_DEBUGF, "af_CheckAreaInQuery() area not found");
     }
 
     switch( act )
     {
     case FIND:
-        if( !bFind || tmpNode == queryAreasHead )
+        if( !bFind )
             tmpNode = NULL;
         break;
     case ADDFREQ:
@@ -574,16 +631,6 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
                 } else {
                     tmpNode = NULL;  /*  link already in query */
                 }
-            /* other uplink, add a new entry */
-            } else if ( stricmp(tmpNode->type,czKillArea) == 0 &&
-                        addrComp(*uplink, tmpNode->downlinks[0]) != 0 ) {
-                areaNode = af_AddAreaListNode( areatag, czFreqArea );
-                if(strlen( areatag ) > queryAreasHead->linksCount) /* max areanane lenght */
-                    queryAreasHead->linksCount = strlen( areatag );
-                af_AddLink( areaNode, uplink );
-                af_AddLink( areaNode, dwlink );
-                areaNode->eTime = tnow + af_config->forwardRequestTimeout*secInDay;
-                tmpNode =areaNode;
             } else {
                 strcpy(tmpNode->type,czFreqArea); /*  change state to @freq" */
                 af_AddLink( tmpNode, dwlink );
@@ -600,19 +647,17 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
         }
         break;
     case ADDIDLE:
-        if( bFind ) {
-        } else {
-            areaNode = af_AddAreaListNode( areatag, czIdleArea );
-            if(strlen( areatag ) > queryAreasHead->linksCount)
-                queryAreasHead->linksCount = strlen( areatag );
-            af_AddLink( areaNode, uplink );
-            areaNode->eTime = tnow + af_config->idlePassthruTimeout*secInDay;
-            w_log(LL_AREAFIX, "%sfix: make request idle for area: %s", _AF, areaNode->name);
-            tmpNode =areaNode;
-        }
+        /* no entry should exist yet */
+        areaNode = af_AddAreaListNode( areatag, czIdleArea );
+        if(strlen( areatag ) > queryAreasHead->linksCount)
+            queryAreasHead->linksCount = strlen( areatag );
+        af_AddLink( areaNode, uplink );
+        areaNode->eTime = tnow + af_config->idlePassthruTimeout*secInDay;
+        w_log(LL_AREAFIX, "%sfix: make request idle for area: %s", _AF, areaNode->name);
+        tmpNode =areaNode;
         break;
     case DELIDLE:
-        if( bFind && stricmp(tmpNode->type,czIdleArea) == 0 )
+        if( bFind )
         {
             queryAreasHead->nFlag = 1;
             tmpNode->type[0] = '\0';
@@ -621,6 +666,7 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
         break;
 
     }
+w_log(LL_FUNC, "af_CheckAreaInQuery() OK");
     return tmpNode;
 }
 
