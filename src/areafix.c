@@ -1245,6 +1245,27 @@ char *pause_link(s_link *link)
    if ((link->Pause & ECHOAREA) != ECHOAREA) {
       if (Changepause((af_cfgFile) ? af_cfgFile : getConfigFileName(), link, 0,ECHOAREA) == 0)
          return NULL;
+
+      {
+          unsigned int i, j, areaCount = 0;
+          ps_area areas = NULL;
+
+          if (theApp.module == M_HPT)
+          {
+              areaCount = theApp.config->echoAreaCount;
+              areas     = theApp.config->echoAreas;
+          }
+          else if (theApp.module == M_HTICK)
+          {
+              areaCount = theApp.config->fileAreaCount;
+              areas     = theApp.config->fileAreas;
+          }
+
+          for (i = 0; i < areaCount; i++)
+              for (j = 0; j < areas[i].downlinkCount; j++)
+                  if (link == areas[i].downlinks[j]->link)
+                      setLinkAccess(theApp.config, &(areas[i]), areas[i].downlinks[j]);
+       }
    }
    xstrcat(&report, " System switched to passive\r");
    tmp = list (lt_linked, link, NULL);/*linked (link);*/
@@ -1264,6 +1285,27 @@ char *resume_link(s_link *link)
     if ((link->Pause & ECHOAREA) == ECHOAREA) {
 	if (Changepause((af_cfgFile) ? af_cfgFile : getConfigFileName(), link,0,ECHOAREA) == 0)
 	    return NULL;
+
+        {
+            unsigned int i, j, areaCount = 0;
+            ps_area areas = NULL;
+
+            if (theApp.module == M_HPT)
+            {
+                areaCount = theApp.config->echoAreaCount;
+                areas     = theApp.config->echoAreas;
+            }
+            else if (theApp.module == M_HTICK)
+            {
+                areaCount = theApp.config->fileAreaCount;
+                areas     = theApp.config->fileAreas;
+            }
+
+            for (i = 0; i < areaCount; i++)
+                for (j = 0; j < areas[i].downlinkCount; j++)
+                    if (link == areas[i].downlinks[j]->link)
+                        setLinkAccess(theApp.config, &(areas[i]), areas[i].downlinks[j]);
+         }
     }
 
     xstrcat(&report, " System switched to active\r");
