@@ -134,6 +134,7 @@ char *list(s_listype type, s_link *link, char *cmdline) {
     ps_arealist al;
     ps_area area;
     int grps = (af_config->listEcho == lemGroup) || (af_config->listEcho == lemGroupName);
+    int pause = af_app->module == M_HTICK ? FILEAREA : ECHOAREA;
 
     if (cmdline) pattern = getPatternFromLine(cmdline, &reversed);
     if (af_app->module != M_HTICK) {
@@ -148,8 +149,10 @@ char *list(s_listype type, s_link *link, char *cmdline) {
         xscatprintf(&report, "Available %sareas for %s\r\r", af_app->module == M_HTICK ? "file" : "", aka2str(link->hisAka));
         break;
       case lt_linked:
-        xscatprintf(&report, "%s %sareas for %s\r\r", af_app->module == M_HTICK ? "file" : "",
-                    ((link->Pause & ECHOAREA) == ECHOAREA) ? "Passive" : "Active", aka2str(link->hisAka));
+        xscatprintf(&report, "%s %sareas for %s\r\r", 
+                    (link->Pause & pause) ? "Passive" : "Active", 
+                    af_app->module == M_HTICK ? "file" : "", 
+                    aka2str(link->hisAka));
         break;
       case lt_unlinked:
         xscatprintf(&report, "Unlinked %sareas for %s\r\r", af_app->module == M_HTICK ? "file" : "", aka2str(link->hisAka));
@@ -217,7 +220,7 @@ char *list(s_listype type, s_link *link, char *cmdline) {
     }
     switch (type) {
       case lt_all:
-        xscatprintf(&report, "\r\r %i area(s) available, %i area(s) active\r", avail, active);
+        xscatprintf(&report, "\r\r %i area(s) available, %i area(s) linked\r", avail, active);
         break;
       case lt_linked:
         xscatprintf(&report, "\r\r %i area(s) linked\r", active);
@@ -1310,7 +1313,7 @@ char *unsubscribe(s_link *link, char *cmd) {
 /* if act==0 pause area, if act==1 unpause area */
 /* returns 0 if no messages to links were created */
 int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
-  unsigned int i, j, k, linkCount, cnt;
+  unsigned int i, j, linkCount, cnt;
   unsigned int rc = 0;
   int pause = af_app->module == M_HTICK ? FILEAREA : ECHOAREA;
 
@@ -1433,7 +1436,7 @@ char *pause_resume_link(s_link *link, int mode)
       /* update perl vars */
       if (hook_onConfigChange) (*hook_onConfigChange)();
    }
-   xstrscat(&report, " System switched to ", mode ? "active" : "passive", "\r", NULL);
+   xstrscat(&report, " System switched to ", mode ? "active" : "passive", "\r\r", NULL);
    tmp = list(lt_linked, link, NULL);/*linked (link);*/
    xstrcat(&report, tmp);
    nfree(tmp);
