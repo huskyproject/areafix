@@ -35,6 +35,7 @@ extern "C" {
 #include <fidoconf/fidoconf.h>
 
 HUSKYEXT s_fidoconfig* af_config;
+HUSKYEXT ps_robot      af_robot;
 HUSKYEXT char*         af_cfgFile;
 HUSKYEXT sApp*         af_app;
 HUSKYEXT char*         af_versionStr;

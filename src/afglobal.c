@@ -32,6 +32,7 @@
 #include <afglobal.h>
 
 s_fidoconfig* af_config           = NULL;
+ps_robot      af_robot            = NULL;
 char*         af_cfgFile          = NULL;
 char*         af_versionStr       = NULL;
 int   	      af_quiet            = 0;

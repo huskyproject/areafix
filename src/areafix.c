@@ -86,8 +86,6 @@
 #include <afglobal.h>
 #include <callback.h>
 
-#define _AF (af_app->module == M_HTICK ? "file" : "area")
-
 unsigned char RetFix;
 static int rescanMode = 0;
 static int rulesCount = 0;
@@ -238,13 +236,13 @@ char *list(s_listype type, s_link *link, char *cmdline) {
   } /* hook_echolist */
     switch (type) {
       case lt_all:
-        w_log(LL_AREAFIX, "%sfix: List sent to %s", _AF, aka2str(link->hisAka));
+        w_log(LL_AREAFIX, "%s: List sent to %s", af_robot->name, aka2str(link->hisAka));
         break;
       case lt_linked:
-        w_log(LL_AREAFIX, "%sfix: Linked areas list sent to %s", _AF, aka2str(link->hisAka));
+        w_log(LL_AREAFIX, "%s: Linked areas list sent to %s", af_robot->name, aka2str(link->hisAka));
         break;
       case lt_unlinked:
-        w_log(LL_AREAFIX, "%sfix: Unlinked areas list sent to %s", _AF, aka2str(link->hisAka));
+        w_log(LL_AREAFIX, "%s: Unlinked areas list sent to %s", af_robot->name, aka2str(link->hisAka));
         break;
     }
 
@@ -256,15 +254,14 @@ char *help(s_link *link) {
     int i=1;
     char *help;
     long endpos;
-    char *hf = af_app->module == M_HTICK ? af_config->filefixhelp : af_config->areafixhelp;
 
-    if (hf != NULL) {
-        if ((f=fopen(hf, "r")) == NULL) {
-            w_log (LL_ERR, "%sfix: Cannot open help file \"%s\": %s", _AF,
-                   hf, strerror(errno));
+    if (af_robot->helpFile != NULL) {
+        if ((f=fopen(af_robot->helpFile, "r")) == NULL) {
+            w_log (LL_ERR, "%s: Cannot open help file \"%s\": %s", af_robot->name,
+                   af_robot->helpFile, strerror(errno));
 	    if (!af_quiet)
-                fprintf(stderr,"%sfix: Cannot open help file \"%s\": %s\n", _AF,
-                        hf, strerror(errno));
+                fprintf(stderr,"%s: Cannot open help file \"%s\": %s\n", af_robot->name,
+                        af_robot->helpFile, strerror(errno));
 	    return NULL;
 	}
 		
@@ -281,7 +278,7 @@ char *help(s_link *link) {
 
 	fclose(f);
 
-        w_log(LL_AREAFIX, "%sfix: HELP sent to %s", _AF, link->name);
+        w_log(LL_AREAFIX, "%s: HELP sent to %s", af_robot->name, link->name);
 
 	return help;
     }
@@ -337,7 +334,7 @@ char *available(s_link *link, char *cmdline)
         if ((uplinkData.fwd && uplinkData.fwdFile) && ((uplink->LinkGrp == NULL) || (found != 0)))
 	{
             if ((f=fopen(uplinkData.fwdFile,"r")) == NULL) {
-                w_log(LL_ERR, "%sfix: Cannot open forwardRequestFile \"%s\": %s", _AF,
+                w_log(LL_ERR, "%s: Cannot open forwardRequestFile \"%s\": %s", af_robot->name,
                       uplinkData.fwdFile, strerror(errno));
  		continue;
 	    }
@@ -389,7 +386,7 @@ char *available(s_link *link, char *cmdline)
 
             /*  warning! do not ever use aka2str twice at once! */
             sprintf(linkAka, "%s", aka2str(link->hisAka));
-            w_log(LL_AREAFIX, "%sfix: Available Area List from %s %s to %s", _AF,
+            w_log(LL_AREAFIX, "%s: Available Area List from %s %s to %s", af_robot->name,
                   aka2str(uplink->hisAka),
                   (link->availlist == AVAILLIST_UNIQUEONE) ? "prepared": "sent",
                   linkAka );
@@ -426,7 +423,7 @@ char *available(s_link *link, char *cmdline)
 
     if (report==NULL) {
 	xstrcat(&report, "\r  No links for creating Available Area List\r");
-        w_log(LL_AREAFIX, "%sfix: No links for creating Available Area List", _AF);
+        w_log(LL_AREAFIX, "%s: No links for creating Available Area List", af_robot->name);
     }
     return report;
 }
@@ -455,7 +452,7 @@ int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act
     if (act==0) {
       if (af_app->module == M_HTICK) {
         if (getFileArea(areatag) == NULL) {
-            if (af_config->filefixQueueFile) {
+            if (af_robot->queueFile) {
                 af_CheckAreaInQuery(areatag, &(uplink->hisAka), &(dwlink->hisAka), ADDFREQ);
             }
             else {
@@ -470,7 +467,7 @@ int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act
         }
       } else {
         if (getArea(af_config, areatag) == &(af_config->badArea)) {
-            if(af_config->areafixQueueFile) {
+            if(af_robot->queueFile) {
                 af_CheckAreaInQuery(areatag, &(uplink->hisAka), &(dwlink->hisAka), ADDFREQ);
             }
             else {
@@ -516,7 +513,6 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
     char *strbegfileName = fileName;
     long strbeg = 0, strend = -1;
     int rc=0;
-    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
 
     e_changeConfigRet nRet = I_ERR;
     char *areaName = area->areaName;
@@ -567,7 +563,7 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
     switch (action) {
     case 0: /*  forward Request To Link */
         if ((area->msgbType==MSGTYPE_PASSTHROUGH) &&
-            !qf &&
+            !af_robot->queueFile &&
             (area->downlinkCount==1) &&
             (area->downlinks[0]->link->hisAka.point == 0))
         {
@@ -589,7 +585,7 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
         }
     case 7:
         if ((rc = DelLinkFromString(cfgline, link->hisAka)) == 1) {
-            w_log(LL_ERR,"%sfix: Unlink is not possible for %s from %s area \'%s\'", _AF,
+            w_log(LL_ERR,"%s: Unlink is not possible for %s from %s area \'%s\'", af_robot->name,
                 aka2str(link->hisAka), af_app->module == M_HTICK ? "file" : "echo", areaName);
             nRet = O_ERR;
         } else {
@@ -835,7 +831,6 @@ char *subscribe(s_link *link, char *cmd) {
     char *line, *an=NULL, *report = NULL;
     s_area *area=NULL;
     int pause = af_app->module == M_HTICK ? FILEAREA : ECHOAREA;
-    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
 
     w_log(LL_FUNC, "%s::subscribe(...,%s)", __FILE__, cmd);
 
@@ -872,7 +867,7 @@ char *subscribe(s_link *link, char *cmd) {
 	    } else {
 		xscatprintf(&report, " %s %s  already linked\r",
 			    an, print_ch(49-strlen(an), '.'));
-		w_log(LL_AREAFIX, "%sfix: %s already linked to area \'%s\'", _AF,
+		w_log(LL_AREAFIX, "%s: %s already linked to area \'%s\'", af_robot->name,
 		      aka2str(link->hisAka), an);
 		i = cnt;
 	    }
@@ -885,27 +880,27 @@ char *subscribe(s_link *link, char *cmd) {
               if( state == ADD_OK) {
                   af_CheckAreaInQuery(an, NULL, NULL, DELIDLE);
                   xscatprintf(&report," %s %s  added\r",an,print_ch(49-strlen(an),'.'));
-                  w_log(LL_AREAFIX, "%sfix: %s subscribed to area \'%s\'", _AF, aka2str(link->hisAka), an);
+                  w_log(LL_AREAFIX, "%s: %s subscribed to area \'%s\'", af_robot->name, aka2str(link->hisAka), an);
                   if ((af_config->autoAreaPause & pause) && area->paused)
                       pauseArea(ACT_UNPAUSE, NULL, area);
               } else {
                   xscatprintf(&report, " %s %s  not subscribed\r", an, print_ch(49-strlen(an), '.'));
-                  w_log(LL_AREAFIX, "%sfix: %s not subscribed to area \'%s\', cause uplink", _AF, aka2str(link->hisAka), an);
-                  w_log(LL_AREAFIX, "%sfix: %s has \"passthrough\" in \"autoAreaCreateDefaults\" for area \'%s\'", _AF,
+                  w_log(LL_AREAFIX, "%s: %s not subscribed to area \'%s\', cause uplink", af_robot->name, aka2str(link->hisAka), an);
+                  w_log(LL_AREAFIX, "%s: %s has \"passthrough\" in \"autoAreaCreateDefaults\" for area \'%s\'", af_robot->name,
                                     an, aka2str(area->downlinks[0]->link->hisAka));
               }
            } else {  /* ??? (not passthrou echo) */
                      /*   non-passthrough area for our aka means */
                      /*   that we already linked to this area */
                xscatprintf(&report, " %s %s  already linked\r", an, print_ch(49-strlen(an), '.'));
-               w_log(LL_AREAFIX, "%sfix: %s already linked to area \'%s\'", _AF, aka2str(link->hisAka), an);
+               w_log(LL_AREAFIX, "%s: %s already linked to area \'%s\'", af_robot->name, aka2str(link->hisAka), an);
            }
         } else {
             if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,0)==ADD_OK) {
                 Addlink(af_config, link, area);
                 if (af_app->module != M_HTICK) fixRules(link, area->areaName);
                 xscatprintf(&report," %s %s  added\r", an, print_ch(49-strlen(an),'.'));
-                w_log(LL_AREAFIX, "%sfix: %s subscribed to area \'%s\'", _AF, aka2str(link->hisAka), an);
+                w_log(LL_AREAFIX, "%s: %s subscribed to area \'%s\'", af_robot->name, aka2str(link->hisAka), an);
                 if (af_config->autoAreaPause & pause) {
                     /* area is paused while link is active */
                     if (area->paused && !(link->Pause & pause))
@@ -919,8 +914,8 @@ char *subscribe(s_link *link, char *cmd) {
                     forwardRequestToLink(area->areaName, link, NULL, 0);
             } else {
                 xscatprintf(&report," %s %s  error. report to sysop!\r", an, print_ch(49-strlen(an),'.'));
-                w_log(LL_AREAFIX, "%sfix: %s not subscribed to area \'%s\'", _AF, aka2str(link->hisAka), an);
-                w_log(LL_ERR, "%sfix: Can't write to af_config file: %s!", _AF, strerror(errno));
+                w_log(LL_AREAFIX, "%s: %s not subscribed to area \'%s\'", af_robot->name, aka2str(link->hisAka), an);
+                w_log(LL_ERR, "%s: Can't write to af_config file: %s!", af_robot->name, strerror(errno));
             }/* if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,3)==0) */
         }
 	    if (!isPatternLine(line)) i = cnt;
@@ -929,7 +924,7 @@ char *subscribe(s_link *link, char *cmd) {
             break;
 	default : /*  rc = 2  not access */
 	    if (!area->hide && !isPatternLine(line)) {
-		w_log(LL_AREAFIX, "%sfix: %s no access for area \'%s\'", _AF,
+		w_log(LL_AREAFIX, "%s: %s no access for area \'%s\'", af_robot->name,
 		      an, aka2str(link->hisAka));
 		xscatprintf(&report," %s %s  no access\r", an,
 			    print_ch(49-strlen(an), '.'));
@@ -954,23 +949,23 @@ char *subscribe(s_link *link, char *cmd) {
         if (link->denyFRA==0) {
             s_query_areas *node = NULL;
             /* check if area is already requested */
-            if (qf && (node = af_CheckAreaInQuery(line,NULL,NULL,FINDFREQ)) != NULL) {
+            if (af_robot->queueFile && (node = af_CheckAreaInQuery(line,NULL,NULL,FINDFREQ)) != NULL) {
                 af_CheckAreaInQuery(line, &(node->downlinks[0]), &(link->hisAka), ADDFREQ);
 		xscatprintf(&report, " %s %s  request forwarded\r",
 			    line, print_ch(49-strlen(line), '.'));
-                w_log(LL_AREAFIX, "%sfix: Area \'%s\' is already requested at %s", _AF, line, aka2str(node->downlinks[0]));
+                w_log(LL_AREAFIX, "%s: Area \'%s\' is already requested at %s", af_robot->name, line, aka2str(node->downlinks[0]));
 	    }
 	    /*  try to forward request */
             else if ((rc=forwardRequest(line, link, NULL))==2) {
 		xscatprintf(&report, " %s %s  no uplinks to forward\r",
 			    line, print_ch(49-strlen(line), '.'));
-		w_log(LL_AREAFIX, "%sfix: No uplinks to forward area \'%s\'", _AF, line);
+		w_log(LL_AREAFIX, "%s: No uplinks to forward area \'%s\'", af_robot->name, line);
 	    }
 	    else if (rc==0) {
 		xscatprintf(&report, " %s %s  request forwarded\r",
 			    line, print_ch(49-strlen(line), '.'));
-		w_log(LL_AREAFIX, "%sfix: Request forwarded to area \'%s\'", _AF, line);
-        if (!qf && isOurAka(af_config,link->hisAka)==0)
+		w_log(LL_AREAFIX, "%s: Request forwarded to area \'%s\'", af_robot->name, line);
+        if (!af_robot->queueFile && isOurAka(af_config,link->hisAka)==0)
         {
             area = af_app->module == M_HTICK ? getFileArea(line) : getArea(af_config, line);
             if ( !isLinkOfArea(link, area) ) {
@@ -979,16 +974,16 @@ char *subscribe(s_link *link, char *cmd) {
                     if (af_app->module != M_HTICK) fixRules(link, area->areaName);
                     if ((af_config->autoAreaPause & pause) && (link->Pause & pause))
                         pauseArea(ACT_PAUSE, NULL, area);
-                    w_log(LL_AREAFIX, "%sfix: %s subscribed to area \'%s\'", _AF,
+                    w_log(LL_AREAFIX, "%s: %s subscribed to area \'%s\'", af_robot->name,
                         aka2str(link->hisAka),line);
                 } else {
                     xscatprintf( &report," %s %s  error. report to sysop!\r",
                         an, print_ch(49-strlen(an),'.') );
-                    w_log(LL_AREAFIX, "%sfix: %s not subscribed to area \'%s\'", _AF,
+                    w_log(LL_AREAFIX, "%s: %s not subscribed to area \'%s\'", af_robot->name,
                         aka2str(link->hisAka),an);
-                    w_log(LL_ERR, "%sfix: Can't change af_config file: %s!", _AF, strerror(errno));
+                    w_log(LL_ERR, "%s: Can't change af_config file: %s!", af_robot->name, strerror(errno));
                 }
-            } else w_log(LL_AREAFIX, "%sfix: %s already subscribed to area \'%s\'", _AF,
+            } else w_log(LL_AREAFIX, "%s: %s already subscribed to area \'%s\'", af_robot->name,
                 aka2str(link->hisAka), line );
 
         } else {
@@ -999,7 +994,7 @@ char *subscribe(s_link *link, char *cmd) {
     }
 
     if (rc == 6) {   /* areas limit exceed for link */
-	w_log(LL_AREAFIX, "%sfix: %sarea \'%s\' no access (full limit) for %s", _AF,
+	w_log(LL_AREAFIX, "%s: %sarea \'%s\' no access (full limit) for %s", af_robot->name,
               af_app->module == M_HTICK ? "file" : "",
 	      line, aka2str(link->hisAka));
 	xscatprintf(&report," %s %s  no access (full limit)\r",
@@ -1008,15 +1003,15 @@ char *subscribe(s_link *link, char *cmd) {
 
     if (matched) {
 	if (report == NULL)
-	    w_log(LL_AREAFIX, "%sfix: All %sareas matching %s are already linked", _AF, 
+	    w_log(LL_AREAFIX, "%s: All %sareas matching %s are already linked", af_robot->name, 
                   af_app->module == M_HTICK ? "file" : "", line);
 	xscatprintf(&report, "All %sareas matching %s are already linked\r", report ? "other " : "", line);
     }
     else if ((report == NULL && found==0) || (found && area->hide)) {
 	xscatprintf(&report," %s %s  not found\r",line,print_ch(49-strlen(line),'.'));
-	w_log(LL_AREAFIX, "%sfix: Not found area \'%s\'", _AF, line);
+	w_log(LL_AREAFIX, "%s: Not found area \'%s\'", af_robot->name, line);
     }
-    w_log(LL_FUNC, "%sfix::subscribe() OK", _AF);
+    w_log(LL_FUNC, "%s::subscribe() OK", af_robot->name);
 
     /* update perl vars */
     /* al: todo: rewrite function and place this call to the write place */
@@ -1068,10 +1063,7 @@ char *do_delete(s_link *link, s_area *area) {
 
                 (*call_getLinkData)(dwlink, &linkData);
 
-                if (af_app->module == M_HTICK)
-                    from = af_config->filefixFromName ? af_config->filefixFromName : af_versionStr;
-                else
-                    from = af_config->areafixFromName ? af_config->areafixFromName : af_versionStr;
+                from = af_robot->fromName ? af_robot->fromName : af_versionStr;
 
                 tmpmsg = makeMessage(dwlink->ourAka, &(dwlink->hisAka),
                     from, dwlink->name, "Notification message", 1, linkData.attrs);
@@ -1082,18 +1074,18 @@ char *do_delete(s_link *link, s_area *area) {
 
                 xscatprintf(&tmpmsg->text, "\r Area \'%s\' is deleted.\r", area->areaName);
                     xstrcat(&tmpmsg->text, "\r Do not forget to remove it from your configs.\r");
-                xscatprintf(&tmpmsg->text, "\r\r--- %s %sfix\r", af_versionStr, _AF);
+                xscatprintf(&tmpmsg->text, "\r\r--- %s %s\r", af_versionStr, af_robot->name);
 
                 tmpmsg->textLength = strlen(tmpmsg->text);
                 (*call_sendMsg)(tmpmsg);
                 nfree(tmpmsg);
-                w_log( LL_AREAFIX, "%sfix: Write notification msg for %s", _AF, aka2str(dwlink->hisAka));
+                w_log( LL_AREAFIX, "%s: Write notification msg for %s", af_robot->name, aka2str(dwlink->hisAka));
             }
         }
     }
     /* remove area from config-file */
     if( changeconfig ((af_cfgFile) ? af_cfgFile : getConfigFileName(),  area, link, 4) != DEL_OK) {
-       w_log(LL_AREAFIX, "%sfix: Can't remove area from af_config: %s", _AF, strerror(errno));
+       w_log(LL_AREAFIX, "%s: Can't remove area from af_config: %s", af_robot->name, strerror(errno));
     }
 
     /* delete msgbase and dupebase for the area */
@@ -1105,7 +1097,7 @@ char *do_delete(s_link *link, s_area *area) {
 
     if (hook_onDeleteArea) hook_onDeleteArea(link, area); // new!!!
 
-    w_log(LL_AREAFIX, "%sfix: %s deleted by %s", _AF,
+    w_log(LL_AREAFIX, "%s: %s deleted by %s", af_robot->name,
                   an, aka2str(link->hisAka));
 
     /* delete the area from in-core af_config */
@@ -1140,7 +1132,7 @@ char *delete(s_link *link, char *cmd) {
     area = af_app->module == M_HTICK ? getFileArea(line) : getArea(af_config, line);
     if ((af_app->module == M_HTICK && !area) || area == &(af_config->badArea)) {
 	xscatprintf(&report, " %s %s  not found\r", line, print_ch(49-strlen(line), '.'));
-	w_log(LL_AREAFIX, "%sfix: Not found area \'%s\'", _AF, line);
+	w_log(LL_AREAFIX, "%s: Not found area \'%s\'", af_robot->name, line);
 	return report;
     }
     rc = subscribeCheck(area, link);
@@ -1151,18 +1143,18 @@ char *delete(s_link *link, char *cmd) {
 	break;
     case 1:
 	xscatprintf(&report, " %s %s  not linked\r", an, print_ch(49-strlen(an), '.'));
-	w_log(LL_AREAFIX, "%sfix: Area \'%s\' is not linked to %s", _AF,
+	w_log(LL_AREAFIX, "%s: Area \'%s\' is not linked to %s", af_robot->name,
 	      an, aka2str(link->hisAka));
 	return report;
     case 2:
 	xscatprintf(&report, " %s %s  no access\r", an, print_ch(49-strlen(an), '.'));
-	w_log(LL_AREAFIX, "%sfix: Area \'%s\' no access for %s", _AF, an, aka2str(link->hisAka));
+	w_log(LL_AREAFIX, "%s: Area \'%s\' no access for %s", af_robot->name, an, aka2str(link->hisAka));
 	return report;
     }
     if (link->LinkGrp == NULL || (area->group && strcmp(link->LinkGrp, area->group))) {
 	xscatprintf(&report, " %s %s  delete not allowed\r",
 		    an, print_ch(49-strlen(an), '.'));
-	w_log(LL_AREAFIX, "%sfix: Area \'%s\' delete not allowed for %s", _AF,
+	w_log(LL_AREAFIX, "%s: Area \'%s\' delete not allowed for %s", af_robot->name,
 	      an, aka2str(link->hisAka));
 	return report;
     }
@@ -1173,7 +1165,6 @@ char *unsubscribe(s_link *link, char *cmd) {
     unsigned int i, rc = 2, j=(unsigned int)I_ERR, from_us=0, matched = 0, cnt;
     char *line, *an, *report = NULL;
     s_area *area;
-    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
     int pause = af_app->module == M_HTICK ? FILEAREA : ECHOAREA;
 
     w_log(LL_FUNC,__FILE__ ":%u:unsubscribe() begin", __LINE__);
@@ -1211,7 +1202,7 @@ char *unsubscribe(s_link *link, char *cmd) {
                         (area->downlinkCount == 1) &&
                         (area->downlinks[0]->link->hisAka.point == 0))
                     {
-                        if (qf)
+                        if (af_robot->queueFile)
                         {
                             af_CheckAreaInQuery(an, &(area->downlinks[0]->link->hisAka), NULL, ADDIDLE);
                             j = changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,7);
@@ -1228,10 +1219,10 @@ char *unsubscribe(s_link *link, char *cmd) {
                             pauseArea(ACT_PAUSE, NULL, area);
                     }
                     if (j != DEL_OK) {
-                        w_log(LL_AREAFIX, "%sfix: %s doesn't unlinked from area \'%s\'", _AF,
+                        w_log(LL_AREAFIX, "%s: %s doesn't unlinked from area \'%s\'", af_robot->name,
                             aka2str(link->hisAka), an);
                     } else {
-                        w_log(LL_AREAFIX,"%sfix: %s unlinked from area \'%s\'", _AF, aka2str(link->hisAka),an);
+                        w_log(LL_AREAFIX,"%s: %s unlinked from area \'%s\'", af_robot->name, aka2str(link->hisAka),an);
                         if (af_send_notify)
                             forwardRequestToLink(area->areaName,link, NULL, 1);
                     }
@@ -1243,7 +1234,7 @@ char *unsubscribe(s_link *link, char *cmd) {
                 else if ( (area->downlinkCount==1) &&
                           (area->downlinks[0]->link->hisAka.point == 0 ||
                            area->downlinks[0]->defLink) ) {
-                    if (qf) {
+                    if (af_robot->queueFile) {
                         af_CheckAreaInQuery(an, &(area->downlinks[0]->link->hisAka), NULL, ADDIDLE);
                     } else {
                         forwardRequestToLink(area->areaName,
@@ -1278,31 +1269,31 @@ char *unsubscribe(s_link *link, char *cmd) {
             }
             xscatprintf(&report, " %s %s  not linked\r",
                 an, print_ch(49-strlen(an), '.'));
-            w_log(LL_AREAFIX, "%sfix: Area \'%s\' is not linked to %s", _AF,
+            w_log(LL_AREAFIX, "%s: Area \'%s\' is not linked to %s", af_robot->name,
                 area->areaName, aka2str(link->hisAka));
             break;
         case 5:
             xscatprintf(&report, " %s %s  unlink is not possible\r",
                 an, print_ch(49-strlen(an), '.'));
-            w_log(LL_AREAFIX, "%sfix: Area \'%s\' unlink is not possible for %s", _AF,
+            w_log(LL_AREAFIX, "%s: Area \'%s\' unlink is not possible for %s", af_robot->name,
                 area->areaName, aka2str(link->hisAka));
             break;
         default:
             break;
         }
     }
-    if (qf)
+    if (af_robot->queueFile)
         report = af_Req2Idle(line, report, link->hisAka);
     if (report == NULL) {
         if (matched) {
             xscatprintf(&report, " %s %s  no %sareas to unlink\r",
                 line, print_ch(49-strlen(line), '.'),
                 af_app->module == M_HTICK ? "file" : "");
-            w_log(LL_AREAFIX, "%sfix: No areas to unlink", _AF);
+            w_log(LL_AREAFIX, "%s: No areas to unlink", af_robot->name);
         } else {
             xscatprintf(&report, " %s %s  not found\r",
                 line, print_ch(49-strlen(line), '.'));
-            w_log(LL_AREAFIX, "%sfix: Area \'%s\' is not found", _AF, line);
+            w_log(LL_AREAFIX, "%s: Area \'%s\' is not found", af_robot->name, line);
         }
     }
     w_log(LL_FUNC,__FILE__ ":%u:unsubscribe() end", __LINE__);
@@ -1383,18 +1374,18 @@ int pauseArea(e_pauseAct pauseAct, s_link *searchLink, s_area *searchArea) {
     /* change af_config */
     if (pauseAct == ACT_PAUSE) { /* make area paused */
       if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,NULL,8)==ADD_OK) {
-        w_log(LL_AREAFIX, "%sfix: Area \'%s\' is paused (uplink: %s)", _AF,
+        w_log(LL_AREAFIX, "%s: Area \'%s\' is paused (uplink: %s)", af_robot->name,
                  area->areaName, aka2str(uplink->hisAka));
       } else {
-        w_log(LL_AREAFIX, "%sfix: Error pausing area \'%s\'", _AF, area->areaName);
+        w_log(LL_AREAFIX, "%s: Error pausing area \'%s\'", af_robot->name, area->areaName);
         continue;
       }
     } else { /* make area non paused */
       if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,NULL,9)==ADD_OK) {
-        w_log(LL_AREAFIX, "%sfix: Area \'%s\' is not paused any more (uplink: %s)", _AF,
+        w_log(LL_AREAFIX, "%s: Area \'%s\' is not paused any more (uplink: %s)", af_robot->name,
                  area->areaName, aka2str(uplink->hisAka));
       } else {
-        w_log(LL_AREAFIX, "%sfix: Error unpausing area \'%s\'", _AF, area->areaName);
+        w_log(LL_AREAFIX, "%s: Error unpausing area \'%s\'", af_robot->name, area->areaName);
         continue;
       }
     }
@@ -1734,7 +1725,7 @@ char *change_token(s_link *link, char *cmdline)
             desc = "Send rules";
             break;
         default:
-            w_log(LL_AREAFIX, "%sfix: Error! Unreacheable line %s:%u", __FILE__, __LINE__);
+            w_log(LL_AREAFIX, "%s: Error! Unreacheable line %s:%u", af_robot->name, __FILE__, __LINE__);
             return NULL;
     }
 
@@ -1749,12 +1740,12 @@ char *change_token(s_link *link, char *cmdline)
         case 1:  /* AREAFIXPWD, PKTPWD, FILEFIXPWD, TICPWD */
             c_new = (param != NULL) ? param : "";
             if (stricmp(c_prev, c_new) == 0) {
-                w_log(LL_AREAFIX, "%sfix: New and old passwords are the same", _AF);
+                w_log(LL_AREAFIX, "%s: New and old passwords are the same", af_robot->name);
                 xstrcat(&report, "New and old passwords are the same. No changes were made.\r\r");
                 return report;
             }
             if ((RetFix == PKTPWD || RetFix == TICPWD) && strlen(c_new) > 8) {
-                w_log(LL_AREAFIX, "%sfix: Password is longer then 8 characters", _AF);
+                w_log(LL_AREAFIX, "%s: Password is longer then 8 characters", af_robot->name);
                 xstrcat(&report, "Password is longer then 8 characters. Only passwords no longer than 8 characters are allowed. No changes were made.\r\r");
                 return report;
             }
@@ -1762,21 +1753,21 @@ char *change_token(s_link *link, char *cmdline)
             break;
         case 2:  /* ARCMAILSIZE, PKTSIZE */
             if (param == NULL) {
-                w_log(LL_AREAFIX, "%sfix: No parameter found after command", _AF);
+                w_log(LL_AREAFIX, "%s: No parameter found after command", af_robot->name);
                 xstrcat(&report, "No parameter found after command. No changes were made.\r\r");
                 return report;
             } else {
                 char *ptr;
                 for (ptr=param; *ptr; ptr++) {
                     if (!isdigit(*ptr)) {
-                        w_log(LL_AREAFIX, "%sfix: '%s' is not a valid number!", _AF, param);
+                        w_log(LL_AREAFIX, "%s: '%s' is not a valid number!", af_robot->name, param);
                         xscatprintf(&report, "'%s' is not a valid number!\r\r", param);
                         return report;
                     }
                 }
                 i_new = (unsigned) atoi(param);
                 if (*i_prev == i_new) {
-                    w_log(LL_AREAFIX, "%sfix: %s size is already set to %i kbytes", _AF, desc, *i_prev);
+                    w_log(LL_AREAFIX, "%s: %s size is already set to %i kbytes", af_robot->name, desc, *i_prev);
                     xscatprintf(&report, "%s size is already set to %i kbytes. No changes were made.\r\r", desc, *i_prev);
                     return report;
                 }
@@ -1785,7 +1776,7 @@ char *change_token(s_link *link, char *cmdline)
             break;
         case 3:  /* RSB */
             if (param == NULL) {
-                w_log(LL_AREAFIX, "%sfix: No parameter found after command", _AF);
+                w_log(LL_AREAFIX, "%s: No parameter found after command", af_robot->name);
                 xstrcat(&report, "No parameter found after command. No changes were made.\r\r");
                 return report;
             } else {
@@ -1794,16 +1785,16 @@ char *change_token(s_link *link, char *cmdline)
                 } else if (!stricmp(param, "off") || !strcmp(param, "0")) {
                     i_new = 0;
                 } else {
-                    w_log(LL_AREAFIX, "%sfix: Unknown parameter for %RSB command: %s", _AF, param);
+                    w_log(LL_AREAFIX, "%s: Unknown parameter for %RSB command: %s", af_robot->name, param);
                     xscatprintf(&report, "Unknown parameter for %RSB command: %s\r. Please read help.\r\r", param);
                     return report;
                 }
                 if (RetFix == RULES && *i_prev != i_new) {
-                    w_log(LL_AREAFIX, "%sfix: %s is already set to %s", _AF, desc, *i_prev?"off":"on");
+                    w_log(LL_AREAFIX, "%s: %s is already set to %s", af_robot->name, desc, *i_prev?"off":"on");
                     xscatprintf(&report, "%s is already set to %s. No changes were made.\r\r", desc, *i_prev?"off":"on");
                     return report;
                 } else if (RetFix != RULES && *i_prev == i_new) {
-                    w_log(LL_AREAFIX, "%sfix: %s is already set to %s", _AF, desc, *i_prev?"on":"off");
+                    w_log(LL_AREAFIX, "%s: %s is already set to %s", af_robot->name, desc, *i_prev?"on":"off");
                     xscatprintf(&report, "%s is already set to %s. No changes were made.\r\r", desc, *i_prev?"on":"off");
                     return report;
                 }
@@ -1821,17 +1812,17 @@ char *change_token(s_link *link, char *cmdline)
     if (InsertCfgLine(confName, cfgline, strbeg, strend)) {
         switch (mode) {
             case 1:  /* AREAFIXPWD, PKTPWD, FILEFIXPWD, TICPWD */
-                w_log(LL_AREAFIX, "%sfix: %s password changed to '%s'", _AF, desc, c_new);
+                w_log(LL_AREAFIX, "%s: %s password changed to '%s'", af_robot->name, desc, c_new);
                 xscatprintf(&report, "%s password changed to '%s'\r\r", desc, c_new);
                 *c_prev = *c_new;
                 break;
             case 2:  /* ARCMAILSIZE, PKTSIZE */
-                w_log(LL_AREAFIX, "%sfix: %s size changed to %i kbytes", _AF, desc, i_new);
+                w_log(LL_AREAFIX, "%s: %s size changed to %i kbytes", af_robot->name, desc, i_new);
                 xscatprintf(&report, "%s size changed to %i kbytes\r\r", desc, i_new);
                 *i_prev = i_new;
                 break;
             case 3:  /* RSB */
-                w_log(LL_AREAFIX, "%sfix: %s mode changed to %s", _AF, desc, i_new?"on":"off");
+                w_log(LL_AREAFIX, "%s: %s mode changed to %s", af_robot->name, desc, i_new?"on":"off");
                 xscatprintf(&report, "%s mode changed to %s\r\r", desc, i_new?"on":"off");
                 *i_prev = i_new;
                 break;
@@ -1857,7 +1848,7 @@ char *change_link(s_link **link, s_link *origlink, char *cmdline)
     w_log(LL_FUNC, __FILE__ "::change_link()");
 
     if (!origlink->allowRemoteControl) {
-        w_log(LL_AREAFIX, "%sfix: Remote control is not allowed for link %s", _AF, aka2str(origlink->hisAka));
+        w_log(LL_AREAFIX, "%s: Remote control is not allowed for link %s", af_robot->name, aka2str(origlink->hisAka));
         xstrcat(&report, "Remote control is not allowed to you, the rest of message is skipped.\r\r");
         return report;
     }
@@ -1869,19 +1860,19 @@ char *change_link(s_link **link, s_link *origlink, char *cmdline)
 
     addr = strtok(cmdline, "\0");
     if (addr == NULL) {
-        w_log(LL_AREAFIX, "%sfix: Address is missing in FROM command", _AF);
+        w_log(LL_AREAFIX, "%s: Address is missing in FROM command", af_robot->name);
         xstrcat(&report, "Invalid request. Address is required. Please read help.\r\r");
         return report;
     }
     newlink = getLink(af_config, addr);
     if (newlink == NULL) {
-        w_log(LL_AREAFIX, "%sfix: Link %s not found in config", _AF, addr);
+        w_log(LL_AREAFIX, "%s: Link %s not found in config", af_robot->name, addr);
         xscatprintf(&report, "Link %s not found, the rest of message is skipped.\r\r", addr);
         return report;
     }
 
     *link = newlink;
-    w_log(LL_AREAFIX, "%sfix: Link changed to %s", _AF, aka2str((*link)->hisAka));
+    w_log(LL_AREAFIX, "%s: Link changed to %s", af_robot->name, aka2str((*link)->hisAka));
     w_log(LL_FUNC, __FILE__ "::change_link() OK");
     return NULL;
 }
@@ -2049,8 +2040,8 @@ void preprocText(char *split, s_message *msg, char *reply, s_link *link)
     /* xstrcat(&(msg->text), "\001FLAGS NPD DIR\r"); */
     if (link->areafixReportsFlags)
         xstrscat(&(msg->text), "\001FLAGS ", link->areafixReportsFlags, "\r",NULL);
-    else if (af_config->areafixReportsFlags)
-        xstrscat(&(msg->text), "\001FLAGS ", af_config->areafixReportsFlags, "\r",NULL);
+    else if (af_robot->reportsFlags)
+        xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r",NULL);
     xscatprintf(&split, "\r--- %s areafix\r", af_versionStr);
     if (orig && orig[0]) {
         xscatprintf(&split, " * Origin: %s (%s)\r", orig, aka2str(msg->origAddr));
@@ -2134,9 +2125,9 @@ void RetMsg(s_message *msg, s_link *link, char *report, char *subj)
         else newsubj = subj;
 
         tmpmsg = makeMessage(link->ourAka, &(link->hisAka),
-            af_config->areafixFromName ? af_config->areafixFromName : msg->toUserName,
+            af_robot->fromName ? af_robot->fromName : msg->toUserName,
             msg->fromUserName, newsubj, 1,
-            link->areafixReportsAttr ? link->areafixReportsAttr : af_config->areafixReportsAttr);
+            link->areafixReportsAttr ? link->areafixReportsAttr : af_robot->reportsAttr);
   
         preprocText(split, tmpmsg, reply, link);
 
@@ -2544,7 +2535,7 @@ void afix(hs_addr addr, char *cmd)
                 link->RemoteRobotName : "Areafix",
                 link->areaFixPwd ?
                 link->areaFixPwd : "", 1,
-                link->areafixReportsAttr ? link->areafixReportsAttr : af_config->areafixReportsAttr);
+                link->areafixReportsAttr ? link->areafixReportsAttr : af_robot->reportsAttr);
             tmpmsg->text = (*call_sstrdup)(cmd);
             processAreaFix(tmpmsg, NULL, 1);
             freeMsgBuffers(tmpmsg);
@@ -2591,12 +2582,12 @@ void afix(hs_addr addr, char *cmd)
                     continue;
                 }
                 if ((strlen((char*)xmsg.to)>0) &&
-                    fc_stristr(af_config->areafixNames,(char*)xmsg.to))
+                    fc_stristr(af_robot->names,(char*)xmsg.to))
                 {
                     memset(&msg,'\0',sizeof(s_message));
                     MsgToStruct(SQmsg, xmsg, &msg);
                     processAreaFix(&msg, NULL, 0);
-                    if (af_config->areafixKillRequests) {
+                    if (af_robot->killRequests) {
                         MsgCloseMsg(SQmsg);
                         MsgKillMsg(netmail, i--);
                     } else {
@@ -2733,16 +2724,16 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
                 }
 
                 if ((arealink->export == 0) || (arealink->import == 0)) {
-                    w_log(LL_AREAFIX, "%sfix: Link %s will not have full access (export=%s import=%s) to %sarea %s, skipped",
-                           _AF, toAka, arealink->export?"on":"off", arealink->import?"on":"off", af_app->module == M_HTICK ? "file" : "", areas[i].areaName);
+                    w_log(LL_AREAFIX, "%s: Link %s will not have full access (export=%s import=%s) to %sarea %s, skipped",
+                           af_robot->name, toAka, arealink->export?"on":"off", arealink->import?"on":"off", af_app->module == M_HTICK ? "file" : "", areas[i].areaName);
                     continue;
                 }
 
                 /* unsubscribe fromLink from area */
                 if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),
                          &areas[i],fromLink,7) != DEL_OK) {
-                    w_log(LL_AREAFIX, "%sfix: Can't unlink %s from %sarea \'%s\'",
-                          _AF, fromAka, af_app->module == M_HTICK ? "file" : "",
+                    w_log(LL_AREAFIX, "%s: Can't unlink %s from %sarea \'%s\'",
+                          af_robot->name, fromAka, af_app->module == M_HTICK ? "file" : "",
                           areas[i].areaName);
                     continue;
                 }
@@ -2758,8 +2749,8 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
                 /* subscribe toLink to area */
                 if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),
                          &areas[i],toLink,addMode) != ADD_OK) {
-                    w_log(LL_AREAFIX, "%sfix: Can't subscribe %s to %sarea \'%s\'",
-                          _AF, toAka, af_app->module == M_HTICK ? "file" : "",
+                    w_log(LL_AREAFIX, "%s: Can't subscribe %s to %sarea \'%s\'",
+                          af_robot->name, toAka, af_app->module == M_HTICK ? "file" : "",
                           areas[i].areaName);
                     continue;
                 }
@@ -2809,7 +2800,7 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
 
         xstrcat(&(msg->text), fromCmd);
 
-        xscatprintf(&(msg->text), " \r--- %s %sfix\r", af_versionStr, _AF);
+        xscatprintf(&(msg->text), " \r--- %s %s\r", af_versionStr, af_robot->name);
         msg->textLength = strlen(msg->text);
         w_log(LL_AREAFIX, "%s message created to %s",
             mode ? "Resubscribe" : "Relink", fromAka);
@@ -2838,7 +2829,7 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
 
         xstrcat(&(msg->text), toCmd);
 
-        xscatprintf(&(msg->text), " \r--- %s %sfix\r", af_versionStr, _AF);
+        xscatprintf(&(msg->text), " \r--- %s %s\r", af_versionStr, af_robot->name);
         msg->textLength = strlen(msg->text);
         w_log(LL_AREAFIX, "%s message created to %s",
             mode ? "Resubscribe" : "Relink", toAka);
@@ -2866,8 +2857,13 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
 }
 
 /* ensure all callbacks are inited */
-int init_areafix(void) {
+int init_areafix(char *robotName) {
   if (!af_config || !af_versionStr || !af_app) return 0;
+  af_robot = getRobot(af_config, robotName, 0);
+  if (!af_robot) {
+    w_log(LL_CRIT, "Can't find robot `%s' in config!", robotName);
+    return 0;
+  }
   if (call_sstrdup == NULL) call_sstrdup = &sstrdup;
   if (call_smalloc == NULL) call_smalloc = &smalloc;
   if (call_srealloc == NULL) call_srealloc = &srealloc;

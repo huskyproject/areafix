@@ -68,8 +68,6 @@
 #include <afglobal.h>
 #include <callback.h>
 
-#define _AF (af_app->module == M_HTICK ? "file" : "area")
-
 static  time_t  tnow;
 const   long    secInDay = 3600*24;
 const char czFreqArea[] = "freq";
@@ -96,15 +94,14 @@ int checkRefuse(char *areaName)
 {
     FILE *fp;
     char *line;
-    char *rf = af_app->module == M_HTICK ? af_config->newFileAreaRefuseFile : af_config->newAreaRefuseFile;
 
-    if (rf == NULL)
+    if (af_robot->newAreaRefuseFile == NULL)
         return 0;
 
-    fp = fopen(rf, "r+b");
+    fp = fopen(af_robot->newAreaRefuseFile, "r+b");
     if (fp == NULL) {
-        w_log(LL_ERR, "Can't open new%sAreaRefuseFile \"%s\" : %d\n",
-              af_app->module == M_HTICK ? "File" : "", rf, strerror(errno));
+        w_log(LL_ERR, "Can't open newAreaRefuseFile \"%s\" : %d\n",
+              af_robot->newAreaRefuseFile, strerror(errno));
         return 0;
     }
     while((line = readLine(fp)) != NULL)
@@ -251,8 +248,6 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     unsigned int j;
     char pass[] = "passthrough";
     char CR;
-    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
-    char *ff = af_app->module == M_HTICK ? af_config->afcFlag : af_config->aacFlag;
 
     w_log( LL_FUNC, "%s::autoCreate() begin", __FILE__ );
 
@@ -300,7 +295,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     else
         msgbDir = creatingLink->msgBaseDir;
 
-    if (qf)
+    if (af_robot->queueFile)
     {
         areaNode = af_CheckAreaInQuery(c_area, &pktOrigAddr, NULL, FIND);
         if( areaNode ) /*  if area in query */
@@ -522,11 +517,11 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     if (hook_onConfigChange) (*hook_onConfigChange)(PERL_CONF_AREAS);
 
     /*  create flag */
-    if (ff) {
-	if (NULL == (f = fopen(ff, "a")))
-	    w_log(LL_ERR, "Could not open autoAreaCreate flag: %s", ff);
+    if (af_robot->autoCreateFlag) {
+	if (NULL == (f = fopen(af_robot->autoCreateFlag, "a")))
+	    w_log(LL_ERR, "Could not open autoAreaCreate flag: %s", af_robot->autoCreateFlag);
 	else {
-	    w_log(LL_FLAG, "Created autoAreaCreate flag: %s", ff);
+	    w_log(LL_FLAG, "Created autoAreaCreate flag: %s", af_robot->autoCreateFlag);
 	    fclose(f);
 	}
     }
@@ -607,7 +602,7 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
                 queryAreasHead->linksCount = strlen( areatag );
             af_AddLink( areaNode, uplink );
             areaNode->eTime = tnow + af_config->idlePassthruTimeout*secInDay;
-            w_log(LL_AREAFIX, "%sfix: make request idle for area: %s", _AF, areaNode->name);
+            w_log(LL_AREAFIX, "%s: make request idle for area: %s", af_robot->name, areaNode->name);
             tmpNode =areaNode;
         }
         break;
@@ -616,7 +611,7 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
         {
             queryAreasHead->nFlag = 1;
             tmpNode->type[0] = '\0';
-            w_log( LL_AREAFIX, "%sfix: idle request for %s removed from queue file", _AF, tmpNode->name);
+            w_log( LL_AREAFIX, "%s: idle request for %s removed from queue file", af_robot->name, tmpNode->name);
         }
         break;
 
@@ -657,12 +652,12 @@ char* af_Req2Idle(char *areatag, char* report, hs_addr linkAddr)
                     strcpy(areaNode->type,czIdleArea);
                     areaNode->bTime = tnow;
                     areaNode->eTime = tnow + af_config->idlePassthruTimeout*secInDay;
-                    w_log(LL_AREAFIX, "%sfix: make request idle for area: %s", _AF, areaNode->name);
+                    w_log(LL_AREAFIX, "%s: make request idle for area: %s", af_robot->name, areaNode->name);
                 }
                 xscatprintf(&report, " %s %s  request canceled\r",
                     areaNode->name,
                     print_ch(49-strlen(areaNode->name), '.'));
-                w_log(LL_AREAFIX, "%sfix: request canceled for [%s] area: %s", _AF, aka2str(linkAddr),
+                w_log(LL_AREAFIX, "%s: request canceled for [%s] area: %s", af_robot->name, aka2str(linkAddr),
                     areaNode->name);
             }
         }
@@ -720,14 +715,12 @@ void af_QueueReport()
     char* header = NULL;
     int netmail=0;
     char *reportFlg = NULL;
-    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
-    char *fn = NULL;
     s_message *msg = NULL;
 
     w_log(LL_FUNC, "af_QueueReport(): begin");
 
-    if( !qf ){
-      w_log(LL_WARN, "%sfixQueueFile not defined in af_config", _AF);
+    if( !af_robot->queueFile ){
+      w_log(LL_WARN, "queueFile for %s not defined in af_config", af_robot->name);
       w_log(LL_FUNC, "af_QueueReport(): end");
       return;
     }
@@ -857,12 +850,11 @@ void af_QueueReport()
         else if (getNetMailArea(af_config, af_config->ReportTo) != NULL) netmail=1;
     } else netmail=1;
 
-    fn = af_app->module == M_HTICK ? af_config->filefixFromName : af_config->areafixFromName;
     msg = makeMessage(&(af_config->addr[0]),&(af_config->addr[0]),
-                                fn ? fn : af_versionStr,
+                                af_robot->fromName ? af_robot->fromName : af_versionStr,
                                 netmail ? (af_config->sysop ? af_config->sysop : "Sysop") : "All", "Requests report",
                                 netmail,
-                                af_config->areafixReportsAttr);
+                                af_robot->reportsAttr);
     msg->text = createKludges(af_config,
                                 netmail ? NULL : af_config->ReportTo,
                                 &(af_config->addr[0]), &(af_config->addr[0]),
@@ -870,8 +862,8 @@ void af_QueueReport()
 
     msg->recode |= (REC_HDR|REC_TXT);
 
-    if (af_config->areafixReportsFlags)
-	xstrscat( &(msg->text), "\001FLAGS ", af_config->areafixReportsFlags, "\r", NULL);
+    if (af_robot->reportsFlags)
+	xstrscat( &(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULL);
     xstrcat( &(msg->text), report );
 
     w_log(LL_STOP, "End generating queue report");
@@ -891,7 +883,6 @@ void af_QueueUpdate()
     s_message **tmpmsg = NULL;
     size_t i = 0;
     int j = 0;
-    char *fn = af_app->module == M_HTICK ? af_config->filefixFromName : af_config->areafixFromName;
 
     tmpmsg = (s_message**) (*call_smalloc)( af_config->linkCount * sizeof(s_message*));
     for (i = 0; i < af_config->linkCount; i++)
@@ -913,22 +904,22 @@ void af_QueueUpdate()
             lastRlink = getLinkFromAddr(af_config,tmpNode->downlinks[0]);
             dwlink    = getLinkFromAddr(af_config,tmpNode->downlinks[1]);
             forwardRequestToLink(tmpNode->name, lastRlink, NULL, 2);
-            w_log( LL_AREAFIX, "%sfix: request for %s is canceled for node %s",
-                   _AF, tmpNode->name, aka2str(lastRlink->hisAka));
+            w_log( LL_AREAFIX, "%s: request for %s is canceled for node %s",
+                   af_robot->name, tmpNode->name, aka2str(lastRlink->hisAka));
             if(dwlink && !forwardRequest(tmpNode->name, dwlink, &lastRlink))
             {
                 tmpNode->downlinks[0] = lastRlink->hisAka;
                 tmpNode->bTime = tnow;
                 tmpNode->eTime = tnow + af_config->forwardRequestTimeout*secInDay;
-                w_log( LL_AREAFIX, "%sfix: request for %s is going to node %s",
-                       _AF, tmpNode->name, aka2str(lastRlink->hisAka));
+                w_log( LL_AREAFIX, "%s: request for %s is going to node %s",
+                       af_robot->name, tmpNode->name, aka2str(lastRlink->hisAka));
             }
             else
             {
                 strcpy(tmpNode->type, czKillArea);
                 tmpNode->bTime = tnow;
                 tmpNode->eTime = tnow + af_config->killedRequestTimeout*secInDay;
-                w_log( LL_AREAFIX, "%sfix: request for %s is going to be killed", _AF, tmpNode->name);
+                w_log( LL_AREAFIX, "%s: request for %s is going to be killed", af_robot->name, tmpNode->name);
 
                 /* send notification messages */
                 for (i = 1; i < tmpNode->linksCount; i++)
@@ -943,15 +934,15 @@ void af_QueueUpdate()
                                 int ra = 0;
                                 char *rf = NULL;
                                 if (af_app->module == M_HTICK) {
-                                  ra = dwlink->filefixReportsAttr ? dwlink->filefixReportsAttr : af_config->filefixReportsAttr;
-                                  rf = dwlink->filefixReportsFlags ? dwlink->filefixReportsFlags : af_config->filefixReportsFlags;
+                                  ra = dwlink->filefixReportsAttr ? dwlink->filefixReportsAttr : af_robot->reportsAttr;
+                                  rf = dwlink->filefixReportsFlags ? dwlink->filefixReportsFlags : af_robot->reportsFlags;
                                 } else {
-                                  ra = dwlink->areafixReportsAttr ? dwlink->areafixReportsAttr : af_config->areafixReportsAttr;
-                                  rf = dwlink->areafixReportsFlags ? dwlink->areafixReportsFlags : af_config->areafixReportsFlags;
+                                  ra = dwlink->areafixReportsAttr ? dwlink->areafixReportsAttr : af_robot->reportsAttr;
+                                  rf = dwlink->areafixReportsFlags ? dwlink->areafixReportsFlags : af_robot->reportsFlags;
                                 }
                                 tmpmsg[j] = makeMessage(dwlink->ourAka,
                                     &(dwlink->hisAka),
-                                    fn ? fn : af_versionStr,
+                                    af_robot->fromName ? af_robot->fromName : af_versionStr,
                                     dwlink->name,
                                     "Notification message", 1,
                                     ra);
@@ -979,7 +970,7 @@ void af_QueueUpdate()
         {
             queryAreasHead->nFlag = 1;
             tmpNode->type[0] = '\0';
-            w_log( LL_AREAFIX, "%sfix: request for %s removed from queue file", _AF, tmpNode->name);
+            w_log( LL_AREAFIX, "%s: request for %s removed from queue file", af_robot->name, tmpNode->name);
             continue;
         }
         if( stricmp(tmpNode->type,czIdleArea) == 0 )
@@ -990,7 +981,7 @@ void af_QueueUpdate()
             tmpNode->bTime = tnow;
             tmpNode->eTime = tnow + af_config->killedRequestTimeout*secInDay;
             tmpNode->linksCount = 1;
-            w_log( LL_AREAFIX, "%sfix: request for %s is going to be killed", _AF, tmpNode->name);
+            w_log( LL_AREAFIX, "%s: request for %s is going to be killed", af_robot->name, tmpNode->name);
             dwlink = getLinkFromAddr(af_config, tmpNode->downlinks[0]);
             /* delete area from config, unsubscribe at downlinks */
             if (af_app->module == M_HTICK) {
@@ -1009,7 +1000,7 @@ void af_QueueUpdate()
     {
         if (tmpmsg[i])
         {
-            xscatprintf(&tmpmsg[i]->text, "\r\r--- %s %sfix\r", af_versionStr, _AF);
+            xscatprintf(&tmpmsg[i]->text, "\r\r--- %s %s\r", af_versionStr, af_robot->name);
             tmpmsg[i]->textLength = strlen(tmpmsg[i]->text);
 /*
             processNMMsg(tmpmsg[i], NULL,
@@ -1019,7 +1010,7 @@ void af_QueueUpdate()
             freeMsgBuffers(tmpmsg[i]);
 */
             (*call_sendMsg)(tmpmsg[i]);
-            w_log( LL_AREAFIX, "%sfix: write notification msg for %s", _AF, aka2str(af_config->links[i]->hisAka));
+            w_log( LL_AREAFIX, "%s: write notification msg for %s", af_robot->name, aka2str(af_config->links[i]->hisAka));
         }
         nfree(tmpmsg[i]);
     }
@@ -1035,7 +1026,6 @@ int af_OpenQuery()
     char *token = NULL;
     struct  tm tr;
     char seps[]   = " \t\n";
-    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
 
     if( queryAreasHead )  /*  list already exists */
         return 0;
@@ -1044,14 +1034,14 @@ int af_OpenQuery()
 
     queryAreasHead = af_AddAreaListNode("\0","\0");
 
-    if( !qf ) /* Queue File not defined in af_config */
+    if( !af_robot->queueFile ) /* Queue File not defined in af_config */
     {
-        w_log(LL_ERR, "%sfixQueueFile not defined in af_config", _AF);
+        w_log(LL_ERR, "queueFile for %s not defined in af_config", af_robot->name);
         return 0;
     }
-    if ( !(queryFile = fopen(af_config->areafixQueueFile,"r")) ) /* can't open query file */
+    if ( !(queryFile = fopen(af_robot->queueFile,"r")) ) /* can't open query file */
     {
-       w_log(LL_ERR, "Can't open %sfixQueueFile %s: %s", _AF, qf, strerror(errno) );
+       w_log(LL_ERR, "Can't open queueFile %s: %s", af_robot->queueFile, strerror(errno) );
        return 0;
     }
 
@@ -1133,7 +1123,6 @@ int af_CloseQuery()
     s_query_areas *tmpNode  = NULL;
     char *chanagedflag = NULL;
     FILE *QFlag        = NULL;
-    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
 
     w_log(LL_FUNC, __FILE__ ":%u:af_CloseQuery() begin", __LINE__);
 
@@ -1147,9 +1136,9 @@ int af_CloseQuery()
     }
     if (writeChanges)
     {
-        if ((queryFile = fopen(qf, "w")) == NULL)
+        if ((queryFile = fopen(af_robot->queueFile, "w")) == NULL)
         {
-            w_log(LL_ERR,"%sfix: %sfixQueueFile not saved", _AF, _AF);
+            w_log(LL_ERR,"%s: queueFile not saved", af_robot->name);
             writeChanges = 0;
         }
         else
