@@ -590,6 +590,10 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
         xscatprintf(&cfgline, " %s", aka2str(link->hisAka));
         nRet = ADD_OK;
         break;
+    case 10: /*  add link as defLink to existing area */
+        xscatprintf(&cfgline, " %s -def", aka2str(link->hisAka));
+        nRet = ADD_OK;
+        break;
     case 1: /*  remove link from area */
         if ((area->msgbType==MSGTYPE_PASSTHROUGH)
             && (area->downlinkCount==1) &&
@@ -2538,6 +2542,212 @@ void afix(hs_addr addr, char *cmd)
         }
     }
     w_log(LL_FUNC, __FILE__ "::afix() end");
+}
+
+
+/* mode==0 - relink mode */
+/* mode==1 - resubscribe mode (fromLink -> toLink)*/
+int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
+    ps_area       areas = NULL;
+    unsigned int  i, j, count, addMode, areaCount = 0;
+    s_link        *fromLink = NULL, *toLink = NULL;
+    char          *fromCmd  = NULL, *toCmd  = NULL;
+    char          *fromAka  = NULL, *toAka  = NULL;
+    char          *fromRobot, *fromPwd, *fromFlags, *toRobot, *toPwd, *toFlags;
+    int           fromAttrs, toAttrs;
+
+    w_log(LL_START, "Start relink...");
+
+    fromLink = getLinkFromAddr(af_config, fromAddr);
+    if (fromLink == NULL) {
+        w_log(LL_ERR, "Unknown link address %s", aka2str(fromAddr));
+        return 1;
+    }
+    fromAka = (*call_sstrdup)(aka2str(fromLink->hisAka));
+
+    if (mode) {
+        toLink = getLinkFromAddr(af_config, toAddr);
+        if (toLink == NULL) {
+            w_log(LL_ERR, "Unknown link address %s", aka2str(toAddr));
+            return 1;
+        }
+        toAka = (*call_sstrdup)(aka2str(toLink->hisAka));
+    }
+
+    if (af_app->module == M_HTICK) {
+        areas = af_config->fileAreas;
+        areaCount = af_config->fileAreaCount;
+        /* fromLink */
+        fromRobot = fromLink->RemoteFileRobotName ? fromLink->RemoteFileRobotName : "filefix";
+        fromPwd = fromLink->fileFixPwd ? fromLink->fileFixPwd : "\x00";
+        fromAttrs = fromLink->filefixReportsAttr ? fromLink->filefixReportsAttr : af_config->filefixReportsAttr;
+        fromFlags = fromLink->filefixReportsFlags;
+        if (!fromFlags) fromFlags = af_config->filefixReportsFlags;
+        /* toLink */
+        if (mode) {
+            toRobot = toLink->RemoteFileRobotName ? toLink->RemoteFileRobotName : "filefix";
+            toPwd = toLink->fileFixPwd ? toLink->fileFixPwd : "\x00";
+            toAttrs = toLink->filefixReportsAttr ? toLink->filefixReportsAttr : af_config->filefixReportsAttr;
+            toFlags = toLink->filefixReportsFlags;
+            if (!toFlags) toFlags = af_config->filefixReportsFlags;
+        }
+    } else {
+        areas = af_config->echoAreas;
+        areaCount = af_config->echoAreaCount;
+        /* fromLink */
+        fromRobot = fromLink->RemoteRobotName ? fromLink->RemoteRobotName : "areafix";
+        fromPwd = fromLink->areaFixPwd ? fromLink->areaFixPwd : "\x00";
+        fromAttrs = fromLink->areafixReportsAttr ? fromLink->areafixReportsAttr : af_config->areafixReportsAttr;
+        fromFlags = fromLink->areafixReportsFlags;
+        if (!fromFlags) fromFlags = af_config->areafixReportsFlags;
+        /* toLink */
+        if (mode) {
+            toRobot = toLink->RemoteRobotName ? toLink->RemoteRobotName : "areafix";
+            toPwd = toLink->areaFixPwd ? toLink->areaFixPwd : "\x00";
+            toAttrs = toLink->areafixReportsAttr ? toLink->areafixReportsAttr : af_config->areafixReportsAttr;
+            toFlags = toLink->areafixReportsFlags;
+            if (!toFlags) toFlags = af_config->areafixReportsFlags;
+        }
+    }
+
+    count = 0;
+    for (i = 0; i < areaCount; i++) {
+        if (patimat(areas[i].areaName, pattern) == 0)
+            continue;
+        for (j = 0; j < areas[i].downlinkCount; j++) {
+
+            if (fromLink != areas[i].downlinks[j]->link)
+                continue;
+
+            addMode = areas[i].downlinks[j]->defLink ? 10 : 3;
+
+            /* resubscribe */
+            if (mode) {
+
+                /* unsubscribe fromLink from area */
+                if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),
+                         &areas[i],fromLink,7) != DEL_OK) {
+                    w_log(LL_AREAFIX, "%sfix: can't unlink %s from %sarea %s",
+                          _AF, fromAka, af_app->module == M_HTICK ? "file" : "",
+                          areas[i].areaName);
+                    continue;
+                }
+                RemoveLink(fromLink, &areas[i]);
+
+                if (isLinkOfArea(toLink, &areas[i])) {
+                    w_log(LL_AREAFIX, "Link %s is already subscribed to %sarea %s",
+                          toAka, af_app->module == M_HTICK ? "file" : "",
+                          areas[i].areaName);
+                    continue;
+                }
+
+                /* subscribe toLink to area */
+                if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),
+                         &areas[i],toLink,addMode) != ADD_OK) {
+                    w_log(LL_AREAFIX, "%sfix: can't subscribe %s to %sarea %s",
+                          _AF, toAka, af_app->module == M_HTICK ? "file" : "",
+                          areas[i].areaName);
+                    continue;
+                }
+                Addlink(af_config, toLink, &areas[i]);
+
+                count++;
+
+                if (areas[i].paused) {
+                    w_log(LL_AREAFIX, "%sArea %s is paused, no command will be sent",
+                          af_app->module == M_HTICK ? "File" : "", areas[i].areaName);
+                } else {
+                    xscatprintf(&fromCmd, "-%s\r", areas[i].areaName);
+                    xscatprintf(&toCmd, "+%s\r", areas[i].areaName);
+                }
+
+                w_log(LL_AREAFIX, "%sArea %s is resubscribed from link %s to link %s",
+                      af_app->module == M_HTICK ? "File" : "",
+                      areas[i].areaName, fromAka, toAka);
+
+            /* relink */
+            } else {
+                if (areas[i].paused) {
+                    w_log(LL_AREAFIX, "%sArea %s is paused, no command will be sent",
+                          af_app->module == M_HTICK ? "File" : "", areas[i].areaName);
+                } else {
+                    count++;
+                    xscatprintf(&fromCmd, "+%s\r", areas[i].areaName);
+                }
+
+                w_log(LL_AREAFIX, "%sArea %s from link %s is relinked",
+                      af_app->module == M_HTICK ? "File" : "",
+                      areas[i].areaName, fromAka);
+            }
+            break;
+        }
+    }
+
+    if (fromCmd) {
+        s_message *msg;
+
+        msg = makeMessage(fromLink->ourAka, &(fromLink->hisAka), af_config->sysop,
+                       fromRobot, fromPwd, 1, fromAttrs);
+        msg->text = createKludges(af_config, NULL, fromLink->ourAka,
+                       &(fromLink->hisAka), af_versionStr);
+        if (fromFlags)
+            xstrscat(&(msg->text), "\001FLAGS ", fromFlags, "\r",NULL);
+
+        xstrcat(&(msg->text), fromCmd);
+
+        xscatprintf(&(msg->text), " \r--- %s %sfix\r", af_versionStr, _AF);
+        msg->textLength = strlen(msg->text);
+        w_log(LL_AREAFIX, "%s message created to %s",
+            mode ? "Resubscribe" : "Relink", fromAka);
+/*
+        processNMMsg(msg, NULL,
+                     getRobotsArea(config),
+                 1, MSGLOCAL|MSGKILL);
+        writeEchoTossLogEntry(getRobotsArea(config)->areaName);
+        closeOpenedPkt();
+        freeMsgBuffers(msg);
+*/
+        (*call_sendMsg)(msg);
+        nfree(msg);
+        nfree(fromCmd);
+    }
+
+    if (toCmd) {
+        s_message *msg;
+
+        msg = makeMessage(toLink->ourAka, &(toLink->hisAka), af_config->sysop,
+                       toRobot, toPwd, 1, toAttrs);
+        msg->text = createKludges(af_config, NULL, toLink->ourAka,
+                       &(toLink->hisAka), af_versionStr);
+        if (toFlags)
+            xstrscat(&(msg->text), "\001FLAGS ", toFlags, "\r",NULL);
+
+        xstrcat(&(msg->text), toCmd);
+
+        xscatprintf(&(msg->text), " \r--- %s %sfix\r", af_versionStr, _AF);
+        msg->textLength = strlen(msg->text);
+        w_log(LL_AREAFIX, "%s message created to %s",
+            mode ? "Resubscribe" : "Relink", toAka);
+/*
+        processNMMsg(msg, NULL,
+                     getRobotsArea(config),
+                 1, MSGLOCAL|MSGKILL);
+        writeEchoTossLogEntry(getRobotsArea(config)->areaName);
+        closeOpenedPkt();
+        freeMsgBuffers(msg);
+*/
+        (*call_sendMsg)(msg);
+        nfree(msg);
+        nfree(toCmd);
+    }
+
+    nfree(fromAka);
+    nfree(toAka);
+
+    w_log(LL_AREAFIX, "%s %i %sarea(s)", mode ? "Resubscribed" : "Relinked",
+             count, af_app->module == M_HTICK ? "file" : "");
+
+    return 0;
 }
 
 /* ensure all callbacks are inited */

@@ -86,6 +86,7 @@ HUSKYEXT int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink);
 HUSKYEXT int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act);
 HUSKYEXT void sendAreafixMessages();
 HUSKYEXT char *do_delete(s_link *link, s_area *area);
+HUSKYEXT int relink(int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr);
 
 HUSKYEXT int changeconfig(char *fileName, s_area *area, s_link *link, int action);
 
