@@ -1,3 +1,8 @@
+2005-03-26 Saturday 10:39  val_khokhlov
+
+	* areafix/callback.h (1.11), src/areafix.c (1.52), src/callback.c
+	(1.9): on_robotmsg perl hook
+
 2005-03-13 Sunday 19:05  val_khokhlov
 
 	* src/areafix.c (1.51): fix bugs with crashing and not updating
