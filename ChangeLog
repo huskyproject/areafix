@@ -1,3 +1,15 @@
+2005-01-12 Wednesday 19:40  val_khokhlov
+
+	* src/areafix.c (1.47): fix problems with sending avail list
+
+2005-01-12 Wednesday 19:39  val_khokhlov
+
+	* src/areafix.c (1.46): fix "areafix is turned off" bug
+
+2005-01-12 Wednesday 19:38  val_khokhlov
+
+	* src/areafix.c (1.45): fix problems with sending echolist
+
 2005-01-09 Sunday 17:28  val_khokhlov
 
 	* src/: areafix.c (1.44), callback.c (1.7), query.c (1.21): make
