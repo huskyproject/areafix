@@ -881,7 +881,7 @@ char *subscribe(s_link *link, char *cmd) {
                   af_CheckAreaInQuery(an, NULL, NULL, DELIDLE);
                   xscatprintf(&report," %s %s  added\r",an,print_ch(49-strlen(an),'.'));
                   w_log(LL_AREAFIX, "%s: %s subscribed to area \'%s\'", af_robot->name, aka2str(link->hisAka), an);
-                  if ((af_config->autoAreaPause & pause) && area->paused)
+                  if ((af_robot->autoAreaPause & pause) && area->paused)
                       pauseArea(ACT_UNPAUSE, NULL, area);
               } else {
                   xscatprintf(&report, " %s %s  not subscribed\r", an, print_ch(49-strlen(an), '.'));
@@ -901,7 +901,7 @@ char *subscribe(s_link *link, char *cmd) {
                 if (af_app->module != M_HTICK) fixRules(link, area->areaName);
                 xscatprintf(&report," %s %s  added\r", an, print_ch(49-strlen(an),'.'));
                 w_log(LL_AREAFIX, "%s: %s subscribed to area \'%s\'", af_robot->name, aka2str(link->hisAka), an);
-                if (af_config->autoAreaPause & pause) {
+                if (af_robot->autoAreaPause & pause) {
                     /* area is paused while link is active */
                     if (area->paused && !(link->Pause & pause))
                         pauseArea(ACT_UNPAUSE, NULL, area);
@@ -971,7 +971,7 @@ char *subscribe(s_link *link, char *cmd) {
                 if(changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,3)==ADD_OK) {
                     Addlink(af_config, link, area);
                     if (af_app->module != M_HTICK) fixRules(link, area->areaName);
-                    if ((af_config->autoAreaPause & pause) && (link->Pause & pause))
+                    if ((af_robot->autoAreaPause & pause) && (link->Pause & pause))
                         pauseArea(ACT_PAUSE, NULL, area);
                     w_log(LL_AREAFIX, "%s: %s subscribed to area \'%s\'", af_robot->name,
                         aka2str(link->hisAka),line);
@@ -1214,7 +1214,7 @@ char *unsubscribe(s_link *link, char *cmd) {
                     else
                     {
                         j = changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,7);
-                        if (j == DEL_OK && (af_config->autoAreaPause & pause) && !area->paused && !(link->Pause & pause))
+                        if (j == DEL_OK && (af_robot->autoAreaPause & pause) && !area->paused && !(link->Pause & pause))
                             pauseArea(ACT_PAUSE, NULL, area);
                     }
                     if (j != DEL_OK) {
@@ -1247,7 +1247,7 @@ char *unsubscribe(s_link *link, char *cmd) {
                     if (area->fileName && area->killMsgBase)
                        MsgDeleteBase(area->fileName, (word) area->msgbType);
                   area->msgbType = MSGTYPE_PASSTHROUGH;
-                  if ((af_config->autoAreaPause & pause) && !area->paused && (area->downlinkCount > 1))
+                  if ((af_robot->autoAreaPause & pause) && !area->paused && (area->downlinkCount > 1))
                     pauseArea(ACT_PAUSE, NULL, area);
                 }
             }
@@ -1450,7 +1450,7 @@ char *pause_resume_link(s_link *link, int mode)
    nfree(tmp);
 
    /* check for areas with one link alive and others paused */
-   if (af_config->autoAreaPause & pause)
+   if (af_robot->autoAreaPause & pause)
        if (mode == 0) pauseArea(ACT_PAUSE, link, NULL);
        else pauseArea(ACT_UNPAUSE, link, NULL);
 
@@ -2017,7 +2017,7 @@ char *processcmd(s_link *link, char *line, int cmd) {
 
 void preprocText(char *split, s_message *msg, char *reply, s_link *link)
 {
-    char *orig = af_config->areafixOrigin;
+    char *orig = af_robot->origin;
 
     msg->text = createKludges(af_config, NULL, &msg->origAddr,
         &msg->destAddr, af_versionStr);
@@ -2062,9 +2062,8 @@ char *areaStatus(char *report, char *preport)
 void RetMsg(s_message *msg, s_link *link, char *report, char *subj)
 {
     char *text, *split, *p, *newsubj = NULL;
-    char splitted[]=" > message splitted...";
-    char *splitStr = af_config->areafixSplitStr;
-    int len, msgsize = af_config->areafixMsgSize * 1024, partnum=0;
+    char *splitStr = af_robot->splitStr ? af_robot->splitStr : " > message splitted...";
+    int len, msgsize = af_robot->msgSize*1024, partnum = 0;
     s_message *tmpmsg;
     char *reply = NULL;
 
@@ -2102,10 +2101,10 @@ void RetMsg(s_message *msg, s_link *link, char *report, char *subj)
             }
             *p = '\000';
             len = p - text;
-            split = (char*)(*call_smalloc)(len+strlen(splitStr ? splitStr : splitted)+3+1);
+            split = (char*)(*call_smalloc)(len+strlen(splitStr)+3+1);
             memcpy(split,text,len);
             strcpy(split+len,"\r\r");
-            strcat(split, (splitStr) ? splitStr : splitted);
+            strcat(split, splitStr);
             strcat(split,"\r");
             text = p+1;
             partnum++;
@@ -2437,7 +2436,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
     }
 
     if ( report != NULL ) {
-        if (af_config->areafixQueryReports) {
+        if (af_robot->queryReports) {
             preport = list (lt_linked, link, NULL);/*linked (link);*/
             xstrcat(&report, preport);
             nfree(preport);

@@ -505,7 +505,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     if (af_app->module == M_HPT) {
       /* check if downlinks are already paused, pause area if it is so */
       /* skip if forwardAddr is NULL: will be checked in subscribe() */
-      if (af_config->autoAreaPause && area->msgbType == MSGTYPE_PASSTHROUGH && forwardAddr == NULL)
+      if (af_robot->autoAreaPause && area->msgbType == MSGTYPE_PASSTHROUGH && forwardAddr == NULL)
         if (pauseArea(ACT_PAUSE, NULL, area)) sendAreafixMessages();
     }
 
@@ -573,14 +573,14 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
                     i++;
                 if(i == tmpNode->linksCount) {
                     af_AddLink( tmpNode, dwlink ); /*  add link to queried area */
-                    tmpNode->eTime = tnow + af_config->forwardRequestTimeout*secInDay;
+                    tmpNode->eTime = tnow + af_robot->forwardRequestTimeout*secInDay;
                 } else {
                     tmpNode = NULL;  /*  link already in query */
                 }
             } else {
                 strcpy(tmpNode->type,czFreqArea); /*  change state to @freq" */
                 af_AddLink( tmpNode, dwlink );
-                tmpNode->eTime = tnow + af_config->forwardRequestTimeout*secInDay;
+                tmpNode->eTime = tnow + af_robot->forwardRequestTimeout*secInDay;
             }
         } else { /*  area not found, so add it */
             areaNode = af_AddAreaListNode( areatag, czFreqArea );
@@ -588,7 +588,7 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
                 queryAreasHead->linksCount = strlen( areatag );
             af_AddLink( areaNode, uplink );
             af_AddLink( areaNode, dwlink );
-            areaNode->eTime = tnow + af_config->forwardRequestTimeout*secInDay;
+            areaNode->eTime = tnow + af_robot->forwardRequestTimeout*secInDay;
             tmpNode =areaNode;
         }
         break;
@@ -599,7 +599,7 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
             if(strlen( areatag ) > queryAreasHead->linksCount)
                 queryAreasHead->linksCount = strlen( areatag );
             af_AddLink( areaNode, uplink );
-            areaNode->eTime = tnow + af_config->idlePassthruTimeout*secInDay;
+            areaNode->eTime = tnow + af_robot->idlePassthruTimeout*secInDay;
             w_log(LL_AREAFIX, "%s: make request idle for area: %s", af_robot->name, areaNode->name);
             tmpNode =areaNode;
         }
@@ -649,7 +649,7 @@ char* af_Req2Idle(char *areatag, char* report, hs_addr linkAddr)
                 {
                     strcpy(areaNode->type,czIdleArea);
                     areaNode->bTime = tnow;
-                    areaNode->eTime = tnow + af_config->idlePassthruTimeout*secInDay;
+                    areaNode->eTime = tnow + af_robot->idlePassthruTimeout*secInDay;
                     w_log(LL_AREAFIX, "%s: make request idle for area: %s", af_robot->name, areaNode->name);
                 }
                 xscatprintf(&report, " %s %s  request canceled\r",
@@ -914,7 +914,7 @@ void af_QueueUpdate()
             {
                 tmpNode->downlinks[0] = lastRlink->hisAka;
                 tmpNode->bTime = tnow;
-                tmpNode->eTime = tnow + af_config->forwardRequestTimeout*secInDay;
+                tmpNode->eTime = tnow + af_robot->forwardRequestTimeout*secInDay;
                 w_log( LL_AREAFIX, "%s: request for %s is going to node %s",
                        af_robot->name, tmpNode->name, aka2str(lastRlink->hisAka));
             }
@@ -922,7 +922,7 @@ void af_QueueUpdate()
             {
                 strcpy(tmpNode->type, czKillArea);
                 tmpNode->bTime = tnow;
-                tmpNode->eTime = tnow + af_config->killedRequestTimeout*secInDay;
+                tmpNode->eTime = tnow + af_robot->killedRequestTimeout*secInDay;
                 w_log( LL_AREAFIX, "%s: request for %s is going to be killed", af_robot->name, tmpNode->name);
 
                 /* send notification messages */
@@ -958,7 +958,7 @@ void af_QueueUpdate()
                                         xstrscat(&(tmpmsg[j]->text), "\001FLAGS ", rf, "\r",NULL);
 
                                   xstrcat(&tmpmsg[j]->text, "\r Your requests for the following areas were forwarded to uplinks,\r");
-                                xscatprintf(&tmpmsg[j]->text, " but no messages were received at least in %u days. Your requests\r",af_config->forwardRequestTimeout);
+                                xscatprintf(&tmpmsg[j]->text, " but no messages were received at least in %u days. Your requests\r",af_robot->forwardRequestTimeout);
                                     xstrcat(&tmpmsg[j]->text, " are killed by timeout.\r\r");
                             }
                             xscatprintf(&tmpmsg[j]->text, " %s\r",tmpNode->name);
@@ -983,7 +983,7 @@ void af_QueueUpdate()
             queryAreasHead->nFlag = 1; /*  query was changed */
             strcpy(tmpNode->type, czKillArea);
             tmpNode->bTime = tnow;
-            tmpNode->eTime = tnow + af_config->killedRequestTimeout*secInDay;
+            tmpNode->eTime = tnow + af_robot->killedRequestTimeout*secInDay;
             tmpNode->linksCount = 1;
             w_log( LL_AREAFIX, "%s: request for %s is going to be killed", af_robot->name, tmpNode->name);
             dwlink = getLinkFromAddr(af_config, tmpNode->downlinks[0]);
