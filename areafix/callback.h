@@ -47,9 +47,8 @@ HUSKYEXT void* (*call_srealloc)(void *, size_t);
 HUSKYEXT int (*call_sendMsg)(s_message *);
 /* send a message to sysop */
 HUSKYEXT int (*call_writeMsgToSysop)(s_message *);
-/* fill s_linkdata structure with link's data, such as robot name, password etc. */
-/* this data differs for hpt and htick */
-HUSKYEXT void (*call_getLinkData)(s_link *link, s_linkdata *linkData);
+/* return a pointer to robot's data in the link structure */
+HUSKYEXT s_link_robot* (*call_getLinkRobot)(s_link *link);
 
 /* do program-dependent stuff when creating area (e.g. announce) */
 /* possible usage: afReportAutoCreate */

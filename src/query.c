@@ -131,7 +131,7 @@ void del_tok(char **ac, char *tok) {
     }
 }
 
-char* makeAreaParam(s_link *creatingLink, char* c_area, char* msgbDir)
+char* makeAreaParam(s_link *creatingLink, s_link_robot *r, char* c_area, char* msgbDir)
 {
     char *msgbFileName=NULL, *acDef;
     char *msgbtype, *newAC=NULL, *desc, *quote_areaname;
@@ -147,9 +147,8 @@ char* makeAreaParam(s_link *creatingLink, char* c_area, char* msgbDir)
     if (af_config->areasFileNameCase == eUpper) strUpper(msgbFileName);
     else strLower(msgbFileName);
 
-    acDef = creatingLink->autoAreaCreateDefaults;
-
-    xscatprintf(&newAC, "%s%s", (acDef) ? " " : "", (acDef) ? acDef : "");
+    if (r->autoCreateDefaults)
+      xstrscat(&newAC, " ", r->autoCreateDefaults, NULL);
 
     msgbtype = fc_stristr(newAC, "-b ");
 
@@ -223,7 +222,7 @@ char* makeAreaParam(s_link *creatingLink, char* c_area, char* msgbDir)
             xscatprintf(&buff, " -g %s", creatingLink->LinkGrp);
     }
 
-    if (IsAreaAvailable(c_area,creatingLink->forwardRequestFile,&desc,1)==1) {
+    if (IsAreaAvailable(c_area, r->fwdFile, &desc,1)==1) {
         if (desc) {
             if (fc_stristr(newAC, " -d ")==NULL)
                 xscatprintf(&buff, " -d \"%s\"", desc);
@@ -248,6 +247,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     unsigned int j;
     char pass[] = "passthrough";
     char CR;
+    s_link_robot *r;
 
     w_log( LL_FUNC, "%s::autoCreate() begin", __FILE__ );
 
@@ -276,17 +276,13 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 	return BM_SENDER_NOT_FOUND;
     }
 
-    if (af_app->module == M_HTICK) {
-      fileName = creatingLink->autoFileCreateFile ? creatingLink->autoFileCreateFile : (af_cfgFile ? af_cfgFile : getConfigFileName());
-    } else {
-      fileName = creatingLink->autoAreaCreateFile;
-      if (fileName == NULL) fileName = af_cfgFile ? af_cfgFile : getConfigFileName();
-    }
+    r = (*call_getLinkRobot)(creatingLink);
+    fileName = r->autoCreateFile ? r->autoCreateFile : (af_cfgFile ? af_cfgFile : getConfigFileName());
 
     f = fopen(fileName, "a+b");
     if (f == NULL) {
-	fprintf(stderr,"autocreate: cannot open af_config file\n");
-        w_log( LL_FUNC, "%s::autoCreate() rc=9", __FILE__ );
+	fprintf(stderr, "autocreate: cannot open af_config file\n");
+    w_log( LL_FUNC, "%s::autoCreate() rc=9", __FILE__ );
 	return BM_CANT_OPEN_CONFIG;
     }
     /*  setting up msgbase dir */
@@ -338,7 +334,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     /* HPT stuff */
     if (af_app->module == M_HPT) {
-      buff = makeAreaParam(creatingLink, c_area, msgbDir);
+      buff = makeAreaParam(creatingLink, r, c_area, msgbDir);
     }
     /* HTICK stuff */
     else if (af_app->module == M_HTICK) {
@@ -385,9 +381,6 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
           nfree(buff);
       }
 
-
-      fileName = creatingLink->autoFileCreateFile ? creatingLink->autoFileCreateFile : (af_cfgFile ? af_cfgFile : getConfigFileName());
-
       /* write new line in config file */
 
       xscatprintf(&buff, "FileArea %s %s%s -a %s ",
@@ -397,18 +390,18 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
           );
 
       if ( creatingLink->LinkGrp &&
-          !( creatingLink->autoFileCreateDefaults && fc_stristr(creatingLink->autoFileCreateDefaults, "-g ") )
+          !( r->autoCreateDefaults && fc_stristr(r->autoCreateDefaults, "-g ") )
           )
       {
           xscatprintf(&buff,"-g %s ",creatingLink->LinkGrp);
       }
 
-      if (creatingLink->forwardFileRequestFile!=NULL && descr==NULL)
+      if (r->fwdFile && !descr)
           /* try to find description in forwardFileRequestFile */
-          IsAreaAvailable(c_area,creatingLink->forwardFileRequestFile,&descr,1);
+          IsAreaAvailable(c_area, r->fwdFile, &descr, 1);
 
-      if (creatingLink->autoFileCreateDefaults) {
-          NewAutoCreate = sstrdup(creatingLink->autoFileCreateDefaults);
+      if (r->autoCreateDefaults) {
+          NewAutoCreate = sstrdup(r->autoCreateDefaults);
           if ((fileName=strstr(NewAutoCreate,"-d ")) !=NULL ) {
               if (descr) {
                   *fileName = '\0';
@@ -935,21 +928,15 @@ void af_QueueUpdate()
                         {
                    	    if (tmpmsg[j] == NULL)
                    	    {
-                                int ra = 0;
                                 char *rf = NULL;
-                                if (af_app->module == M_HTICK) {
-                                  ra = dwlink->filefixReportsAttr ? dwlink->filefixReportsAttr : af_robot->reportsAttr;
-                                  rf = dwlink->filefixReportsFlags ? dwlink->filefixReportsFlags : af_robot->reportsFlags;
-                                } else {
-                                  ra = dwlink->areafixReportsAttr ? dwlink->areafixReportsAttr : af_robot->reportsAttr;
-                                  rf = dwlink->areafixReportsFlags ? dwlink->areafixReportsFlags : af_robot->reportsFlags;
-                                }
+                                s_link_robot *r = (*call_getLinkRobot)(dwlink);
+                                rf = r->reportsFlags ? r->reportsFlags : af_robot->reportsFlags;
                                 tmpmsg[j] = makeMessage(dwlink->ourAka,
                                     &(dwlink->hisAka),
                                     af_robot->fromName ? af_robot->fromName : af_versionStr,
                                     dwlink->name,
                                     "Notification message", 1,
-                                    ra);
+                                    r->reportsAttr ? r->reportsAttr : af_robot->reportsAttr);
                                 tmpmsg[j]->text = createKludges(af_config, NULL,
                                     dwlink->ourAka,
                                     &(dwlink->hisAka),

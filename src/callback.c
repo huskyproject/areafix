@@ -37,6 +37,8 @@ char* (*call_sstrdup)(const char *) = NULL;
 void* (*call_smalloc)(size_t) = NULL;
 void* (*call_srealloc)(void *, size_t) = NULL;
 
+s_link_robot* (*call_getLinkRobot)(s_link *link) = NULL;
+
 int (*call_sendMsg)(s_message *) = NULL;
 int (*call_writeMsgToSysop)(s_message *) = NULL;
 
@@ -47,4 +49,3 @@ void (*hook_onConfigChange)(e_perlconftype confType) = NULL;
 int (*hook_echolist)(char **report, s_listype type, ps_arealist al, char *aka) = NULL;
 int (*hook_afixcmd)(char **report, int cmd, char *aka, char *line) = NULL;
 int (*hook_afixreq)(s_message *msg, hs_addr pktOrigAddr) = NULL;
-void (*call_getLinkData)(s_link *link, s_linkdata *linkData) = NULL;

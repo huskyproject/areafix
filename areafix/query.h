@@ -58,8 +58,6 @@ typedef enum {
 
 HUSKYEXT e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_addr forwardAddr);
 
-HUSKYEXT char* makeAreaParam(s_link *creatingLink, char* c_area, char* msgbDir);
-
 typedef struct query_areas
 {
     char *name;
@@ -92,7 +90,6 @@ HUSKYEXT s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_ad
 HUSKYEXT char* af_Req2Idle(char *areatag, char* report, hs_addr linkAddr);
 HUSKYEXT int   af_OpenQuery();
 HUSKYEXT int   af_CloseQuery();
-HUSKYEXT char* makeAreaParam(s_link *creatingLink, char* c_area, char* msgbDir);
 HUSKYEXT void  af_QueueUpdate();
 HUSKYEXT void  af_QueueReport();
 HUSKYEXT int checkRefuse(char *areaName);

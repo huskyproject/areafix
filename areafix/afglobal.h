@@ -43,6 +43,7 @@ HUSKYEXT int           af_quiet;
 HUSKYEXT int           af_silent_mode;
 HUSKYEXT int           af_report_changes;
 HUSKYEXT int           af_send_notify;
+HUSKYEXT int           af_pause;
 
 #ifdef __cplusplus
 }
