@@ -2261,7 +2261,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 
     /*  2nd security check. link, areafixing & password. */
     if (!security && !force_pwd) {
-        if (!rlink->on) {
+        if (rlink->on) {
             if (rlink->pwd) {
                 if (stricmp(rlink->pwd, msg->subjectLine)==0) security=0;
                 else security=3; /* password error */
