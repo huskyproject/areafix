@@ -1637,11 +1637,11 @@ char *packer(s_link *link, char *cmdline) {
 
 char *change_token(s_link *link, char *cmdline)
 {
-    char *param, *token, *token2 = NULL, *desc, *report = NULL;
+    char *param, *token = NULL, *token2 = NULL, *desc, *report = NULL;
     char *confName = NULL, *cfgline = NULL;
     long strbeg = 0, strend = 0;
     int mode;
-    char *c_prev = NULL, *c_new = NULL;  /* previous and new char values */
+    char **c_prev = NULL, *c_new = NULL;  /* previous and new char values */
     unsigned int *i_prev = NULL, i_new = 0;  /* previous and new int values */
     s_link_robot *r = (*call_getLinkRobot)(link);
 
@@ -1650,28 +1650,28 @@ char *change_token(s_link *link, char *cmdline)
     switch (RetFix) {
         case AREAFIXPWD:
             mode = 1;
-            c_prev = link->areafix.pwd;
+            c_prev = &(link->areafix.pwd);
             token = "areafixPwd";
             token2 = "password";
             desc = "Areafix";
             break;
         case FILEFIXPWD:
             mode = 1;
-            c_prev = link->filefix.pwd;
+            c_prev = &(link->filefix.pwd);
             token = "filefixPwd";
             token2 = "password";
             desc = "Filefix";
             break;
         case PKTPWD:
             mode = 1;
-            c_prev = link->pktPwd;
+            c_prev = &(link->pktPwd);
             token = "pktPwd";
             token2 = "password";
             desc = "Packet";
             break;
         case TICPWD:
             mode = 1;
-            c_prev = link->ticPwd;
+            c_prev = &(link->ticPwd);
             token = "ticPwd";
             token2 = "password";
             desc = "Tic";
@@ -1716,7 +1716,7 @@ char *change_token(s_link *link, char *cmdline)
     switch (mode) {
         case 1:  /* AREAFIXPWD, PKTPWD, FILEFIXPWD, TICPWD */
             c_new = (param != NULL) ? param : "";
-            if (stricmp(c_prev, c_new) == 0) {
+            if (*c_prev && stricmp(*c_prev, c_new) == 0) {
                 w_log(LL_AREAFIX, "%s: New and old passwords are the same", af_robot->name);
                 xstrcat(&report, "New and old passwords are the same. No changes were made.\r\r");
                 return report;
@@ -1785,13 +1785,12 @@ char *change_token(s_link *link, char *cmdline)
 
     xstrcat(&confName,(af_cfgFile) ? af_cfgFile : getConfigFileName());
     FindTokenPos4Link(&confName, token, token2, link, &strbeg, &strend);
-
     if (InsertCfgLine(confName, cfgline, strbeg, strend)) {
         switch (mode) {
             case 1:  /* AREAFIXPWD, PKTPWD, FILEFIXPWD, TICPWD */
                 w_log(LL_AREAFIX, "%s: %s password changed to '%s'", af_robot->name, desc, c_new);
                 xscatprintf(&report, "%s password changed to '%s'\r\r", desc, c_new);
-                *c_prev = *c_new;
+                *c_prev = (*call_sstrdup)(c_new ? c_new : "");
                 break;
             case 2:  /* ARCMAILSIZE, PKTSIZE */
                 w_log(LL_AREAFIX, "%s: %s size changed to %i kbytes", af_robot->name, desc, i_new);
