@@ -28,7 +28,7 @@ TARGETDLL = $(DLLPREFIX)$(LIBNAME)$(DLLSUFFIX)$(_DLL)
 OBJS    = areafix$(_OBJ) query$(_OBJ) afglobal$(_OBJ) callback$(_OBJ)
 
 # Header files
-HEADERS	= arrafix.h query.h callback.h afglobal.h
+HEADERS	= areafix.h query.h callback.h afglobal.h
 
 # Sources directory
 _SRC_DIR= ../src/
