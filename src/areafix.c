@@ -887,7 +887,7 @@ char *subscribe(s_link *link, char *cmd) {
                   xscatprintf(&report," %s %s  added\r",an,print_ch(49-strlen(an),'.'));
                   w_log(LL_AREAFIX, "%sfix: %s subscribed to area \'%s\'", _AF, aka2str(link->hisAka), an);
                   if ((af_config->autoAreaPause & pause) && area->paused)
-                      pauseAreas(1, NULL, area);
+                      pauseArea(ACT_UNPAUSE, NULL, area);
               } else {
                   xscatprintf(&report, " %s %s  not subscribed\r", an, print_ch(49-strlen(an), '.'));
                   w_log(LL_AREAFIX, "%sfix: %s not subscribed to area \'%s\', cause uplink", _AF, aka2str(link->hisAka), an);
@@ -906,8 +906,14 @@ char *subscribe(s_link *link, char *cmd) {
                 if (af_app->module != M_HTICK) fixRules(link, area->areaName);
                 xscatprintf(&report," %s %s  added\r", an, print_ch(49-strlen(an),'.'));
                 w_log(LL_AREAFIX, "%sfix: %s subscribed to area \'%s\'", _AF, aka2str(link->hisAka), an);
-                if ((af_config->autoAreaPause & pause) && area->paused && (link->Pause & pause))
-                    pauseAreas(1, link, area);
+                if (af_config->autoAreaPause & pause) {
+                    /* area is paused while link is active */
+                    if (area->paused && !(link->Pause & pause))
+                        pauseArea(ACT_UNPAUSE, NULL, area);
+                    /* may be passthrough and not paused area was idle? if paused link subscribed we should pause area */
+                    else if (!(area->paused) && (link->Pause & pause) && (area->downlinkCount==2))
+                        pauseArea(ACT_PAUSE, NULL, area);
+                }
                 af_CheckAreaInQuery(an, NULL, NULL, DELIDLE);
                 if (af_send_notify)
                     forwardRequestToLink(area->areaName, link, NULL, 0);
@@ -972,7 +978,7 @@ char *subscribe(s_link *link, char *cmd) {
                     Addlink(af_config, link, area);
                     if (af_app->module != M_HTICK) fixRules(link, area->areaName);
                     if ((af_config->autoAreaPause & pause) && (link->Pause & pause))
-                        pauseAreas(0, link, area);
+                        pauseArea(ACT_PAUSE, NULL, area);
                     w_log(LL_AREAFIX, "%sfix: %s subscribed to area \'%s\'", _AF,
                         aka2str(link->hisAka),line);
                 } else {
@@ -1219,7 +1225,7 @@ char *unsubscribe(s_link *link, char *cmd) {
                     {
                         j = changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,7);
                         if (j == DEL_OK && (af_config->autoAreaPause & pause) && !area->paused && !(link->Pause & pause))
-                            pauseAreas(0,NULL,area);
+                            pauseArea(ACT_PAUSE, NULL, area);
                     }
                     if (j != DEL_OK) {
                         w_log(LL_AREAFIX, "%sfix: %s doesn't unlinked from area \'%s\'", _AF,
@@ -1245,14 +1251,14 @@ char *unsubscribe(s_link *link, char *cmd) {
                     }
                 } else if (af_config->autoAreaPause && !area->paused) {
                        area->msgbType = MSGTYPE_PASSTHROUGH;
-                       pauseAreas(0,NULL,area);
+                       pauseArea(ACT_PAUSE, NULL, area);
                 }
                 j = changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,6);
 /*                if ( (j == DEL_OK) && area->msgbType!=MSGTYPE_PASSTHROUGH ) */
                 if (j == DEL_OK) switch (af_app->module) {
                   case M_HTICK:
                     if (af_config->autoAreaPause & FILEAREA)
-                      pauseAreas(0, NULL, area);
+                      pauseArea(ACT_PAUSE, NULL, area);
                     break;
                   default:
                     if (area->fileName && area->killMsgBase)
@@ -1312,13 +1318,18 @@ char *unsubscribe(s_link *link, char *cmd) {
     return report;
 }
 
-/* if act==0 pause area, if act==1 unpause area */
 /* returns 0 if no messages to links were created */
-int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
+int pauseArea(e_pauseAct pauseAct, s_link *searchLink, s_area *searchArea) {
   unsigned int i, j, linkCount, cnt;
   unsigned int rc = 0;
   int pause = af_app->module == M_HTICK ? FILEAREA : ECHOAREA;
 
+  w_log(LL_DEBUG, "pauseArea(%s, %s, %s) begin",
+    (pauseAct == ACT_PAUSE ? "ACT_PAUSE" : "ACT_UNPAUSE"),
+    (searchLink ? aka2str(searchLink->hisAka) : "NULL"),
+    (searchArea ? searchArea->areaName : "NULL"));
+
+  /* check if we have something to search for */
   if (!searchLink && !searchArea) return rc;
 
   cnt = af_app->module == M_HTICK ? af_config->fileAreaCount : af_config->echoAreaCount;
@@ -1328,24 +1339,53 @@ int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
     s_message *msg;
 
     area = af_app->module == M_HTICK ? &(af_config->fileAreas[i]) : &(af_config->echoAreas[i]);
-    if (act==0 && (area->paused || area->noautoareapause || area->msgbType!=MSGTYPE_PASSTHROUGH)) continue;
-    if (act==1 && (!area->paused)) continue;
-    if (searchArea && searchArea != area) continue;
-    if (searchLink && isLinkOfArea(searchLink, area)!=1) continue;
+
+    /* check if current area is the area being searched */
+    /* or the link being searched is linked to current area */
+    if ((searchArea && searchArea != area) ||
+      (searchLink && !isLinkOfArea(searchLink, area))) continue;
+
+    w_log(LL_DEBUG, "pauseArea(): checking area %s", area->areaName);
+
+    /* skip if area is already paused, noautoareapause option set, or not passthru */
+    if (pauseAct == ACT_PAUSE &&
+      (area->paused || area->noautoareapause || area->msgbType!=MSGTYPE_PASSTHROUGH)) continue;
+
+    /* skip if area is not paused */
+    if (pauseAct == ACT_UNPAUSE && !area->paused) continue;
+
+    w_log(LL_DEBUG, "pauseArea(): checking links of area %s", area->areaName);
 
     linkCount = 0;
-    for (j=0; j < area->downlinkCount; j++) { /* try to find uplink */
-      if ( !(area->downlinks[j]->link->Pause & pause) &&
-           (!searchLink || addrComp(searchLink->hisAka, area->downlinks[j]->link->hisAka)!=0) ) {
-        linkCount++;
-        if (area->downlinks[j]->defLink) uplink = area->downlinks[j]->link;
+    /* treat ourself as active link if area is not passthrough */
+    if (area->msgbType != MSGTYPE_PASSTHROUGH) {
+      linkCount++;
+      w_log(LL_DEBUG, "pauseArea(): area is not passtrough -> %s is active link", aka2str(*area->useAka));
+    }
+
+    /* find all active links except the uplink */
+    for (j=0; j < area->downlinkCount; j++) {
+      if (!(area->downlinks[j]->link->Pause & pause)) {
+        if (area->downlinks[j]->defLink) {
+          uplink = area->downlinks[j]->link;
+          w_log(LL_DEBUG, "pauseArea(): link %s is uplink", aka2str(area->downlinks[j]->link->hisAka));
+        } else {
+          linkCount++;
+          w_log(LL_DEBUG, "pauseArea(): found active link %s", aka2str(area->downlinks[j]->link->hisAka));
+        }
       }
     }
 
-    if (linkCount!=1 || !uplink) continue; /* uplink not found */
+    if (!uplink ||  /* uplink not found */
+       (pauseAct == ACT_PAUSE && linkCount > 0) ||  /* found active links */
+       (pauseAct == ACT_UNPAUSE && linkCount == 0))  /* no active links found */
+    {
+        w_log(LL_DEBUG, "pauseArea(): no changes should be performed");
+        continue;
+    }
 
     /* change af_config */
-    if (act==0) { /* make area paused */
+    if (pauseAct == ACT_PAUSE) { /* make area paused */
       if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,NULL,8)==ADD_OK) {
         w_log(LL_AREAFIX, "%sfix: Area \'%s\' is paused (uplink: %s)", _AF,
                  area->areaName, aka2str(uplink->hisAka));
@@ -1353,7 +1393,7 @@ int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
         w_log(LL_AREAFIX, "%sfix: Error pausing area \'%s\'", _AF, area->areaName);
         continue;
       }
-    } else if (act==1) { /* make area non paused */
+    } else { /* make area non paused */
       if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,NULL,9)==ADD_OK) {
         w_log(LL_AREAFIX, "%sfix: Area \'%s\' is not paused any more (uplink: %s)", _AF,
                  area->areaName, aka2str(uplink->hisAka));
@@ -1378,13 +1418,15 @@ int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
       uplink->msg = msg;
     } else msg = uplink->msg;
 
-    if (act==0)
+    if (pauseAct == ACT_PAUSE)
       xscatprintf(&(msg->text), "-%s\r", area->areaName);
-    else if (act==1)
+    else
       xscatprintf(&(msg->text), "+%s\r", area->areaName);
 
     rc = 1;
   }
+
+  w_log(LL_AREAFIX, "pauseArea() end");
 
   return rc;
 }
@@ -1432,7 +1474,8 @@ char *pause_resume_link(s_link *link, int mode)
 
    /* check for areas with one link alive and others paused */
    if (af_config->autoAreaPause & pause)
-       pauseAreas(mode, link, NULL);
+       if (mode == 0) pauseArea(ACT_PAUSE, link, NULL);
+       else pauseArea(ACT_UNPAUSE, link, NULL);
 
    return report;
 }

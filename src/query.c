@@ -513,7 +513,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
       /* check if downlinks are already paused, pause area if it is so */
       /* skip if forwardAddr is NULL: will be checked in subscribe() */
       if (af_config->autoAreaPause && area->msgbType == MSGTYPE_PASSTHROUGH && forwardAddr == NULL)
-        if (pauseAreas(0, NULL, area)) sendAreafixMessages();
+        if (pauseArea(ACT_PAUSE, NULL, area)) sendAreafixMessages();
     }
 
     nfree(hisaddr);

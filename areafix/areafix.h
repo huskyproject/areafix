@@ -93,13 +93,14 @@ typedef struct linkdata {
 
 typedef enum { lt_all, lt_linked, lt_unlinked } s_listype;
 typedef enum { PERL_CONF_MAIN = 1, PERL_CONF_LINKS = 2, PERL_CONF_AREAS = 4 } e_perlconftype;
+typedef enum { ACT_PAUSE, ACT_UNPAUSE } e_pauseAct;
 
 HUSKYEXT int init_areafix(void);
 
 HUSKYEXT char *print_ch(int len, char ch);
 HUSKYEXT int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd);
 HUSKYEXT void afix(hs_addr addr, char *cmd);
-HUSKYEXT int pauseAreas(int act, s_link *searchLink, s_area *searchArea);
+HUSKYEXT int pauseArea(e_pauseAct pauseAct, s_link *searchLink, s_area *searchArea);
 HUSKYEXT char *rescan(s_link *link, char *cmd);
 HUSKYEXT char *errorRQ(char *line);
 HUSKYEXT int isPatternLine(char *s);
