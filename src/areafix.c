@@ -2200,10 +2200,10 @@ void sendAreafixMessages()
         link = af_config->links[i];
         linkmsg = link->msg;
 
-        xscatprintf(&(linkmsg->text), " \r--- %s areafix\r", af_versionStr);
+        xscatprintf(&(linkmsg->text), " \r--- %s %s\r", af_versionStr, af_robot->name);
         linkmsg->textLength = strlen(linkmsg->text);
 
-        w_log(LL_AREAFIX, "areafix: Write netmail msg for %s", aka2str(link->hisAka));
+        w_log(LL_AREAFIX, "%s: Write netmail msg for %s", af_robot->name, aka2str(link->hisAka));
 
 /*
         processNMMsg(linkmsg, NULL, getRobotsArea(af_config),
