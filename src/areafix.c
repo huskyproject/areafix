@@ -800,11 +800,11 @@ int isPatternLine(char *s) {
 
 void fixRules (s_link *link, char *area) {
     char *fileName = NULL;
+    s_link_robot *r = (*call_getLinkRobot)(link);
 
-    if (!af_config->rulesDir) return;
-    if (link->noRules) return;
+    if (!af_robot->rulesDir || r->noRules) return;
 
-    xscatprintf(&fileName, "%s%s.rul", af_config->rulesDir, strLower(makeMsgbFileName(af_config, area)));
+    xscatprintf(&fileName, "%s%s.rul", af_robot->rulesDir, strLower(makeMsgbFileName(af_config, area)));
 
     if (fexist(fileName)) {
         rulesCount++;
@@ -1457,7 +1457,7 @@ char *info_link(s_link *link)
     xscatprintf(&report, "            Your address: %s\r", linkAka);
     xscatprintf(&report, "           AKA used here: %s\r", aka2str(*link->ourAka));
     xscatprintf(&report, "         Reduced SEEN-BY: %s\r", link->reducedSeenBy ? "on" : "off");
-    xscatprintf(&report, " Send rules on subscribe: %s\r", link->noRules ? "off" : "on");
+    xscatprintf(&report, " Send rules on subscribe: %s\r", r->noRules ? "off" : "on");
     if (link->pktSize)
     xscatprintf(&report, "             Packet size: %u kbytes\r", link->pktSize);
     else
@@ -1646,6 +1646,7 @@ char *change_token(s_link *link, char *cmdline)
     int mode;
     char *c_prev = NULL, *c_new = NULL;  /* previous and new char values */
     unsigned int *i_prev = NULL, i_new = 0;  /* previous and new int values */
+    s_link_robot *r = (*call_getLinkRobot)(link);
 
     w_log(LL_FUNC, __FILE__ "::change_token()");
 
@@ -1698,8 +1699,9 @@ char *change_token(s_link *link, char *cmdline)
             break;
         case RULES:
             mode = 3;
-            i_prev = &(link->noRules);
-            token = "noRules";
+            i_prev = &(r->noRules);
+            xstrscat(&token, af_robot->name, "NoRules", NULL);
+            token2 = "noRules";
             desc = "Send rules";
             break;
         default:
@@ -2143,7 +2145,7 @@ void RetRules (s_message *msg, s_link *link, char *areaName)
     long len=0;
     int nrul=0;
 
-    xscatprintf(&fileName, "%s%s.rul", af_config->rulesDir, strLower(makeMsgbFileName(af_config, areaName)));
+    xscatprintf(&fileName, "%s%s.rul", af_robot->rulesDir, strLower(makeMsgbFileName(af_config, areaName)));
 
     for (nrul=0; nrul<=9 && (f = fopen (fileName, "rb")); nrul++) {
 
