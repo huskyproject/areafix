@@ -1,3 +1,8 @@
+2004-12-10 Friday 18:38  andrew_ladutsko
+
+	* src/areafix.c (1.31): fixed not killing the msgbase when
+	autoAreaPause is set
+
 2004-11-25 Thursday 15:04  andrew_ladutsko
 
 	* src/areafix.c (1.30): fixed log level in debug message
