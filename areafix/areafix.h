@@ -67,6 +67,10 @@ extern "C" {
 #define RULES       16
 #define PKTSIZE     17
 #define ARCMAILSIZE 18
+#define AREAFIXPWD  19
+#define FILEFIXPWD  20
+#define PKTPWD      21
+#define TICPWD      22
 #define DONE        100
 #define STAT        101
 #define AFERROR     255

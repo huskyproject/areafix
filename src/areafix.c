@@ -1613,11 +1613,12 @@ char *pktsize (s_link *link, char *cmdline) {
         }
 
         xstrcat(&confName,(af_cfgFile) ? af_cfgFile : getConfigFileName());
-        FindTokenPos4Link(&confName, "pktSize", link, &strbeg, &strend);
+        FindTokenPos4Link(&confName, "pktSize", NULL, link, &strbeg, &strend);
         xscatprintf(&pktSizeString,"pktSize %u",num);
         if( InsertCfgLine(confName, pktSizeString, strbeg, strend) ) {
             link->pktSize = num;
             xscatprintf(&report, "Pkt size is set to %u kbytes.\r", num);
+            if (hook_onConfigChange) (*hook_onConfigChange)();
         }
 
         nfree(confName);
@@ -1661,11 +1662,12 @@ char *arcmailsize (s_link *link, char *cmdline) {
         }
 
         xstrcat(&confName,(af_cfgFile) ? af_cfgFile : getConfigFileName());
-        FindTokenPos4Link(&confName, "arcmailSize", link, &strbeg, &strend);
+        FindTokenPos4Link(&confName, "arcmailSize", NULL, link, &strbeg, &strend);
         xscatprintf(&arcmailSizeString,"arcmailSize %u",num);
         if( InsertCfgLine(confName, arcmailSizeString, strbeg, strend) ) {
             link->arcmailSize = num;
             xscatprintf(&report, "Arcmail size is set to %u kbytes.\r", num);
+            if (hook_onConfigChange) (*hook_onConfigChange)();
         }
 
         nfree(confName);
@@ -1708,11 +1710,12 @@ char *packer(s_link *link, char *cmdline) {
             xstrcat(&was, link->packerDef->packer);
 
         xstrcat(&confName,(af_cfgFile) ? af_cfgFile : getConfigFileName());
-        FindTokenPos4Link(&confName, "Packer", link, &strbeg, &strend);
+        FindTokenPos4Link(&confName, "Packer", NULL, link, &strbeg, &strend);
         xscatprintf(&packerString,"Packer %s",pattern);
         if( InsertCfgLine(confName, packerString, strbeg, strend) )
         {
            link->packerDef = packerDef;
+           if (hook_onConfigChange) (*hook_onConfigChange)();
         }
         nfree(confName);
         nfree(packerString);
@@ -1776,12 +1779,13 @@ char *rsb(s_link *link, char *cmdline)
         return report;
     }
     xstrcat(&confName,(af_cfgFile) ? af_cfgFile : getConfigFileName());
-    FindTokenPos4Link(&confName, "reducedSeenBy", link, &strbeg, &strend);
+    FindTokenPos4Link(&confName, "reducedSeenBy", NULL, link, &strbeg, &strend);
     xscatprintf(&param, "reducedSeenBy %s", mode?"on":"off");
     if( InsertCfgLine(confName, param, strbeg, strend) )
     {
         xscatprintf(&report, "Redused SEEN-BYs is turned %s now\r\r", mode?"on":"off");
         link->reducedSeenBy = mode;
+        if (hook_onConfigChange) (*hook_onConfigChange)();
     }
     nfree(param);
     nfree(confName);
@@ -1829,15 +1833,88 @@ char *rules(s_link *link, char *cmdline)
         return report;
     }
     xstrcat(&confName,(af_cfgFile) ? af_cfgFile : getConfigFileName());
-    FindTokenPos4Link(&confName, "noRules", link, &strbeg, &strend);
+    FindTokenPos4Link(&confName, "noRules", NULL, link, &strbeg, &strend);
     xscatprintf(&param, "noRules %s", mode?"off":"on");
     if( InsertCfgLine(confName, param, strbeg, strend) )
     {
         xscatprintf(&report, "Send rules mode is turned %s now\r\r", mode?"on":"off");
         link->noRules = (mode ? 0 : 1);
+        if (hook_onConfigChange) (*hook_onConfigChange)();
     }
     nfree(param);
     nfree(confName);
+    return report;
+}
+
+char *change_pwd(s_link *link, char *cmdline)
+{
+    char *oldpwd, *newpwd = NULL, *token, *desc, *report = NULL;
+    char *confName = NULL, *cfgline = NULL;
+    long strbeg = 0, strend = 0;
+
+    w_log(LL_FUNC, __FILE__ "::change_pwd()");
+
+    switch (RetFix) {
+        case AREAFIXPWD:
+            oldpwd = link->areaFixPwd;
+            token = "areaFixPwd";
+            desc = "Areafix";
+            break;
+        case FILEFIXPWD:
+            oldpwd = link->fileFixPwd;
+            token = "fileFixPwd";
+            desc = "Filefix";
+            break;
+        case PKTPWD:
+            oldpwd = link->pktPwd;
+            token = "pktPwd";
+            desc = "Packet";
+            break;
+        case TICPWD:
+            oldpwd = link->ticPwd;
+            token = "ticPwd";
+            desc = "Tic";
+            break;
+        default:
+            w_log(LL_AREAFIX, "%sfix: Error! Unreacheable line %s:%u", __FILE__, __LINE__);
+            return NULL;
+    }
+
+    if (cmdline[0] == '%') cmdline++; /* exclude '%' sign */
+    while((strlen(cmdline) > 0) && isspace(cmdline[0])) cmdline++; /* exclude spaces between '%' and command */
+    while((strlen(cmdline) > 0) && !isspace(cmdline[0])) cmdline++; /* exclude command */
+    while((strlen(cmdline) > 0) && isspace(cmdline[0])) cmdline++; /* exclude spaces between command and rest of line */
+    
+    newpwd = strtok(cmdline, "\0");
+    if (newpwd == NULL) newpwd = "";
+
+    if (stricmp(oldpwd, newpwd) == 0) {
+        w_log(LL_AREAFIX, "%sfix: New and old passwords are the same", _AF);
+        xstrcat(&report, "New and old passwords are the same. No changes were made.\r\r");
+        return report;
+    }
+
+    if ((RetFix == PKTPWD || RetFix == TICPWD) && strlen(newpwd) > 8) {
+        w_log(LL_AREAFIX, "%sfix: Password is longer then 8 characters", _AF);
+        xstrcat(&report, "Password is longer then 8 characters. Only passwords no longer than 8 characters are allowed. No changes were made.\r\r");
+        return report;
+    }
+
+    xstrcat(&confName,(af_cfgFile) ? af_cfgFile : getConfigFileName());
+    FindTokenPos4Link(&confName, token, "password", link, &strbeg, &strend);
+    xscatprintf(&cfgline, "%s %s", token, newpwd);
+    if (InsertCfgLine(confName, cfgline, strbeg, strend)) {
+        w_log(LL_AREAFIX, "%sfix: %s password changed to '%s'", _AF, desc, newpwd);
+        xscatprintf(&report, "%s password changed to '%s'\r\r", desc, newpwd);
+        oldpwd = newpwd;
+        if (hook_onConfigChange) (*hook_onConfigChange)();
+    }
+
+    nfree(confName);
+    nfree(cfgline);
+
+    w_log(LL_FUNC, __FILE__ "::change_pwd() OK");
+
     return report;
 }
 
@@ -1877,6 +1954,10 @@ int tellcmd(char *cmd) {
                 return RESCAN;
             }
         }
+        if (strncasecmp(line,"areafixpwd",10)==0) return AREAFIXPWD;
+        if (strncasecmp(line,"filefixpwd",10)==0) return FILEFIXPWD;
+        if (strncasecmp(line,"pktpwd",6)==0) return PKTPWD;
+        if (strncasecmp(line,"ticpwd",6)==0) return TICPWD;
         return AFERROR;
     case '\001': return NOTHING;
     case '\000': return NOTHING;
@@ -1972,6 +2053,13 @@ char *processcmd(s_link *link, char *line, int cmd) {
         break;
     case ADD_RSC: report = add_rescan(link, line);
         RetFix=STAT;
+        break;
+    case AREAFIXPWD:
+    case FILEFIXPWD:
+    case PKTPWD:
+    case TICPWD:
+        RetFix=cmd;
+        report = change_pwd(link, line);
         break;
     case AFERROR: report = errorRQ(line);
         RetFix=STAT;
@@ -2329,6 +2417,12 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 		    break;
 		case STAT:
 		    report = areaStatus(report, preport);
+		    break;
+		case AREAFIXPWD:
+		case FILEFIXPWD:
+		case PKTPWD:
+		case TICPWD:
+		    RetMsg(msg, link, preport, "Areafix reply: password change request");
 		    break;
 		default:
 		    w_log(LL_ERR,"Unknown areafix command:%s", token);
