@@ -62,7 +62,7 @@ HUSKYEXT int (*hook_onRescanArea)(char **report, s_link *link, s_area *area, lon
 
 /* call after config has been changed */
 /* possible usage: perl_invalidate */
-HUSKYEXT void (*hook_onConfigChange)(void);
+HUSKYEXT void (*hook_onConfigChange)(e_perlconftype configType);
 
 /* return 1 to use **report as %list result; 0 to use built-in */
 /* possible usage: perl_echolist */

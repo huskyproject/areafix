@@ -519,7 +519,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     nfree(hisaddr);
 
     /* val: update perl structures */
-    if (hook_onConfigChange) (*hook_onConfigChange)();
+    if (hook_onConfigChange) (*hook_onConfigChange)(PERL_CONF_AREAS);
 
     /*  create flag */
     if (ff) {

@@ -77,6 +77,7 @@ extern "C" {
 #define AFERROR     255
 
 typedef enum { lt_all, lt_linked, lt_unlinked } s_listype;
+typedef enum { PERL_CONF_MAIN = 1, PERL_CONF_LINKS = 2, PERL_CONF_AREAS = 4 } e_perlconftype;
 
 HUSKYEXT int init_areafix(void);
 

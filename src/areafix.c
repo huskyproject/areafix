@@ -719,9 +719,6 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
     nfree(cfgline);
     nfree(fileName);
 
-    /* for example, update perl vars */
-    if (hook_onConfigChange) (*hook_onConfigChange)();
-
     w_log(LL_FUNC, __FILE__ "::changeconfig() rc=%i", nRet);
     return nRet;
 }
@@ -1035,6 +1032,11 @@ char *subscribe(s_link *link, char *cmd) {
 	w_log(LL_AREAFIX, "%sfix: Not found area \'%s\'", _AF, line);
     }
     w_log(LL_FUNC, "%sfix::subscribe() OK", _AF);
+
+    /* update perl vars */
+    /* al: todo: rewrite function and place this call to the write place */
+    if (hook_onConfigChange) (*hook_onConfigChange)(PERL_CONF_AREAS);
+
     return report;
 }
 
@@ -1140,6 +1142,8 @@ char *do_delete(s_link *link, s_area *area) {
             memcpy(&(areas[i]), &(areas[i+1]), sizeof(s_area));
         (*cnt)--;
         RebuildEchoAreaTree(af_config);
+        /* update perl vars */
+        if (hook_onConfigChange) (*hook_onConfigChange)(PERL_CONF_AREAS);
     }
     return report;
 }
@@ -1328,6 +1332,11 @@ char *unsubscribe(s_link *link, char *cmd) {
         }
     }
     w_log(LL_FUNC,__FILE__ ":%u:unsubscribe() end", __LINE__);
+
+    /* update perl vars */
+    /* al: todo: rewrite function and place this call to the write place */
+    if (hook_onConfigChange) (*hook_onConfigChange)(PERL_CONF_AREAS);
+
     return report;
 }
 
@@ -1455,7 +1464,7 @@ char *pause_resume_link(s_link *link, int mode)
                   break;
               }
       /* update perl vars */
-      if (hook_onConfigChange) (*hook_onConfigChange)();
+      if (hook_onConfigChange) (*hook_onConfigChange)(PERL_CONF_LINKS|PERL_CONF_AREAS);
    }
    xstrscat(&report, " System switched to ", mode ? "active" : "passive", "\r\r", NULL);
    tmp = list(lt_linked, link, NULL);/*linked (link);*/
@@ -1638,7 +1647,7 @@ char *packer(s_link *link, char *cmdline) {
         if( InsertCfgLine(confName, packerString, strbeg, strend) )
         {
            link->packerDef = packerDef;
-           if (hook_onConfigChange) (*hook_onConfigChange)();
+           if (hook_onConfigChange) (*hook_onConfigChange)(PERL_CONF_LINKS);
         }
         nfree(confName);
         nfree(packerString);
@@ -1828,7 +1837,7 @@ char *change_token(s_link *link, char *cmdline)
                 *i_prev = i_new;
                 break;
         }
-        if (hook_onConfigChange) (*hook_onConfigChange)();
+        if (hook_onConfigChange) (*hook_onConfigChange)(PERL_CONF_LINKS);
     }
 
     nfree(confName);
@@ -2465,9 +2474,6 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 
     /*  send msg to the links (forward requests to areafix) */
     sendAreafixMessages();
-
-    /* for example, update perl vars */
-    if (hook_onConfigChange) (*hook_onConfigChange)();
 
     w_log(LL_FUNC, __FILE__ "::processAreaFix() end (rc=1)");
     return 1;
