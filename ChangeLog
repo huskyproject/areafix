@@ -1,3 +1,12 @@
+2005-02-27 Sunday 20:25  val_khokhlov
+
+	* src/query.c (1.22): fix a bug with "(null)" appearing in reports
+
+2005-02-27 Sunday 20:20  val_khokhlov
+
+	* src/areafix.c (1.50): add emptry line before echolist for
+	queryReports
+
 2005-02-03 Thursday 18:54  val_khokhlov
 
 	* areafix/callback.h (1.10), src/areafix.c (1.49), src/callback.c
