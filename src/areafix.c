@@ -83,6 +83,8 @@
 #include <afglobal.h>
 #include <callback.h>
 
+#define _AF (af_app->module == M_HTICK ? "file" : "area")
+
 unsigned char RetFix;
 static int rescanMode = 0;
 static int rulesCount = 0;
@@ -124,7 +126,7 @@ char *getPatternFromLine(char *line, int *reversed)
 }
 
 char *list(s_listype type, s_link *link, char *cmdline) {
-    unsigned int i, j, export, import, mandatory, active, avail, rc = 0;
+    unsigned int cnt, i, j, export, import, mandatory, active, avail, rc = 0;
     char *report = NULL;
     char *list = NULL;
     char *pattern = NULL;
@@ -169,6 +171,7 @@ char *list(s_listype type, s_link *link, char *cmdline) {
                   import = area->downlinks[j]->import;
                   export = area->downlinks[j]->export;
                   mandatory = area->downlinks[j]->mandatory;
+                  break;
                }
             }
 
@@ -227,13 +230,13 @@ char *list(s_listype type, s_link *link, char *cmdline) {
   } /* hook_echolist */
     switch (type) {
       case lt_all:
-        w_log(LL_AREAFIX, "areafix: list sent to %s", aka2str(link->hisAka));
+        w_log(LL_AREAFIX, "%sfix: list sent to %s", _AF, aka2str(link->hisAka));
         break;
       case lt_linked:
-        w_log(LL_AREAFIX, "areafix: linked areas list sent to %s", aka2str(link->hisAka));
+        w_log(LL_AREAFIX, "%sfix: linked areas list sent to %s", _AF, aka2str(link->hisAka));
         break;
       case lt_unlinked:
-        w_log(LL_AREAFIX, "areafix: unlinked areas list sent to %s", aka2str(link->hisAka));
+        w_log(LL_AREAFIX, "%sfix: unlinked areas list sent to %s", _AF, aka2str(link->hisAka));
         break;
     }
 
@@ -345,15 +348,18 @@ char *available(s_link *link, char *cmdline)
                 line = trimLine(line);
                 if (line[0] != '\0')
                 {
+                    int numDfMask = af_app->module == M_HTICK ? uplink->numDfMask : uplink->numDfMask;
+                    char **dfMask = af_app->module == M_HTICK ? uplink->dfMask : uplink->dfMask;
+                    char *denyFwdFile = af_app->module == M_HTICK ? uplink->denyFwdFile : uplink->denyFwdFile;
                     running = line;
                     token = strseparate(&running, " \t\r\n");
                     rc = 0;
 
-                    if (uplink->numDfMask)
-                      rc |= tag_mask(token, uplink->dfMask, uplink->numDfMask);
+                    if (numDfMask)
+                      rc |= tag_mask(token, dfMask, numDfMask);
 
-                    if (uplink->denyFwdFile)
-                      rc |= IsAreaAvailable(token,uplink->denyFwdFile,NULL,0);
+                    if (denyFwdFile)
+                      rc |= IsAreaAvailable(token, denyFwdFile, NULL, 0);
 
                     if (pattern)
                     {
@@ -373,7 +379,7 @@ char *available(s_link *link, char *cmdline)
 
             /*  warning! do not ever use aka2str twice at once! */
             sprintf(linkAka, "%s", aka2str(link->hisAka));
-            w_log( LL_AREAFIX, "areafix: Available Area List from %s %s to %s",
+            w_log( LL_AREAFIX, "%sfix: Available Area List from %s %s to %s", _AF,
                   aka2str(uplink->hisAka),
                   (link->availlist == AVAILLIST_UNIQUEONE) ? "prepared": "sent",
                   linkAka );
@@ -2015,7 +2021,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
     s_link *link = NULL;
     s_link *tmplink = NULL;
     /* s_message *linkmsg; */
-    s_pktHeader header;
+    /* s_pktHeader header; */
     char *token = NULL, *report = NULL, *preport = NULL;
     char *textBuff = NULL,*tmp;
     int nr;
@@ -2026,6 +2032,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 
     /*  1st security check */
     if (pktHeader) security=addrComp(msg->origAddr, pktHeader->origAddr);
+#if 0
     else {
 	makePktHeader(NULL, &header);
 	pktHeader = &header;
@@ -2033,6 +2040,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 	pktHeader->destAddr = msg->destAddr;
 	security = 0;
     }
+#endif
 
     if (security) security=1; /* different pkt and msg addresses */
 
@@ -2086,7 +2094,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
     nfree(msg->text);
     msg->text = textBuff;
 
-    if ( hook_afixreq && (*hook_afixreq)(msg, pktHeader->origAddr) )
+    if ( hook_afixreq && (*hook_afixreq)(msg, pktHeader ? pktHeader->origAddr : msg->origAddr) )
         link = getLinkFromAddr(af_config, msg->origAddr);
 
     if (!security) {
@@ -2371,7 +2379,7 @@ void afix(hs_addr addr, char *cmd)
 
 /* ensure all callbacks are inited */
 int init_areafix(void) {
-  if (!af_config || !af_versionStr) return 0;
+  if (!af_config || !af_versionStr || !af_app) return 0;
   if (call_sstrdup == NULL) call_sstrdup = &sstrdup;
   if (call_smalloc == NULL) call_smalloc = &smalloc;
   if (call_srealloc == NULL) call_srealloc = &srealloc;

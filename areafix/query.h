@@ -28,7 +28,13 @@
 #ifndef _HQUERY_H
 #define _HQUERY_H
 
-//#include <fcommon.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <huskylib/compiler.h>
+#include <huskylib/huskylib.h>
+
 /* Badmail reason (area write access) numbers (from hpt/h/fcommon.h) */
 typedef enum {
  BM_DENY_CREATE=0,
@@ -50,9 +56,9 @@ typedef enum {
  BM_MAXERROR=15       /* Set to max value, equivalence of last element */
 } e_BadmailReasons;
 
-e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_addr forwardAddr);
+HUSKYEXT e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_addr forwardAddr);
 
-char* makeAreaParam(s_link *creatingLink, char* c_area, char* msgbDir);
+HUSKYEXT char* makeAreaParam(s_link *creatingLink, char* c_area, char* msgbDir);
 
 typedef struct query_areas
 {
@@ -81,21 +87,25 @@ enum  changeConfigRet{ I_ERR=-2, /*  read config error */
 };
 typedef enum changeConfigRet e_changeConfigRet;
 
-s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink, e_query_action act);
-char* af_Req2Idle(char *areatag, char* report, hs_addr linkAddr);
-int   af_OpenQuery();
-int   af_CloseQuery();
-char* makeAreaParam(s_link *creatingLink, char* c_area, char* msgbDir);
-void  af_QueueUpdate();
-void  af_QueueReport();
-int checkRefuse(char *areaName);
+HUSKYEXT int isValidConference(const char *s);
+HUSKYEXT s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink, e_query_action act);
+HUSKYEXT char* af_Req2Idle(char *areatag, char* report, hs_addr linkAddr);
+HUSKYEXT int   af_OpenQuery();
+HUSKYEXT int   af_CloseQuery();
+HUSKYEXT char* makeAreaParam(s_link *creatingLink, char* c_area, char* msgbDir);
+HUSKYEXT void  af_QueueUpdate();
+HUSKYEXT void  af_QueueReport();
+HUSKYEXT int checkRefuse(char *areaName);
 
 
 /* originally from hpt/h/toss.h */
-s_arealink *getAreaLink(s_area *area, hs_addr aka);
+HUSKYEXT s_arealink *getAreaLink(s_area *area, hs_addr aka);
 
 /* originally from hpt/h/toss.h */
-int  checkAreaLink(s_area *area, hs_addr aka, int type);
+HUSKYEXT int  checkAreaLink(s_area *area, hs_addr aka, int type);
 
+#ifdef __cplusplus
+}
 #endif
 
+#endif

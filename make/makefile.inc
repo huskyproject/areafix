@@ -12,14 +12,17 @@
 # DLLSUFFIX  dinamic linking library suffix (compiler ID or empty)
 # _SRC_DIR  sources dir
 
-LIBNAME = areafix
-
 # Version
 VERMAJOR= 1
 VERMINOR= 9
 VERPATCH= 0
 VERH	= $(VERMAJOR).$(VERMINOR)
 VER	= $(VERH).$(VERPATCH)
+
+# File name
+LIBNAME = areafix
+TARGETLIB = $(LIBPREFIX)$(LIBNAME)$(LIBSUFFIX)$(_LIB)
+TARGETDLL = $(DLLPREFIX)$(LIBNAME)$(DLLSUFFIX)$(_DLL)
 
 # Object files: programs
 OBJS    = areafix$(_OBJ) query$(_OBJ) afglobal$(_OBJ) callback$(_OBJ)

@@ -26,14 +26,25 @@
 #ifndef AFGLOBAL_H
 #define AFGLOBAL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <huskylib/compiler.h>
+#include <huskylib/huskylib.h>
 #include <fidoconf/fidoconf.h>
 
-extern s_fidoconfig* af_config;
-extern char*         af_cfgFile;
-extern char*         af_versionStr;
-extern int   	     af_quiet;
-extern int           af_silent_mode;
-extern int           af_report_changes;
-extern int           af_send_notify;
+HUSKYEXT s_fidoconfig* af_config;
+HUSKYEXT char*         af_cfgFile;
+HUSKYEXT sApp*         af_app;
+HUSKYEXT char*         af_versionStr;
+HUSKYEXT int           af_quiet;
+HUSKYEXT int           af_silent_mode;
+HUSKYEXT int           af_report_changes;
+HUSKYEXT int           af_send_notify;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

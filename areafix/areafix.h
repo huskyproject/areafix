@@ -41,7 +41,12 @@
 #ifndef _AREAFIX_H
 #define _AREAFIX_H
 
-//#include <fcommon.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <huskylib/compiler.h>
+#include <huskylib/huskylib.h>
 
 #define NOTHING     0
 #define LIST        1
@@ -68,20 +73,24 @@
 
 typedef enum { lt_all, lt_linked, lt_unlinked } s_listype;
 
-int init_areafix(void);
+HUSKYEXT int init_areafix(void);
 
-char *print_ch(int len, char ch);
-int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd);
-void afix(hs_addr addr, char *cmd);
-int pauseAreas(int act, s_link *searchLink, s_area *searchArea);
-char *rescan(s_link *link, char *cmd);
-char *errorRQ(char *line);
-int isPatternLine(char *s);
-int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink);
-int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act);
-void sendAreafixMessages();
-char *do_delete(s_link *link, s_area *area);
+HUSKYEXT char *print_ch(int len, char ch);
+HUSKYEXT int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd);
+HUSKYEXT void afix(hs_addr addr, char *cmd);
+HUSKYEXT int pauseAreas(int act, s_link *searchLink, s_area *searchArea);
+HUSKYEXT char *rescan(s_link *link, char *cmd);
+HUSKYEXT char *errorRQ(char *line);
+HUSKYEXT int isPatternLine(char *s);
+HUSKYEXT int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink);
+HUSKYEXT int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act);
+HUSKYEXT void sendAreafixMessages();
+HUSKYEXT char *do_delete(s_link *link, s_area *area);
 
-int changeconfig(char *fileName, s_area *area, s_link *link, int action);
+HUSKYEXT int changeconfig(char *fileName, s_area *area, s_link *link, int action);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

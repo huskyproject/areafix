@@ -65,7 +65,7 @@
 #include <afglobal.h>
 #include <callback.h>
 
-#define _AF (theApp.module == M_HTICK ? "file" : "area")
+#define _AF (af_app->module == M_HTICK ? "file" : "area")
 
 static  time_t  tnow;
 const   long    secInDay = 3600*24;
@@ -74,16 +74,26 @@ const char czIdleArea[] = "idle";
 const char czKillArea[] = "kill";
 const char czChangFlg_hpt[]   = "changed.qfl";
 const char czChangFlg_htick[] = "filefix.qfl";
+s_query_areas *queryAreasHead = NULL;
 
-extern s_query_areas *queryAreasHead;
 extern char       *af_versionStr;
 
+
+int isValidConference(const char *s) {
+    /*  according to FSC-0074 with lowercase symbols */
+    /*  lowercase symbols only for internal use */
+    while (*s) {
+        if ( !(*s >= 33 && *s <= 126) ) return 0;
+        s++;
+    }
+    return 1;
+}
 
 int checkRefuse(char *areaName)
 {
     FILE *fp;
     char *line;
-    char *rf = theApp.module == M_HTICK ? af_config->newFileAreaRefuseFile : af_config->newAreaRefuseFile;
+    char *rf = af_app->module == M_HTICK ? af_config->newFileAreaRefuseFile : af_config->newAreaRefuseFile;
 
     if (rf == NULL)
         return 0;
@@ -91,7 +101,7 @@ int checkRefuse(char *areaName)
     fp = fopen(rf, "r+b");
     if (fp == NULL) {
         w_log(LL_ERR, "Can't open new%sAreaRefuseFile \"%s\" : %d\n",
-              theApp.module == M_HTICK ? "File" : "", rf, strerror(errno));
+              af_app->module == M_HTICK ? "File" : "", rf, strerror(errno));
         return 0;
     }
     while((line = readLine(fp)) != NULL)
@@ -238,12 +248,12 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     unsigned int j;
     char pass[] = "passthrough";
     char CR;
-    char *qf = theApp.module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
-    char *ff = theApp.module == M_HTICK ? af_config->afcFlag : af_config->aacFlag;
+    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
+    char *ff = af_app->module == M_HTICK ? af_config->afcFlag : af_config->aacFlag;
 
     w_log( LL_FUNC, "%s::autoCreate() begin", __FILE__ );
 
-    if (theApp.module == M_HPT) {
+    if (af_app->module == M_HPT) {
       if (strlen(c_area)>60){
          w_log( LL_FUNC, "%s::autoCreate() rc=11", __FILE__ );
          return BM_AREATAG_TOO_LONG;
@@ -256,7 +266,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     if (checkRefuse(c_area))
     {
-        w_log(LL_WARN, "Can't create %sarea %s : refused by New%sAreaRefuseFile\n", theApp.module == M_HTICK ? "file" : "", c_area, theApp.module == M_HTICK ? "File" : "");
+        w_log(LL_WARN, "Can't create %sarea %s : refused by New%sAreaRefuseFile\n", af_app->module == M_HTICK ? "file" : "", c_area, af_app->module == M_HTICK ? "File" : "");
         return BM_DENY_NEWAREAREFUSEFILE;
     }
 
@@ -268,7 +278,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 	return BM_SENDER_NOT_FOUND;
     }
 
-    if (theApp.module == M_HTICK) {
+    if (af_app->module == M_HTICK) {
       fileName = creatingLink->autoFileCreateFile ? creatingLink->autoFileCreateFile : (af_cfgFile ? af_cfgFile : getConfigFileName());
     } else {
       fileName = creatingLink->autoAreaCreateFile;
@@ -325,15 +335,15 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     /*  making address of uplink */
     xstrcat(&hisaddr, 
-            aka2str(theApp.module == M_HTICK ? creatingLink->hisAka : pktOrigAddr)
+            aka2str(af_app->module == M_HTICK ? creatingLink->hisAka : pktOrigAddr)
            );
 
     /* HPT stuff */
-    if (theApp.module == M_HPT) {
+    if (af_app->module == M_HPT) {
       buff = makeAreaParam(creatingLink, c_area, msgbDir);
     }
     /* HTICK stuff */
-    else if (theApp.module == M_HTICK) {
+    else if (af_app->module == M_HTICK) {
       char *NewAutoCreate = NULL;
 
       fileechoFileName = makeMsgbFileName(af_config, c_area);
@@ -424,11 +434,11 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     /* add newly created echo to af_config in memory */
     parseLine(buff, af_config);
-    if (theApp.module == M_HTICK) RebuildFileAreaTree(af_config);
+    if (af_app->module == M_HTICK) RebuildFileAreaTree(af_config);
     else RebuildEchoAreaTree(af_config);
 
     /*  subscribe uplink if he is not subscribed */
-    area = (theApp.module == M_HTICK) 
+    area = (af_app->module == M_HTICK) 
            ? &(af_config->fileAreas[af_config->fileAreaCount-1])
            : &(af_config->echoAreas[af_config->echoAreaCount-1]);
     if ( !isLinkOfArea(creatingLink,area) ) {
@@ -490,13 +500,13 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     nfree(buff);
 
     /*  echoarea addresses changed by safe_reallocating of af_config->echoAreas[] */
-    if (theApp.module == M_HPT) carbonNames2Addr(af_config);
+    if (af_app->module == M_HPT) carbonNames2Addr(af_config);
 
-    w_log(LL_AUTOCREATE, "%sArea %s autocreated by %s", (theApp.module == M_HTICK ? "File" : ""), c_area, hisaddr);
+    w_log(LL_AUTOCREATE, "%sArea %s autocreated by %s", (af_app->module == M_HTICK ? "File" : ""), c_area, hisaddr);
 
     if (hook_onAutoCreate) (*hook_onAutoCreate)(c_area, descr, pktOrigAddr, forwardAddr);
 
-    if (theApp.module == M_HPT) {
+    if (af_app->module == M_HPT) {
       /* check if downlinks are already paused, pause area if it is so */
       if (af_config->autoAreaPause && area->msgbType == MSGTYPE_PASSTHROUGH)
         if (pauseAreas(0, NULL, area)) sendAreafixMessages();
@@ -652,7 +662,7 @@ char* af_GetQFlagName()
 {
     char *chanagedflag = NULL;
     char *logdir       = NULL;
-    char *czChangFlg   = theApp.module == M_HTICK ? czChangFlg_htick : czChangFlg_hpt;
+    char *czChangFlg   = af_app->module == M_HTICK ? czChangFlg_htick : czChangFlg_hpt;
 
 #ifdef DEBUG_HPT
 w_log(LL_FUNC, "af_GetQFlagName(): begin");
@@ -697,7 +707,7 @@ void af_QueueReport()
     char* header = NULL;
     int netmail=0;
     char *reportFlg = NULL;
-    char *qf = theApp.module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
+    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
     char *fn = NULL;
     s_message *msg = NULL;
 
@@ -824,7 +834,7 @@ void af_QueueReport()
 
     w_log(LL_START, "Start generating queue report");
     xscatprintf(&header, rmask, 
-                theApp.module == M_HTICK ? "FileArea" : "Area",
+                af_app->module == M_HTICK ? "FileArea" : "Area",
                 "Act","From","By","Details");
     xscatprintf(&header, "%s\r", print_ch(79,'-'));
     xstrcat(&header, report);
@@ -834,7 +844,7 @@ void af_QueueReport()
         else if (getNetMailArea(af_config, af_config->ReportTo) != NULL) netmail=1;
     } else netmail=1;
 
-    fn = theApp.module == M_HTICK ? af_config->filefixFromName : af_config->areafixFromName;
+    fn = af_app->module == M_HTICK ? af_config->filefixFromName : af_config->areafixFromName;
     msg = makeMessage(&(af_config->addr[0]),&(af_config->addr[0]),
                                 fn ? fn : af_versionStr,
                                 netmail ? (af_config->sysop ? af_config->sysop : "Sysop") : "All", "Requests report",
@@ -868,7 +878,7 @@ void af_QueueUpdate()
     s_message **tmpmsg = NULL;
     size_t i = 0;
     int j = 0;
-    char *fn = theApp.module == M_HTICK ? af_config->filefixFromName : af_config->areafixFromName;
+    char *fn = af_app->module == M_HTICK ? af_config->filefixFromName : af_config->areafixFromName;
 
     tmpmsg = (s_message**) (*call_smalloc)( af_config->linkCount * sizeof(s_message*));
     for (i = 0; i < af_config->linkCount; i++)
@@ -919,7 +929,7 @@ void af_QueueUpdate()
                    	    {
                                 int ra = 0;
                                 char *rf = NULL;
-                                if (theApp.module == M_HTICK) {
+                                if (af_app->module == M_HTICK) {
                                   ra = dwlink->filefixReportsAttr ? dwlink->filefixReportsAttr : af_config->filefixReportsAttr;
                                   rf = dwlink->filefixReportsFlags ? dwlink->filefixReportsFlags : af_config->filefixReportsFlags;
                                 } else {
@@ -968,7 +978,7 @@ void af_QueueUpdate()
             tmpNode->eTime = tnow + af_config->killedRequestTimeout*secInDay;
             tmpNode->linksCount = 1;
             w_log( LL_AREAFIX, "%sfix: request for %s is going to be killed", _AF, tmpNode->name);
-            if (theApp.module == M_HTICK) {
+            if (af_app->module == M_HTICK) {
               delarea = getFileArea(tmpNode->name);
               if (delarea != NULL) do_delete(NULL, delarea);
             } else {
@@ -1008,7 +1018,7 @@ int af_OpenQuery()
     char *token = NULL;
     struct  tm tr;
     char seps[]   = " \t\n";
-    char *qf = theApp.module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
+    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
 
     if( queryAreasHead )  /*  list already exists */
         return 0;
@@ -1106,7 +1116,7 @@ int af_CloseQuery()
     s_query_areas *tmpNode  = NULL;
     char *chanagedflag = NULL;
     FILE *QFlag        = NULL;
-    char *qf = theApp.module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
+    char *qf = af_app->module == M_HTICK ? af_config->filefixQueueFile : af_config->areafixQueueFile;
 
     w_log(LL_FUNC, __FILE__ ":%u:af_CloseQuery() begin", __LINE__);
 
