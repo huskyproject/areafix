@@ -61,7 +61,7 @@ HUSKYEXT int (*hook_onDeleteArea)(s_link *link, s_area *area);
 HUSKYEXT int (*hook_onRescanArea)(char **report, s_link *link, s_area *area, long rescanCount);
 
 /* call after config has been changed */
-/* possible usage: perl_setvars */
+/* possible usage: perl_invalidate */
 HUSKYEXT void (*hook_onConfigChange)(void);
 
 /* return 1 to use **report as %list result; 0 to use built-in */
