@@ -436,8 +436,6 @@ char *available(s_link *link, char *cmdline)
 int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act) {
     s_message *msg;
     char *base, pass[]="passthrough";
-    char *robot, *pwd, *flags;
-    int attrs;
     s_linkdata uplinkData;
 
     if (!uplink) return -1;
@@ -750,8 +748,6 @@ int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink) {
     }
 
     for (; i < Requestable; i++) {
-        int fr_ok;
-        char *frf;
         uplink = af_config->links[Indexes[i]];
         (*call_getLinkData)(uplink, &uplinkData);
 
@@ -1636,13 +1632,12 @@ char *packer(s_link *link, char *cmdline) {
 
 char *change_token(s_link *link, char *cmdline)
 {
-    char *param, *token, *token2 = NULL, *desc, *report = NULL, *error = NULL;
+    char *param, *token, *token2 = NULL, *desc, *report = NULL;
     char *confName = NULL, *cfgline = NULL;
     long strbeg = 0, strend = 0;
     int mode;
-    char *c_prev, *c_new = NULL;  /* previous and new char values */
-    unsigned long *l_prev, l_new = 0;  /* previous and new long values */
-    unsigned int *i_prev, i_new = 0;  /* previous and new int values */
+    char *c_prev = NULL, *c_new = NULL;  /* previous and new char values */
+    unsigned int *i_prev = NULL, i_new = 0;  /* previous and new int values */
 
     w_log(LL_FUNC, __FILE__ "::change_token()");
 
@@ -1677,13 +1672,13 @@ char *change_token(s_link *link, char *cmdline)
             break;
         case PKTSIZE:
             mode = 2;
-            l_prev = &(link->pktSize);
+            i_prev = &(link->pktSize);
             token = "pktSize";
             desc = "Packet";
             break;
         case ARCMAILSIZE:
             mode = 2;
-            l_prev = &(link->arcmailSize);
+            i_prev = &(link->arcmailSize);
             token = "arcmailSize";
             desc = "Arcmail bundle";
             break;
@@ -1732,20 +1727,22 @@ char *change_token(s_link *link, char *cmdline)
                 xstrcat(&report, "No parameter found after command. No changes were made.\r\r");
                 return report;
             } else {
-                l_new = strtoul(param, &error, 10);
-                if ( ((error != NULL) && (*error != '\0')) || l_new == unsigned_long_max ) {
-                    w_log(LL_AREAFIX, "%sfix: '%s' is not a valid number!", _AF, param);
-                    xscatprintf(&report, "'%s' is not a valid number!\r\r", param);
-                    nfree(error);
-                    return report;
+                char *ptr;
+                for (ptr=param; *ptr; ptr++) {
+                    if (!isdigit(*ptr)) {
+                        w_log(LL_AREAFIX, "%sfix: '%s' is not a valid number!", _AF, param);
+                        xscatprintf(&report, "'%s' is not a valid number!\r\r", param);
+                        return report;
+                    }
                 }
-                if (*l_prev == l_new) {
-                    w_log(LL_AREAFIX, "%sfix: %s size is already set to %u kbytes", _AF, desc, *l_prev);
-                    xscatprintf(&report, "%s size is already set to %u kbytes. No changes were made.\r\r", desc, *l_prev);
+                i_new = (unsigned) atoi(param);
+                if (*i_prev == i_new) {
+                    w_log(LL_AREAFIX, "%sfix: %s size is already set to %i kbytes", _AF, desc, *i_prev);
+                    xscatprintf(&report, "%s size is already set to %i kbytes. No changes were made.\r\r", desc, *i_prev);
                     return report;
                 }
             }
-            xscatprintf(&cfgline, "%s %u", token, l_new);
+            xscatprintf(&cfgline, "%s %i", token, i_new);
             break;
         case 3:  /* RSB */
             if (param == NULL) {
@@ -1790,9 +1787,9 @@ char *change_token(s_link *link, char *cmdline)
                 *c_prev = *c_new;
                 break;
             case 2:  /* ARCMAILSIZE, PKTSIZE */
-                w_log(LL_AREAFIX, "%sfix: %s size changed to %u kbytes", _AF, desc, l_new);
-                xscatprintf(&report, "%s size changed to %u kbytes\r\r", desc, l_new);
-                *l_prev = l_new;
+                w_log(LL_AREAFIX, "%sfix: %s size changed to %i kbytes", _AF, desc, i_new);
+                xscatprintf(&report, "%s size changed to %i kbytes\r\r", desc, i_new);
+                *i_prev = i_new;
                 break;
             case 3:  /* RSB */
                 w_log(LL_AREAFIX, "%sfix: %s mode changed to %s", _AF, desc, i_new?"on":"off");
@@ -2055,7 +2052,7 @@ void RetMsg(s_message *msg, s_link *link, char *report, char *subj)
     if (af_silent_mode) return;
 
     text = report;
-    reply = GetCtrlToken(msg->ctl, "MSGID");
+    reply = (char *) GetCtrlToken((byte *) msg->ctl, (byte *) "MSGID");
 
     while (text) {
 
@@ -2466,7 +2463,7 @@ void MsgToStruct(HMSG SQmsg, XMSG xmsg, s_message *msg)
     msg->ctlLength = MsgGetCtrlLen(SQmsg);
     xstralloc(&(msg->text),msg->textLength+1);
     xstralloc(&(msg->ctl),msg->ctlLength+1);
-    MsgReadMsg(SQmsg, NULL, 0, msg->textLength, (unsigned char *) msg->text, msg->ctlLength, msg->ctl);
+    MsgReadMsg(SQmsg, NULL, 0, msg->textLength, (unsigned char *) msg->text, msg->ctlLength, (byte *) msg->ctl);
     msg->text[msg->textLength] = '\0';
     msg->ctl[msg->ctlLength] = '\0';
 
@@ -2585,7 +2582,7 @@ void afix(hs_addr addr, char *cmd)
 /* mode==1 - resubscribe mode (fromLink -> toLink)*/
 int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
     ps_area       areas = NULL;
-    unsigned int  i, j, k, count, addMode, areaCount = 0, reversed;
+    unsigned int  i, j, k, count, addMode, areaCount = 0, reversed = 0;
     s_link        *fromLink = NULL, *toLink = NULL;
     char          *fromCmd  = NULL, *toCmd  = NULL;
     char          *fromAka  = NULL, *toAka  = NULL;
