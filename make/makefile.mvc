@@ -27,10 +27,13 @@ _PDB	= .pdb
 
 ## program options ##
 CFLAGS=-nologo -Zp1
-CINCL= -I$(H_DIR) -I..\..\fidoconf -I..\..\smapi -I..\..\huskylib
-LFLAGS=
+CINCL = -I$(H_DIR) -I..\..\fidoconf -I..\..\smapi -I..\..\huskylib
+LFLAGS= /link /opt:nowin98
 CDEFS =-D__NT__ -D_CONSOLE
-COPT	= -Ob2
+COPT  = -Ob2
+# DLL additional
+CFLAGS_DLL= -D_MAKE_DLL -MD
+LFLAGS_DLL= msvcrt.lib Kernel32.lib /nologo /opt:nowin98 /dll /nodefaultlib /implib:$(TARGETLIB)
 
 EXENAMEFLAG=-Fe
 
@@ -40,21 +43,30 @@ LIBS	= ..\..\fidoconf\make\fconfmvc.lib \
 	  ..\..\huskylib\make\huskymvc.lib
 
 default:
-	@echo Run 'make static' to build static version of $(LIBNAME)$(_LIB)
+	@echo Run 'make static' to build static version ($(TARGETLIB))
+	@echo Run 'make dll' to build dynamic version ($(TARGETDLL))
 	@echo Run 'make all' to build all above
 
-all: static
+all: static dll
 
-static: $(LIBNAME)$(_LIB)
+static: $(TARGETLIB)
+
+dll: $(TARGETDLL)
 
 {$(_SRC_DIR)}.c$(_OBJ):
 	@$(CC) $(CFLAGS) $(CINCL) $(CDEFS) $(COPT) -c $<
 
-$(LIBNAME)$(_LIB): $(OBJS)
+$(TARGETLIB): $(OBJS)
         $(AR) /out:$(LIBNAME)$(_LIB) $(OBJS)
+
+$(TARGETDLL):
+	!$(MAKE) -f makefile.mvc CFLAGS="$(CFLAGS) $(CFLAGS_DLL) -DDLLEXPORT" $(OBJS)
+	$(LINK) $(LFLAGS_DLL) /out:$(TARGETDLL) $(OBJS) $(LIBS)
 
 clean:
 	-$(RM) $(RMOPT) *$(_OBJ)
 
 distclean: clean
-	-$(RM) $(RMOPT) $(PROGRAMS)
+	-$(RM) $(RMOPT) $(TARGETLIB)
+	-$(RM) $(RMOPT) $(TARGETDLL)
+	-$(RM) $(RMOPT) $(TARGETDLL).*

@@ -35,9 +35,3 @@ _SRC_DIR= ../src/
 
 # Headers directory
 H_DIR	= ../areafix/
-
-# Binary files(s) to bild from sources
-PROGRAMS=
-
-# List of libraries required to build binary file(s)
-LIBS	=
