@@ -1,3 +1,13 @@
+2004-07-31 Saturday 14:56  andrew_ladutsko
+
+	* src/areafix.c (1.28): Added ability to specify link rights to
+	rescan all or several area groups
+
+2004-07-21 Wednesday 08:50  andrew_ladutsko
+
+	* src/: areafix.c (1.27), query.c (1.13): recommit: fixed pausing
+	area when making forward request and queue file not defined
+
 2004-06-13 Sunday 14:25  andrew_ladutsko
 
 	* src/: areafix.c (1.26), query.c (1.12): revert to stable code by
