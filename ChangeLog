@@ -1,3 +1,8 @@
+2005-03-13 Sunday 19:05  val_khokhlov
+
+	* src/areafix.c (1.51): fix bugs with crashing and not updating
+	passwords in memory after chaning them with areafix
+
 2005-03-04 Friday 14:23  mche
 
 	* areafix/areafix.h (1.11): macro redifinition fixed
