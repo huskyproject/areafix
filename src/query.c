@@ -574,6 +574,16 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
                 } else {
                     tmpNode = NULL;  /*  link already in query */
                 }
+            /* other uplink, add a new entry */
+            } else if ( stricmp(tmpNode->type,czKillArea) == 0 &&
+                        addrComp(*uplink, tmpNode->downlinks[0]) != 0 ) {
+                areaNode = af_AddAreaListNode( areatag, czFreqArea );
+                if(strlen( areatag ) > queryAreasHead->linksCount) /* max areanane lenght */
+                    queryAreasHead->linksCount = strlen( areatag );
+                af_AddLink( areaNode, uplink );
+                af_AddLink( areaNode, dwlink );
+                areaNode->eTime = tnow + af_config->forwardRequestTimeout*secInDay;
+                tmpNode =areaNode;
             } else {
                 strcpy(tmpNode->type,czFreqArea); /*  change state to @freq" */
                 af_AddLink( tmpNode, dwlink );
