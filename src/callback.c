@@ -47,3 +47,4 @@ void (*hook_onConfigChange)(e_perlconftype confType) = NULL;
 int (*hook_echolist)(char **report, s_listype type, ps_arealist al, char *aka) = NULL;
 int (*hook_afixcmd)(char **report, int cmd, char *aka, char *line) = NULL;
 int (*hook_afixreq)(s_message *msg, hs_addr pktOrigAddr) = NULL;
+void (*call_getLinkData)(s_link *link, s_linkdata *linkData) = NULL;

@@ -312,6 +312,7 @@ char *available(s_link *link, char *cmdline)
     s_link *uplink=NULL;
     ps_arealist al=NULL, *hal=NULL;
     unsigned int halcnt=0, isuplink;
+    s_linkdata uplinkData;
 
     pattern = getPatternFromLine(cmdline, &reversed);
 
@@ -324,12 +325,8 @@ char *available(s_link *link, char *cmdline)
 
     for (j = 0; j < af_config->linkCount; j++)
     {
-        int fr_on = 0;
-        char *frf = NULL;
-
 	uplink = af_config->links[j];
-        fr_on = af_app->module == M_HTICK ? uplink->forwardFileRequests : uplink->forwardRequests;
-        frf = af_app->module == M_HTICK ? uplink->forwardFileRequestFile : uplink->forwardRequestFile;
+        (*call_getLinkData)(uplink, &uplinkData);
 
 	found = 0;
 	isuplink = 0;
@@ -337,11 +334,11 @@ char *available(s_link *link, char *cmdline)
 	    if (strcmp(link->AccessGrp[k], uplink->LinkGrp) == 0)
 		found = 1;
 
-        if ((fr_on && frf) && ((uplink->LinkGrp == NULL) || (found != 0)))
+        if ((uplinkData.fwd && uplinkData.fwdFile) && ((uplink->LinkGrp == NULL) || (found != 0)))
 	{
-            if ((f=fopen(frf,"r")) == NULL) {
+            if ((f=fopen(uplinkData.fwdFile,"r")) == NULL) {
                 w_log(LL_ERR, "%sfix: Cannot open forwardRequestFile \"%s\": %s", _AF,
-                      frf, strerror(errno));
+                      uplinkData.fwdFile, strerror(errno));
  		continue;
 	    }
 
@@ -364,18 +361,15 @@ char *available(s_link *link, char *cmdline)
                 line = trimLine(line);
                 if (line[0] != '\0')
                 {
-                    int numDfMask = af_app->module == M_HTICK ? uplink->numDfMask : uplink->numDfMask;
-                    char **dfMask = af_app->module == M_HTICK ? uplink->dfMask : uplink->dfMask;
-                    char *denyFwdFile = af_app->module == M_HTICK ? uplink->denyFwdFile : uplink->denyFwdFile;
                     running = line;
                     token = strseparate(&running, " \t\r\n");
                     rc = 0;
 
-                    if (numDfMask)
-                      rc |= tag_mask(token, dfMask, numDfMask);
+                    if (uplinkData.numDfMask)
+                      rc |= tag_mask(token, uplinkData.dfMask, uplinkData.numDfMask);
 
-                    if (denyFwdFile)
-                      rc |= IsAreaAvailable(token, denyFwdFile, NULL, 0);
+                    if (uplinkData.denyFwdFile)
+                      rc |= IsAreaAvailable(token, uplinkData.denyFwdFile, NULL, 0);
 
                     if (pattern)
                     {
@@ -444,30 +438,19 @@ int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act
     char *base, pass[]="passthrough";
     char *robot, *pwd, *flags;
     int attrs;
+    s_linkdata uplinkData;
 
     if (!uplink) return -1;
 
-    if (af_app->module == M_HTICK) {
-      robot = uplink->RemoteFileRobotName ? uplink->RemoteFileRobotName : "filefix";
-      pwd = uplink->fileFixPwd;
-      attrs = uplink->filefixReportsAttr ? uplink->filefixReportsAttr : af_config->filefixReportsAttr;
-      flags = uplink->filefixReportsFlags;
-      if (!flags) flags = af_config->filefixReportsFlags;
-    } else {
-      robot = uplink->RemoteRobotName ? uplink->RemoteRobotName : "areafix";
-      pwd = uplink->areaFixPwd;
-      attrs = uplink->areafixReportsAttr ? uplink->areafixReportsAttr : af_config->areafixReportsAttr;
-      flags = uplink->areafixReportsFlags;
-      if (!flags) flags = af_config->areafixReportsFlags;
-    }
+    (*call_getLinkData)(uplink, &uplinkData);
 
     if (uplink->msg == NULL) {
 	msg = makeMessage(uplink->ourAka, &(uplink->hisAka), af_config->sysop,
-        robot, pwd ? pwd : "\x00", 1, attrs);
+        uplinkData.robot, uplinkData.pwd, 1, uplinkData.attrs);
 	msg->text = createKludges(af_config, NULL, uplink->ourAka, &(uplink->hisAka),
                               af_versionStr);
-        if (flags)
-            xstrscat(&(msg->text), "\001FLAGS ", flags, "\r",NULL);
+        if (uplinkData.flags)
+            xstrscat(&(msg->text), "\001FLAGS ", uplinkData.flags, "\r",NULL);
 	uplink->msg = msg;
     } else msg = uplink->msg;
 	
@@ -508,7 +491,7 @@ int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act
         xscatprintf(&(msg->text), "-%s\r", areatag);
     } else {
         /*  delete area */
-        if (af_app->module == M_HTICK ? 0/*uplink->advancedFilefix*/ : uplink->advancedAreafix)
+        if (uplinkData.advAfix)
             xscatprintf(&(msg->text), "~%s\r", areatag);
         else
             xscatprintf(&(msg->text), "-%s\r", areatag);
@@ -744,6 +727,7 @@ int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink) {
     s_link *uplink=NULL;
     int *Indexes=NULL;
     unsigned int Requestable = 0;
+    s_linkdata uplinkData;
 
     /* From Lev Serebryakov -- sort Links by priority */
     Indexes = (*call_smalloc)(sizeof(int)*af_config->linkCount);
@@ -769,12 +753,11 @@ int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink) {
         int fr_ok;
         char *frf;
         uplink = af_config->links[Indexes[i]];
-        fr_ok = af_app->module == M_HTICK ? uplink->forwardFileRequests : uplink->forwardRequests;
-        frf   = af_app->module == M_HTICK ? uplink->forwardFileRequestFile : uplink->forwardRequestFile;
+        (*call_getLinkData)(uplink, &uplinkData);
 
         if(lastRlink) *lastRlink = uplink;
 
-        if (fr_ok && (uplink->LinkGrp) ?
+        if (uplinkData.fwd && (uplink->LinkGrp) ?
             grpInArray(uplink->LinkGrp,dwlink->AccessGrp,dwlink->numAccessGrp) : 1)
         {
             /* skip downlink from list of uplinks */
@@ -783,32 +766,32 @@ int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink) {
                 rc = 2;
                 continue;
             }
-            if ( (uplink->numDfMask) &&
-                 (tag_mask(areatag, uplink->dfMask, uplink->numDfMask)))
+            if ( (uplinkData.numDfMask) &&
+                 (tag_mask(areatag, uplinkData.dfMask, uplinkData.numDfMask)))
             {
                 rc = 2;
                 continue;
             }
-            if ( (uplink->denyFwdFile!=NULL) &&
-                 (IsAreaAvailable(areatag,uplink->denyFwdFile,NULL,0)))
+            if ( (uplinkData.denyFwdFile!=NULL) &&
+                 (IsAreaAvailable(areatag,uplinkData.denyFwdFile,NULL,0)))
             {
                 rc = 2;
                 continue;
             }
             rc = 0;
-            if (frf != NULL) {
+            if (uplinkData.fwdFile != NULL) {
                 /*  first try to find the areatag in forwardRequestFile */
-                if (tag_mask(areatag, uplink->frMask, uplink->numFrMask) ||
-                    IsAreaAvailable(areatag, frf, NULL, 0))
+                if (tag_mask(areatag, uplinkData.frMask, uplinkData.numFrMask) ||
+                    IsAreaAvailable(areatag, uplinkData.fwdFile, NULL, 0))
                 {
                     break;
                 }
                 else
                 { rc = 2; }/*  found link with freqfile, but there is no areatag */
             } else {
-                if (uplink->numFrMask) /*  found mask */
+                if (uplinkData.numFrMask) /*  found mask */
                 {
-                    if (tag_mask(areatag, uplink->frMask, uplink->numFrMask))
+                    if (tag_mask(areatag, uplinkData.frMask, uplinkData.numFrMask))
                         break;
                     else rc = 2;
                 } else { /*  unconditional forward request */
@@ -816,9 +799,9 @@ int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink) {
                         break;
                     else rc = 2;
                 }
-            }/* (uplink->forwardRequestFile!=NULL) */
+            }/* (uplinkData.fwdFile != NULL) */
 
-        }/*  if (uplink->forwardRequests && (uplink->LinkGrp) ? */
+        }/*  if (uplinkData.fwd && (uplink->LinkGrp) ? */
     }/*  for (i = 0; i < Requestable; i++) { */
 
     if(rc == 0)
@@ -1078,29 +1061,22 @@ char *do_delete(s_link *link, s_area *area) {
 
             if (dwlink->sendNotifyMessages) {
                 s_message *tmpmsg = NULL;
-                char *robot, *pwd, *flags, *from;
-                long attrs;
+                s_linkdata linkData;
+                char *from;
 
-                if (af_app->module == M_HTICK) {
+                (*call_getLinkData)(dwlink, &linkData);
+
+                if (af_app->module == M_HTICK)
                     from = af_config->filefixFromName ? af_config->filefixFromName : af_versionStr;
-                    robot = dwlink->RemoteFileRobotName ? dwlink->RemoteFileRobotName : "filefix";
-                    pwd = dwlink->fileFixPwd ? dwlink->fileFixPwd : "\x00";
-                    attrs = dwlink->filefixReportsAttr ? dwlink->filefixReportsAttr : af_config->filefixReportsAttr;
-                    flags = dwlink->filefixReportsFlags ? dwlink->filefixReportsFlags : af_config->filefixReportsFlags;
-                } else {
+                else
                     from = af_config->areafixFromName ? af_config->areafixFromName : af_versionStr;
-                    robot = dwlink->RemoteRobotName ? dwlink->RemoteRobotName : "areafix";
-                    pwd = dwlink->areaFixPwd ? dwlink->areaFixPwd : "\x00";
-                    attrs = dwlink->areafixReportsAttr ? dwlink->areafixReportsAttr : af_config->areafixReportsAttr;
-                    flags = dwlink->areafixReportsFlags ? dwlink->areafixReportsFlags : af_config->areafixReportsFlags;
-                }
 
                 tmpmsg = makeMessage(dwlink->ourAka, &(dwlink->hisAka),
-                    from, dwlink->name, "Notification message", 1, attrs);
+                    from, dwlink->name, "Notification message", 1, linkData.attrs);
                 tmpmsg->text = createKludges(af_config, NULL, dwlink->ourAka,
                     &(dwlink->hisAka), af_versionStr);
-                if (flags)
-                    xstrscat(&(tmpmsg->text), "\001FLAGS ", flags, "\r", NULL);
+                if (linkData.flags)
+                    xstrscat(&(tmpmsg->text), "\001FLAGS ", linkData.flags, "\r", NULL);
 
                 xscatprintf(&tmpmsg->text, "\r Area \'%s\' is deleted.\r", area->areaName);
                     xstrcat(&tmpmsg->text, "\r Do not forget to remove it from your configs.\r");
@@ -1393,29 +1369,16 @@ int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
 
     /* write messages */
     if (uplink->msg == NULL) {
-      char *robotName, *robotPwd, *reportsFlags;
-      int reportsAttr;
+      s_linkdata uplinkData;
 
-      if (af_app->module == M_HTICK) {
-        robotName = uplink->RemoteFileRobotName ? uplink->RemoteFileRobotName : "filefix";
-        robotPwd = uplink->fileFixPwd ? uplink->fileFixPwd : "\x00";
-        reportsAttr = uplink->filefixReportsAttr ? uplink->filefixReportsAttr : af_config->filefixReportsAttr;
-        reportsFlags = uplink->filefixReportsFlags;
-        if (!reportsFlags) reportsFlags = af_config->filefixReportsFlags;
-      } else {
-        robotName = uplink->RemoteRobotName ? uplink->RemoteRobotName : "areafix";
-        robotPwd = uplink->areaFixPwd ? uplink->areaFixPwd : "\x00";
-        reportsAttr = uplink->areafixReportsAttr ? uplink->areafixReportsAttr : af_config->areafixReportsAttr;
-        reportsFlags = uplink->areafixReportsFlags;
-        if (!reportsFlags) reportsFlags = af_config->areafixReportsFlags;
-      }
+      (*call_getLinkData)(uplink, &uplinkData);
 
       msg = makeMessage(uplink->ourAka, &(uplink->hisAka), af_config->sysop,
-                        robotName, robotPwd, 1, reportsAttr);
+                        uplinkData.robot, uplinkData.pwd, 1, uplinkData.attrs);
       msg->text = createKludges(af_config, NULL, uplink->ourAka, &(uplink->hisAka),
                       af_versionStr);
-      if (reportsFlags)
-        xstrscat(&(msg->text), "\001FLAGS ", reportsFlags, "\r",NULL);
+      if (uplinkData.flags)
+        xstrscat(&(msg->text), "\001FLAGS ", uplinkData.flags, "\r",NULL);
       uplink->msg = msg;
     } else msg = uplink->msg;
 
@@ -2626,10 +2589,9 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
     s_link        *fromLink = NULL, *toLink = NULL;
     char          *fromCmd  = NULL, *toCmd  = NULL;
     char          *fromAka  = NULL, *toAka  = NULL;
-    char          *fromRobot, *fromPwd, *fromFlags, *toRobot, *toPwd, *toFlags;
     char          *exclMask;
-    int           fromAttrs, toAttrs;
     s_arealink    *arealink = NULL;
+    s_linkdata    fromData, toData;
 
     w_log(LL_START, "Start relink...");
 
@@ -2639,6 +2601,7 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
         return 1;
     }
     fromAka = (*call_sstrdup)(aka2str(fromLink->hisAka));
+    (*call_getLinkData)(fromLink, &fromData);
 
     if (mode) {
         toLink = getLinkFromAddr(af_config, toAddr);
@@ -2647,6 +2610,7 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
             return 1;
         }
         toAka = (*call_sstrdup)(aka2str(toLink->hisAka));
+        (*call_getLinkData)(toLink, &toData);
 
         /* allocate memory to check for read/write access for new link */
         arealink = (s_arealink*) scalloc(1, sizeof(s_arealink));
@@ -2664,37 +2628,9 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
     if (af_app->module == M_HTICK) {
         areas = af_config->fileAreas;
         areaCount = af_config->fileAreaCount;
-        /* fromLink */
-        fromRobot = fromLink->RemoteFileRobotName ? fromLink->RemoteFileRobotName : "filefix";
-        fromPwd = fromLink->fileFixPwd ? fromLink->fileFixPwd : "\x00";
-        fromAttrs = fromLink->filefixReportsAttr ? fromLink->filefixReportsAttr : af_config->filefixReportsAttr;
-        fromFlags = fromLink->filefixReportsFlags;
-        if (!fromFlags) fromFlags = af_config->filefixReportsFlags;
-        /* toLink */
-        if (mode) {
-            toRobot = toLink->RemoteFileRobotName ? toLink->RemoteFileRobotName : "filefix";
-            toPwd = toLink->fileFixPwd ? toLink->fileFixPwd : "\x00";
-            toAttrs = toLink->filefixReportsAttr ? toLink->filefixReportsAttr : af_config->filefixReportsAttr;
-            toFlags = toLink->filefixReportsFlags;
-            if (!toFlags) toFlags = af_config->filefixReportsFlags;
-        }
     } else {
         areas = af_config->echoAreas;
         areaCount = af_config->echoAreaCount;
-        /* fromLink */
-        fromRobot = fromLink->RemoteRobotName ? fromLink->RemoteRobotName : "areafix";
-        fromPwd = fromLink->areaFixPwd ? fromLink->areaFixPwd : "\x00";
-        fromAttrs = fromLink->areafixReportsAttr ? fromLink->areafixReportsAttr : af_config->areafixReportsAttr;
-        fromFlags = fromLink->areafixReportsFlags;
-        if (!fromFlags) fromFlags = af_config->areafixReportsFlags;
-        /* toLink */
-        if (mode) {
-            toRobot = toLink->RemoteRobotName ? toLink->RemoteRobotName : "areafix";
-            toPwd = toLink->areaFixPwd ? toLink->areaFixPwd : "\x00";
-            toAttrs = toLink->areafixReportsAttr ? toLink->areafixReportsAttr : af_config->areafixReportsAttr;
-            toFlags = toLink->areafixReportsFlags;
-            if (!toFlags) toFlags = af_config->areafixReportsFlags;
-        }
     }
 
     count = 0;
@@ -2823,11 +2759,11 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
         s_message *msg;
 
         msg = makeMessage(fromLink->ourAka, &(fromLink->hisAka), af_config->sysop,
-                       fromRobot, fromPwd, 1, fromAttrs);
+                       fromData.robot, fromData.pwd, 1, fromData.attrs);
         msg->text = createKludges(af_config, NULL, fromLink->ourAka,
                        &(fromLink->hisAka), af_versionStr);
-        if (fromFlags)
-            xstrscat(&(msg->text), "\001FLAGS ", fromFlags, "\r",NULL);
+        if (fromData.flags)
+            xstrscat(&(msg->text), "\001FLAGS ", fromData.flags, "\r",NULL);
 
         xstrcat(&(msg->text), fromCmd);
 
@@ -2852,11 +2788,11 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
         s_message *msg;
 
         msg = makeMessage(toLink->ourAka, &(toLink->hisAka), af_config->sysop,
-                       toRobot, toPwd, 1, toAttrs);
+                       toData.robot, toData.pwd, 1, toData.attrs);
         msg->text = createKludges(af_config, NULL, toLink->ourAka,
                        &(toLink->hisAka), af_versionStr);
-        if (toFlags)
-            xstrscat(&(msg->text), "\001FLAGS ", toFlags, "\r",NULL);
+        if (toData.flags)
+            xstrscat(&(msg->text), "\001FLAGS ", toData.flags, "\r",NULL);
 
         xstrcat(&(msg->text), toCmd);
 
@@ -2893,6 +2829,6 @@ int init_areafix(void) {
   if (call_sstrdup == NULL) call_sstrdup = &sstrdup;
   if (call_smalloc == NULL) call_smalloc = &smalloc;
   if (call_srealloc == NULL) call_srealloc = &srealloc;
-  if (!call_sendMsg || !call_writeMsgToSysop) return 0;
+  if (!call_sendMsg || !call_writeMsgToSysop || !call_getLinkData) return 0;
   return 1;
 }

@@ -76,6 +76,21 @@ extern "C" {
 #define STAT        101
 #define AFERROR     255
 
+typedef struct linkdata {
+    char  *robot;
+    char  *pwd;
+    char  *flags;
+    long   attrs;
+    int    numDfMask;
+    char **dfMask;
+    int    numFrMask;
+    char **frMask;
+    char  *denyFwdFile;
+    int    fwd;
+    char  *fwdFile;
+    int    advAfix;
+} s_linkdata;
+
 typedef enum { lt_all, lt_linked, lt_unlinked } s_listype;
 typedef enum { PERL_CONF_MAIN = 1, PERL_CONF_LINKS = 2, PERL_CONF_AREAS = 4 } e_perlconftype;
 
