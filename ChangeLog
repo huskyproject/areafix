@@ -1,3 +1,17 @@
+2004-05-26 Wednesday 16:28  andrew_ladutsko
+
+	* make/makefile.cyg (1.1): makefile for compiling library with
+	cygwin (by Andr Luk'yanov)
+
+2004-05-26 Wednesday 16:16  andrew_ladutsko
+
+	* src/areafix.c (1.25): fixed warnings when compiling with gcc
+
+2004-05-26 Wednesday 16:14  andrew_ladutsko
+
+	* make/makefile.mgw (1.1): makefile for compiling library with
+	mingw32 (tested with gcc 2.95.2)
+
 2004-05-14 Friday 15:29  andrew_ladutsko
 
 	* areafix/areafix.h (1.7), areafix/callback.h (1.6), src/areafix.c
