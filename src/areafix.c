@@ -1249,20 +1249,16 @@ char *unsubscribe(s_link *link, char *cmd) {
                         forwardRequestToLink(area->areaName,
                             area->downlinks[0]->link, NULL, 1);
                     }
-                } else if (af_config->autoAreaPause && !area->paused) {
-                       area->msgbType = MSGTYPE_PASSTHROUGH;
-                       pauseArea(ACT_PAUSE, NULL, area);
                 }
                 j = changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),area,link,6);
 /*                if ( (j == DEL_OK) && area->msgbType!=MSGTYPE_PASSTHROUGH ) */
-                if (j == DEL_OK) switch (af_app->module) {
-                  case M_HTICK:
-                    if (af_config->autoAreaPause & FILEAREA)
-                      pauseArea(ACT_PAUSE, NULL, area);
-                    break;
-                  default:
+                if (j == DEL_OK) {
+                  if (af_app->module != M_HTICK)
                     if (area->fileName && area->killMsgBase)
                        MsgDeleteBase(area->fileName, (word) area->msgbType);
+                  area->msgbType = MSGTYPE_PASSTHROUGH;
+                  if ((af_config->autoAreaPause & pause) && !area->paused && (area->downlinkCount > 1))
+                    pauseArea(ACT_PAUSE, NULL, area);
                 }
             }
             if (j == DEL_OK){
