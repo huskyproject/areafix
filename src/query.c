@@ -264,7 +264,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     if (checkRefuse(c_area))
     {
-        w_log(LL_WARN, "Can't create %sarea %s : refused by New%sAreaRefuseFile\n", af_app->module == M_HTICK ? "file" : "", c_area, af_app->module == M_HTICK ? "File" : "");
+        w_log(LL_WARN, "Can't create %s %s : refused by %s newAreaRefuseFile\n", af_robot->strA, c_area, af_robot->name);
         return BM_DENY_NEWAREAREFUSEFILE;
     }
 
@@ -498,7 +498,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     /*  echoarea addresses changed by safe_reallocating of af_config->echoAreas[] */
     if (af_app->module == M_HPT) carbonNames2Addr(af_config);
 
-    w_log(LL_AUTOCREATE, "%sArea %s autocreated by %s", (af_app->module == M_HTICK ? "File" : ""), c_area, hisaddr);
+    w_log(LL_AUTOCREATE, "%s %s autocreated by %s", af_robot->strA, c_area, hisaddr);
 
     if (hook_onAutoCreate) (*hook_onAutoCreate)(c_area, descr, pktOrigAddr, forwardAddr);
 
@@ -714,6 +714,7 @@ void af_QueueReport()
     int netmail=0;
     char *reportFlg = NULL;
     s_message *msg = NULL;
+    char *ucStrA;
 
     w_log(LL_FUNC, "af_QueueReport(): begin");
 
@@ -743,6 +744,9 @@ void af_QueueReport()
     tmpNode = queryAreasHead;
 
     w_log(LL_DEBUGU, __FILE__":%u:af_QueueReport() tmpNode=%X", __LINE__, tmpNode);
+
+    ucStrA = sstrdup(af_robot->strA);
+    ucStrA[0] = (char) toupper(ucStrA[0]);
 
     while(tmpNode->next)
     {
@@ -830,6 +834,9 @@ void af_QueueReport()
                 state);
         }
     }
+
+    nfree(ucStrA);
+
     if(!report) {
         remove(reportFlg);
         nfree(reportFlg);
@@ -838,8 +845,7 @@ void af_QueueReport()
 
     w_log(LL_START, "Start generating queue report");
     xscatprintf(&header, rmask, 
-                af_app->module == M_HTICK ? "FileArea" : "Area",
-                "Act","From","By","Details");
+                ucStrA, "Act","From","By","Details");
     xscatprintf(&header, "%s\r", print_ch(79,'-'));
     xstrcat(&header, report);
     report = header;

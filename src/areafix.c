@@ -147,16 +147,16 @@ char *list(s_listype type, s_link *link, char *cmdline) {
 
     switch (type) {
       case lt_all:
-        xscatprintf(&report, "Available %sareas for %s\r\r", af_app->module == M_HTICK ? "file" : "", aka2str(link->hisAka));
+        xscatprintf(&report, "Available %ss for %s\r\r", af_robot->strA, aka2str(link->hisAka));
         break;
       case lt_linked:
-        xscatprintf(&report, "%s %sareas for %s\r\r", 
+        xscatprintf(&report, "%s %ss for %s\r\r", 
                     (link->Pause & pause) ? "Passive" : "Active", 
-                    af_app->module == M_HTICK ? "file" : "", 
+                    af_robot->strA, 
                     aka2str(link->hisAka));
         break;
       case lt_unlinked:
-        xscatprintf(&report, "Unlinked %sareas for %s\r\r", af_app->module == M_HTICK ? "file" : "", aka2str(link->hisAka));
+        xscatprintf(&report, "Unlinked %ss for %s\r\r", af_robot->strA, aka2str(link->hisAka));
         break;
     }
 
@@ -532,7 +532,7 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
             line = shell_expand(line);
             line = tmpPtr = vars_expand(line);
             token = strseparate(&tmpPtr, " \t");
-            if (stricmp(token, af_app->module == M_HTICK ? "filearea" : "echoarea")==0) {
+            if (stricmp(token, af_robot->strC)==0) {
                 token = strseparate(&tmpPtr, " \t");
                 if (*token=='\"' && token[strlen(token)-1]=='\"' && token[1]) {
                     token++;
@@ -585,8 +585,8 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
         }
     case 7:
         if ((rc = DelLinkFromString(cfgline, link->hisAka)) == 1) {
-            w_log(LL_ERR,"%s: Unlink is not possible for %s from %s area \'%s\'", af_robot->name,
-                aka2str(link->hisAka), af_app->module == M_HTICK ? "file" : "echo", areaName);
+            w_log(LL_ERR,"%s: Unlink is not possible for %s from %s \'%s\'", af_robot->name,
+                aka2str(link->hisAka), af_robot->strA, areaName);
             nRet = O_ERR;
         } else {
             nRet = DEL_OK;
@@ -942,9 +942,8 @@ char *subscribe(s_link *link, char *cmd) {
         {
             xscatprintf(&report, " %s %s  forwarding refused\r",
 			    line, print_ch(49-strlen(line), '.'));
-            w_log(LL_WARN, "Can't forward request for %sarea \'%s\' : refused by New%sAreaRefuseFile\n", 
-                  af_app->module == M_HTICK ? "file" : "", line, 
-                  af_app->module == M_HTICK ? "File" : "");
+            w_log(LL_WARN, "%s: Can't forward request for %s \'%s\' : refused by newAreaRefuseFile\n", 
+                  af_robot->name, af_robot->strA, line);
         } else
         if (link->denyFRA==0) {
             s_query_areas *node = NULL;
@@ -994,8 +993,8 @@ char *subscribe(s_link *link, char *cmd) {
     }
 
     if (rc == 6) {   /* areas limit exceed for link */
-	w_log(LL_AREAFIX, "%s: %sarea \'%s\' no access (full limit) for %s", af_robot->name,
-              af_app->module == M_HTICK ? "file" : "",
+	w_log(LL_AREAFIX, "%s: %s \'%s\' no access (full limit) for %s", af_robot->name,
+              af_robot->strA,
 	      line, aka2str(link->hisAka));
 	xscatprintf(&report," %s %s  no access (full limit)\r",
 		    line, print_ch(49-strlen(line), '.'));
@@ -1003,8 +1002,8 @@ char *subscribe(s_link *link, char *cmd) {
 
     if (matched) {
 	if (report == NULL)
-	    w_log(LL_AREAFIX, "%s: All %sareas matching %s are already linked", af_robot->name, 
-                  af_app->module == M_HTICK ? "file" : "", line);
+	    w_log(LL_AREAFIX, "%s: All %ss matching %s are already linked", af_robot->name, 
+                  af_robot->strA, line);
 	xscatprintf(&report, "All %sareas matching %s are already linked\r", report ? "other " : "", line);
     }
     else if ((report == NULL && found==0) || (found && area->hide)) {
@@ -1286,9 +1285,9 @@ char *unsubscribe(s_link *link, char *cmd) {
         report = af_Req2Idle(line, report, link->hisAka);
     if (report == NULL) {
         if (matched) {
-            xscatprintf(&report, " %s %s  no %sareas to unlink\r",
+            xscatprintf(&report, " %s %s  no %ss to unlink\r",
                 line, print_ch(49-strlen(line), '.'),
-                af_app->module == M_HTICK ? "file" : "");
+                af_robot->strA);
             w_log(LL_AREAFIX, "%s: No areas to unlink", af_robot->name);
         } else {
             xscatprintf(&report, " %s %s  not found\r",
@@ -2616,7 +2615,8 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
     char          *exclMask;
     s_arealink    *arealink = NULL;
     s_linkdata    fromData, toData;
-
+    char          *ucStrA;
+    
     w_log(LL_START, "Start relink...");
 
     fromLink = getLinkFromAddr(af_config, fromAddr);
@@ -2648,6 +2648,9 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
         } else reversed = 0;
         if (strlen(pattern) == 0) pattern = NULL;
     }
+
+    ucStrA = sstrdup(af_robot->strA);
+    ucStrA[0] = (char) toupper(ucStrA[0]);
 
     areas = *(af_robot->areas);
     areaCount = *(af_robot->areaCount);
@@ -2709,24 +2712,24 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
                 }
 
                 if ((arealink->export == 0) || (arealink->import == 0)) {
-                    w_log(LL_AREAFIX, "%s: Link %s will not have full access (export=%s import=%s) to %sarea %s, skipped",
-                           af_robot->name, toAka, arealink->export?"on":"off", arealink->import?"on":"off", af_app->module == M_HTICK ? "file" : "", areas[i].areaName);
+                    w_log(LL_AREAFIX, "%s: Link %s will not have full access (export=%s import=%s) to %s %s, skipped",
+                           af_robot->name, toAka, arealink->export?"on":"off", arealink->import?"on":"off", af_robot->strA, areas[i].areaName);
                     continue;
                 }
 
                 /* unsubscribe fromLink from area */
                 if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),
                          &areas[i],fromLink,7) != DEL_OK) {
-                    w_log(LL_AREAFIX, "%s: Can't unlink %s from %sarea \'%s\'",
-                          af_robot->name, fromAka, af_app->module == M_HTICK ? "file" : "",
+                    w_log(LL_AREAFIX, "%s: Can't unlink %s from %s \'%s\'",
+                          af_robot->name, fromAka, af_robot->strA,
                           areas[i].areaName);
                     continue;
                 }
                 RemoveLink(fromLink, &areas[i]);
 
                 if (isLinkOfArea(toLink, &areas[i])) {
-                    w_log(LL_AREAFIX, "Link %s is already subscribed to %sarea \'%s\'",
-                          toAka, af_app->module == M_HTICK ? "file" : "",
+                    w_log(LL_AREAFIX, "Link %s is already subscribed to %s \'%s\'",
+                          toAka, af_robot->strA,
                           areas[i].areaName);
                     continue;
                 }
@@ -2734,8 +2737,8 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
                 /* subscribe toLink to area */
                 if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),
                          &areas[i],toLink,addMode) != ADD_OK) {
-                    w_log(LL_AREAFIX, "%s: Can't subscribe %s to %sarea \'%s\'",
-                          af_robot->name, toAka, af_app->module == M_HTICK ? "file" : "",
+                    w_log(LL_AREAFIX, "%s: Can't subscribe %s to %s \'%s\'",
+                          af_robot->name, toAka, af_robot->strA,
                           areas[i].areaName);
                     continue;
                 }
@@ -2744,29 +2747,29 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
                 count++;
 
                 if (areas[i].paused) {
-                    w_log(LL_AREAFIX, "%sArea \'%s\' is paused, no command will be sent",
-                          af_app->module == M_HTICK ? "File" : "", areas[i].areaName);
+                    w_log(LL_AREAFIX, "%s \'%s\' is paused, no command will be sent",
+                          ucStrA, areas[i].areaName);
                 } else {
                     xscatprintf(&fromCmd, "-%s\r", areas[i].areaName);
                     xscatprintf(&toCmd, "+%s\r", areas[i].areaName);
                 }
 
-                w_log(LL_AREAFIX, "%sArea \'%s\' is resubscribed from link %s to link %s",
-                      af_app->module == M_HTICK ? "File" : "",
+                w_log(LL_AREAFIX, "%s \'%s\' is resubscribed from link %s to link %s",
+                      ucStrA,
                       areas[i].areaName, fromAka, toAka);
 
             /* relink */
             } else {
                 if (areas[i].paused) {
-                    w_log(LL_AREAFIX, "%sArea \'%s\' is paused, no command will be sent",
-                          af_app->module == M_HTICK ? "File" : "", areas[i].areaName);
+                    w_log(LL_AREAFIX, "%s \'%s\' is paused, no command will be sent",
+                          ucStrA, areas[i].areaName);
                 } else {
                     count++;
                     xscatprintf(&fromCmd, "+%s\r", areas[i].areaName);
                 }
 
-                w_log(LL_AREAFIX, "%sArea \'%s\' from link %s is relinked",
-                      af_app->module == M_HTICK ? "File" : "",
+                w_log(LL_AREAFIX, "%s \'%s\' from link %s is relinked",
+                      ucStrA,
                       areas[i].areaName, fromAka);
             }
             break;
@@ -2831,12 +2834,13 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
         nfree(toCmd);
     }
 
+    nfree(ucStrA);
     nfree(fromAka);
     nfree(toAka);
     nfree(arealink);
 
-    w_log(LL_AREAFIX, "%s %i %sarea(s)", mode ? "Resubscribed" : "Relinked",
-             count, af_app->module == M_HTICK ? "file" : "");
+    w_log(LL_AREAFIX, "%s %i %s(s)", mode ? "Resubscribed" : "Relinked",
+             count, af_robot->strA);
 
     return 0;
 }
