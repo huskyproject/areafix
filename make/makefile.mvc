@@ -64,11 +64,12 @@ dllprograms: dll $(PROGRAMS)
 	@$(CC) $(CFLAGS) $(CINCL) $(CDEFS) $(COPT) -c $<
 
 $(TARGETLIB): $(OBJS)
-	$(AR) /out:$(LIBNAME)$(_LIB) $(OBJS)
+	@$(AR) /out:$(LIBNAME)$(_LIB) $(OBJS)
 
 $(TARGETDLL):
-	!$(MAKE) -f makefile.mvc CFLAGS="$(CFLAGS) $(CFLAGS_DLL)" $(OBJS)
-	$(LINK) $(LFLAGS_DLL) /out:$(TARGETDLL) $(OBJS) $(LIBS)
+	@!$(MAKE) -f makefile.mvc CFLAGS="$(CFLAGS) $(CFLAGS_DLL)" $(OBJS)
+	@echo Create $(TARGETDLL)...
+	@$(LINK) $(LFLAGS_DLL) /out:$(TARGETDLL) $(OBJS) $(LIBS)
 
 clean:
 	-$(RM) $(RMOPT) *$(_OBJ)
