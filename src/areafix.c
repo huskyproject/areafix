@@ -137,7 +137,7 @@ char *list(s_listype type, s_link *link, char *cmdline) {
     int grps = (af_config->listEcho == lemGroup) || (af_config->listEcho == lemGroupName);
 
     if (cmdline) pattern = getPatternFromLine(cmdline, &reversed);
-    if (call_isValid && (*call_isValid)(pattern) != 0) {
+    if (call_isValid && pattern && (*call_isValid)(pattern) != 0) {
       w_log(LL_FUNC, "%s::list() FAILED (error request line)", af_robot->name);
       return errorRQ(cmdline);
     }
