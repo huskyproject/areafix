@@ -436,9 +436,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     else RebuildEchoAreaTree(af_config);
 
     /*  subscribe uplink if he is not subscribed */
-    area = (af_app->module == M_HTICK) 
-           ? &(af_config->fileAreas[af_config->fileAreaCount-1])
-           : &(af_config->echoAreas[af_config->echoAreaCount-1]);
+    area = &( (*af_robot->areas)[ *(af_robot->areaCount)-1 ] );
     if ( !isLinkOfArea(creatingLink,area) ) {
 	xscatprintf(&buff, " %s", hisaddr);
 	Addlink(af_config, creatingLink, area);

@@ -161,10 +161,10 @@ char *list(s_listype type, s_link *link, char *cmdline) {
     }
 
     al = newAreaList(af_config);
-    cnt = af_app->module == M_HTICK ? af_config->fileAreaCount : af_config->echoAreaCount;
-    for (i=active=avail=0; i<cnt; i++) {
-        area = af_app->module == M_HTICK ? &(af_config->fileAreas[i]) : &(af_config->echoAreas[i]);
-	rc = subscribeCheck(area, link);
+    cnt = *(af_robot->areaCount);
+    for (i=active=avail=0; i < cnt; i++) {
+        area = &( (*af_robot->areas)[i] );
+        rc = subscribeCheck(area, link);
 
         if ( (type == lt_all && rc < 2)
              || (type == lt_linked && rc == 0)
@@ -849,9 +849,9 @@ char *subscribe(s_link *link, char *cmd) {
       }
     }
 
-    cnt = af_app->module == M_HTICK ? af_config->fileAreaCount : af_config->echoAreaCount;
+    cnt = *(af_robot->areaCount);
     for (i=0; !found && rc!=6 && i<cnt; i++) {
-	area = af_app->module == M_HTICK ? &(af_config->fileAreas[i]) : &(af_config->echoAreas[i]);
+	area = &( (*af_robot->areas)[i] );
 	an = area->areaName;
 
 	rc=subscribeAreaCheck(area, line, link);
@@ -1101,8 +1101,8 @@ char *do_delete(s_link *link, s_area *area) {
                   an, aka2str(link->hisAka));
 
     /* delete the area from in-core af_config */
-    cnt   = af_app->module == M_HTICK ? &af_config->fileAreaCount : &af_config->echoAreaCount;
-    areas = af_app->module == M_HTICK ? af_config->fileAreas : af_config->echoAreas;
+    cnt   = af_robot->areaCount;
+    areas = *(af_robot->areas);
     for (i = 0; i < (*cnt); i++) {
         if (stricmp(areas[i].areaName, an) == 0) break;
     }
@@ -1174,9 +1174,9 @@ char *unsubscribe(s_link *link, char *cmd) {
     line++;
     while (*line==' ') line++;
 
-    cnt = af_app->module == M_HTICK ? af_config->fileAreaCount : af_config->echoAreaCount;
+    cnt = *(af_robot->areaCount);
     for (i = 0; i < cnt; i++) {
-        area = af_app->module == M_HTICK ? &(af_config->fileAreas[i]) : &(af_config->echoAreas[i]);
+        area = &( (*af_robot->areas)[i] );
         an = area->areaName;
 
         rc = subscribeAreaCheck(area, line, link);
@@ -1319,13 +1319,13 @@ int pauseArea(e_pauseAct pauseAct, s_link *searchLink, s_area *searchArea) {
   /* check if we have something to search for */
   if (!searchLink && !searchArea) return rc;
 
-  cnt = af_app->module == M_HTICK ? af_config->fileAreaCount : af_config->echoAreaCount;
+  cnt = *(af_robot->areaCount);
   for (i = 0; i < cnt; i++) {
     s_link *uplink = NULL;
     s_area *area;
     s_message *msg;
 
-    area = af_app->module == M_HTICK ? &(af_config->fileAreas[i]) : &(af_config->echoAreas[i]);
+    area = &( (*af_robot->areas)[i] );
 
     /* check if current area is the area being searched */
     /* or the link being searched is linked to current area */
@@ -1434,17 +1434,8 @@ char *pause_resume_link(s_link *link, int mode)
       if (Changepause(af_cfgFile ? af_cfgFile : getConfigFileName(), link, 0, pause) == 0)
          return NULL;
 
-      if (af_app->module == M_HPT)
-      {
-          areaCount = af_config->echoAreaCount;
-          areas     = af_config->echoAreas;
-      }
-      else if (af_app->module == M_HTICK)
-      {
-          areaCount = af_config->fileAreaCount;
-          areas     = af_config->fileAreas;
-      }
-
+      areaCount = *(af_robot->areaCount);
+      areas     = *(af_robot->areas);
       for (i = 0; i < areaCount; i++)
           for (j = 0; j < areas[i].downlinkCount; j++)
               if (link == areas[i].downlinks[j]->link) {
@@ -2658,14 +2649,8 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
         if (strlen(pattern) == 0) pattern = NULL;
     }
 
-    if (af_app->module == M_HTICK) {
-        areas = af_config->fileAreas;
-        areaCount = af_config->fileAreaCount;
-    } else {
-        areas = af_config->echoAreas;
-        areaCount = af_config->echoAreaCount;
-    }
-
+    areas = *(af_robot->areas);
+    areaCount = *(af_robot->areaCount);
     count = 0;
     for (i = 0; i < areaCount; i++) {
 
