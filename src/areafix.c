@@ -1318,7 +1318,7 @@ int pauseAreas(int act, s_link *searchLink, s_area *searchArea) {
 
   cnt = af_app->module == M_HTICK ? af_config->fileAreaCount : af_config->echoAreaCount;
   for (i = 0; i < cnt; i++) {
-    s_link *uplink;
+    s_link *uplink = NULL;
     s_area *area;
     s_message *msg;
 
@@ -1413,21 +1413,23 @@ char *pause_resume_link(s_link *link, int mode)
       if (Changepause(af_cfgFile ? af_cfgFile : getConfigFileName(), link, 0, pause) == 0)
          return NULL;
 
-      if (theApp.module == M_HPT)
+      if (af_app->module == M_HPT)
       {
-          areaCount = theApp.config->echoAreaCount;
-          areas     = theApp.config->echoAreas;
+          areaCount = af_config->echoAreaCount;
+          areas     = af_config->echoAreas;
       }
-      else if (theApp.module == M_HTICK)
+      else if (af_app->module == M_HTICK)
       {
-          areaCount = theApp.config->fileAreaCount;
-          areas     = theApp.config->fileAreas;
+          areaCount = af_config->fileAreaCount;
+          areas     = af_config->fileAreas;
       }
 
       for (i = 0; i < areaCount; i++)
           for (j = 0; j < areas[i].downlinkCount; j++)
-              if (link == areas[i].downlinks[j]->link)
+              if (link == areas[i].downlinks[j]->link) {
                   setLinkAccess(af_config, &(areas[i]), areas[i].downlinks[j]);
+                  break;
+              }
       /* update perl vars */
       if (hook_onConfigChange) (*hook_onConfigChange)();
    }
@@ -1438,7 +1440,7 @@ char *pause_resume_link(s_link *link, int mode)
 
    /* check for areas with one link alive and others paused */
    if (af_config->autoAreaPause & pause)
-       pauseAreas(0, link, NULL);
+       pauseAreas(mode, link, NULL);
 
    return report;
 }
