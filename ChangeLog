@@ -1,3 +1,7 @@
+2004-01-21 Wednesday 04:04  andr_lukyanov
+
+	* make/makefile.mvc (1.6): Fix MSVC compilation
+
 2004-01-20 Tuesday 16:38  andrew_ladutsko
 
 	* src/areafix.c (1.19): functions arcmailsize(), pktsize(), rsb(),
