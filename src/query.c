@@ -815,9 +815,8 @@ void af_QueueReport()
         }
     }
 
-    nfree(ucStrA);
-
     if(!report) {
+        nfree(ucStrA);
         remove(reportFlg);
         nfree(reportFlg);
         return;
@@ -854,6 +853,7 @@ void af_QueueReport()
 
     (*call_writeMsgToSysop)(msg);
     nfree(msg);
+    nfree(ucStrA);
     remove(reportFlg);
     nfree(reportFlg);
     w_log(LL_FUNC, "af_QueueReport(): end");
