@@ -2093,6 +2093,11 @@ void RetMsg(s_message *msg, s_link *link, char *report, char *subj)
     text = report;
     reply = (char *) GetCtrlToken((byte *) msg->ctl, (byte *) "MSGID");
 
+    if (msg->text)
+        xstrscat(&text,"\rFollowing is the original message text\r--------------------------------------\r",msg->text,"\r--------------------------------------\r",NULL);
+    else
+        xstrscat(&text,"\r",NULL);
+
     while (text) {
 
         len = strlen(text);
@@ -2106,10 +2111,6 @@ void RetMsg(s_message *msg, s_link *link, char *report, char *subj)
                 text = NULL;
                 nfree(report);
             }
-            if (msg->text)
-                xstrscat(&split,"\rFollowing is the original message text\r--------------------------------------\r",msg->text,"\r--------------------------------------\r",NULL);
-            else
-                xstrscat(&split,"\r",NULL);
         } else {
             p = text + msgsize;
             while (p > text && *p != '\r') p--;
