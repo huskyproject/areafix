@@ -1,3 +1,9 @@
+2004-05-14 Friday 15:29  andrew_ladutsko
+
+	* areafix/areafix.h (1.7), areafix/callback.h (1.6), src/areafix.c
+	(1.24), src/callback.c (1.4): call_getLinkData - returns
+	program-dependent data for link
+
 2004-05-09 Sunday 16:44  andrew_ladutsko
 
 	* TODO (1.5): update TODO
