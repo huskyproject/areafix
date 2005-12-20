@@ -123,7 +123,7 @@ void del_tok(char **ac, char *tok) {
 
 char* makeAreaParam(s_link *creatingLink, s_link_robot *r, char* c_area, char* msgbDir)
 {
-    char *msgbFileName=NULL, *acDef;
+    char *msgbFileName=NULL;
     char *msgbtype, *newAC=NULL, *desc, *quote_areaname;
     char *cp, *buff=NULL;                    /* temp. usage */
 

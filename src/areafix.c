@@ -1426,9 +1426,10 @@ char *pause_resume_link(s_link *link, int mode)
    nfree(tmp);
 
    /* check for areas with one link alive and others paused */
-   if (af_robot->autoAreaPause)
+   if (af_robot->autoAreaPause) {
        if (mode == 0) pauseArea(ACT_PAUSE, link, NULL);
        else pauseArea(ACT_UNPAUSE, link, NULL);
+   }
 
    return report;
 }
@@ -2604,7 +2605,7 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
     char          *fromAka  = NULL, *toAka  = NULL;
     char          *exclMask;
     s_arealink    *arealink = NULL;
-    s_link_robot  *rf, *rt;
+    s_link_robot  *rf, *rt = NULL;
     char          *ucStrA;
     
     w_log(LL_START, "Start relink...");
