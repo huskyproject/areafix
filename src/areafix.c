@@ -1070,7 +1070,7 @@ char *do_delete(s_link *link, s_area *area) {
 	MsgDeleteBase(area->fileName, (word) area->msgbType);
     */
 
-    if (hook_onDeleteArea) hook_onDeleteArea(link, area); // new!!!
+    if (hook_onDeleteArea) hook_onDeleteArea(link, area); /* new!!! */
 
     w_log(LL_AREAFIX, "%s: %s deleted by %s", af_robot->name,
                   an, aka2str(link->hisAka));
