@@ -1,12 +1,50 @@
+2006-11-04 Saturday 15:40  nick_voronin
+
+	* src/areafix.c (1.57): fix crash when areafix report is multipart
+
+2006-08-30 Wednesday 10:54  stas_degteff
+
+	* src/areafix.c (1.56): Fix warning: 'C++ style comments are not
+	  allowed in ISO C90'
+
+2006-05-24 Wednesday 20:02  ssianky
+
+	* make/: AreafixDll.8.vcproj (1.2), AreafixDll.vcproj (1.3),
+	  AreafixDll.70.vcproj (1.1), AreafixDll.71.vcproj (1.1),
+	  AreafixDll.80.vcproj (1.1): Renamed to projname.XX.vcproj, where
+	  XX is compiler version.
+
+2006-04-25 Tuesday 18:07  mche
+
+	* src/areafix.c (1.55): remove garbage
+
+2006-04-25 Tuesday 17:57  mche
+
+	* src/areafix.c (1.54): fixed bug with rescan mode on subscribe
+	  reprodused on two separated mails with %rescan and subscription
+	  list commands
+
+2005-12-20 Tuesday 09:15  nick_voronin
+
+	* src/: areafix.c (1.53), query.c (1.24): warning fix
+
+2005-12-20 Tuesday 05:23  nick_voronin
+
+	* make/makefile.cyg (1.2): Fixed cygwin build
+
+2005-06-06 Monday 07:55  mche
+
+	* make/AreafixDll.8.vcproj (1.1): project files for MSVC 8.0 added
+
 2005-03-26 Saturday 10:39  val_khokhlov
 
 	* areafix/callback.h (1.11), src/areafix.c (1.52), src/callback.c
-	(1.9): on_robotmsg perl hook
+	  (1.9): on_robotmsg perl hook
 
 2005-03-13 Sunday 19:05  val_khokhlov
 
 	* src/areafix.c (1.51): fix bugs with crashing and not updating
-	passwords in memory after chaning them with areafix
+	  passwords in memory after chaning them with areafix
 
 2005-03-04 Friday 14:23  mche
 
@@ -23,17 +61,17 @@
 2005-02-27 Sunday 20:20  val_khokhlov
 
 	* src/areafix.c (1.50): add emptry line before echolist for
-	queryReports
+	  queryReports
 
 2005-02-03 Thursday 18:54  val_khokhlov
 
 	* areafix/callback.h (1.10), src/areafix.c (1.49), src/callback.c
-	(1.8): allow rescan by date (/r=30d or /r=30 days)
+	  (1.8): allow rescan by date (/r=30d or /r=30 days)
 
 2005-01-14 Friday 20:16  val_khokhlov
 
 	* src/areafix.c (1.48): if remote robot's name isn't set use
-	predefined robot's name by default
+	  predefined robot's name by default
 
 2005-01-12 Wednesday 19:40  val_khokhlov
 
@@ -50,7 +88,7 @@
 2005-01-09 Sunday 17:28  val_khokhlov
 
 	* src/: areafix.c (1.44), callback.c (1.7), query.c (1.21): make
-	callback for getArea(), use baseDir from s_link_robot
+	  callback for getArea(), use baseDir from s_link_robot
 
 2005-01-09 Sunday 17:28  val_khokhlov
 
@@ -67,56 +105,56 @@
 2005-01-09 Sunday 16:17  val_khokhlov
 
 	* areafix/callback.h (1.8), src/areafix.c (1.41), src/callback.c
-	(1.6), src/query.c (1.20): move area name validation code to
-	hpt/htick
+	  (1.6), src/query.c (1.20): move area name validation code to
+	  hpt/htick
 
 2005-01-02 Sunday 16:45  val_khokhlov
 
 	* src/areafix.c (1.40): move some vars from s_link into
-	s_link_robot
+	  s_link_robot
 
 2004-12-31 Friday 20:26  val_khokhlov
 
 	* areafix/areafix.h (1.10): declare some functions as exportable to
-	use them in htick
+	  use them in htick
 
 2004-12-31 Friday 20:25  val_khokhlov
 
 	* src/areafix.c (1.39): replace hard-coded 'areafix' string with
-	robot's name
+	  robot's name
 
 2004-12-30 Thursday 14:36  val_khokhlov
 
 	* areafix/afglobal.h (1.5), areafix/callback.h (1.7),
-	areafix/query.h (1.4), src/afglobal.c (1.5), src/areafix.c (1.38),
-	src/callback.c (1.5), src/query.c (1.19): move all robot-dependent
-	stuff from s_link to s_link_robot
+	  areafix/query.h (1.4), src/afglobal.c (1.5), src/areafix.c
+	  (1.38), src/callback.c (1.5), src/query.c (1.19): move all
+	  robot-dependent stuff from s_link to s_link_robot
 
 2004-12-28 Tuesday 20:50  val_khokhlov
 
 	* src/: areafix.c (1.37), query.c (1.18): move some vars from
-	global into robot structure
+	  global into robot structure
 
 2004-12-26 Sunday 21:17  val_khokhlov
 
 	* src/: areafix.c (1.36), query.c (1.17): use robot struct fields
-	containing strings for 'area', 'filearea' words
+	  containing strings for 'area', 'filearea' words
 
 2004-12-26 Sunday 20:44  val_khokhlov
 
 	* src/: areafix.c (1.35), query.c (1.16): use pointers to areas and
-	areaCount from the current robot
+	  areaCount from the current robot
 
 2004-12-25 Saturday 21:47  val_khokhlov
 
 	* areafix/afglobal.h (1.4), areafix/areafix.h (1.9), src/afglobal.c
-	(1.4), src/areafix.c (1.34), src/query.c (1.15): multi-robot
-	support, global config parameters only
+	  (1.4), src/areafix.c (1.34), src/query.c (1.15): multi-robot
+	  support, global config parameters only
 
 2004-12-14 Tuesday 23:05  andrew_ladutsko
 
 	* src/areafix.c (1.33): fixed adding original request text after
-	message splitting
+	  message splitting
 
 2004-12-14 Tuesday 23:02  andrew_ladutsko
 
@@ -125,7 +163,7 @@
 2004-12-10 Friday 18:38  andrew_ladutsko
 
 	* src/areafix.c (1.31): fixed not killing the msgbase when
-	autoAreaPause is set
+	  autoAreaPause is set
 
 2004-11-25 Thursday 15:04  andrew_ladutsko
 
@@ -134,27 +172,27 @@
 2004-11-17 Wednesday 23:20  andrew_ladutsko
 
 	* areafix/areafix.h (1.8), src/areafix.c (1.29), src/query.c
-	(1.14): autoAreaPause rewritten
+	  (1.14): autoAreaPause rewritten
 
 2004-07-31 Saturday 14:56  andrew_ladutsko
 
 	* src/areafix.c (1.28): Added ability to specify link rights to
-	rescan all or several area groups
+	  rescan all or several area groups
 
 2004-07-21 Wednesday 08:50  andrew_ladutsko
 
 	* src/: areafix.c (1.27), query.c (1.13): recommit: fixed pausing
-	area when making forward request and queue file not defined
+	  area when making forward request and queue file not defined
 
 2004-06-13 Sunday 14:25  andrew_ladutsko
 
 	* src/: areafix.c (1.26), query.c (1.12): revert to stable code by
-	Max Chernogor
+	  Max Chernogor
 
 2004-05-26 Wednesday 16:28  andrew_ladutsko
 
 	* make/makefile.cyg (1.1): makefile for compiling library with
-	cygwin (by Andr Luk'yanov)
+	  cygwin (by Andr Luk'yanov)
 
 2004-05-26 Wednesday 16:16  andrew_ladutsko
 
@@ -163,13 +201,13 @@
 2004-05-26 Wednesday 16:14  andrew_ladutsko
 
 	* make/makefile.mgw (1.1): makefile for compiling library with
-	mingw32 (tested with gcc 2.95.2)
+	  mingw32 (tested with gcc 2.95.2)
 
 2004-05-14 Friday 15:29  andrew_ladutsko
 
 	* areafix/areafix.h (1.7), areafix/callback.h (1.6), src/areafix.c
-	(1.24), src/callback.c (1.4): call_getLinkData - returns
-	program-dependent data for link
+	  (1.24), src/callback.c (1.4): call_getLinkData - returns
+	  program-dependent data for link
 
 2004-05-09 Sunday 16:44  andrew_ladutsko
 
@@ -178,25 +216,26 @@
 2004-05-09 Sunday 15:42  andrew_ladutsko
 
 	* src/areafix.c (1.23): do not resubscribe an area and write a
-	warning message to log if new link will not have full access to it
+	  warning message to log if new link will not have full access to
+	  it
 
 2004-05-07 Friday 18:42  andrew_ladutsko
 
 	* areafix/areafix.h (1.6), areafix/callback.h (1.5), src/areafix.c
-	(1.22), src/callback.c (1.3), src/query.c (1.11): speedup updating
-	of perl structures: do not update a whole config but a part of it
-	only
+	  (1.22), src/callback.c (1.3), src/query.c (1.11): speedup
+	  updating of perl structures: do not update a whole config but a
+	  part of it only
 
 2004-02-10 Tuesday 20:23  andrew_ladutsko
 
 	* src/: areafix.c (1.21), query.c (1.10): fixed pausing area when
-	making forward request and queue file not defined
+	  making forward request and queue file not defined
 
 2004-02-09 Monday 17:09  andrew_ladutsko
 
 	* areafix/query.h (1.3), src/areafix.c (1.20), src/query.c (1.9):
-	when doing forward request try to find an already requsted area in
-	queue file
+	  when doing forward request try to find an already requsted area
+	  in queue file
 
 2004-01-21 Wednesday 04:04  andr_lukyanov
 
@@ -205,7 +244,7 @@
 2004-01-20 Tuesday 16:38  andrew_ladutsko
 
 	* src/areafix.c (1.19): functions arcmailsize(), pktsize(), rsb(),
-	rules() and change_pwd() merged into change_token()
+	  rules() and change_pwd() merged into change_token()
 
 2004-01-20 Tuesday 07:37  andr_lukyanov
 
@@ -214,12 +253,12 @@
 2004-01-17 Saturday 08:56  andrew_ladutsko
 
 	* src/query.c (1.8): another try to add support for several entrys
-	per area in queue file
+	  per area in queue file
 
 2004-01-15 Thursday 09:40  andrew_ladutsko
 
 	* src/query.c (1.7): fixed queue file functionality broken when
-	making unsubscribeOnAreaDelete
+	  making unsubscribeOnAreaDelete
 
 2004-01-15 Thursday 09:35  andrew_ladutsko
 
@@ -228,23 +267,24 @@
 2004-01-15 Thursday 09:32  andrew_ladutsko
 
 	* src/query.c (1.6): add a new entry to queue file if area is
-	killed at one uplink and is requested at another
+	  killed at one uplink and is requested at another
 
 2004-01-11 Sunday 15:10  mche
 
 	* src/afglobal.c (1.3), areafix/afglobal.h (1.3),
-	make/AreafixDll.vcproj (1.2), src/areafix.c (1.17), src/callback.c
-	(1.2), src/query.c (1.5): fix MSVC7 compilations and some warnings
+	  make/AreafixDll.vcproj (1.2), src/areafix.c (1.17),
+	  src/callback.c (1.2), src/query.c (1.5): fix MSVC7 compilations
+	  and some warnings
 
 2004-01-10 Saturday 17:33  andrew_ladutsko
 
 	* src/areafix.c (1.16): send "-area" request to subscribed link
-	and/or send notification message when area is deleted
+	  and/or send notification message when area is deleted
 
 2004-01-08 Thursday 15:56  andrew_ladutsko
 
 	* areafix/areafix.h (1.5), src/areafix.c (1.15): implemented %from
-	areafix command
+	  areafix command
 
 2004-01-07 Wednesday 16:38  andrew_ladutsko
 
@@ -253,27 +293,27 @@
 2004-01-06 Tuesday 13:39  andrew_ladutsko
 
 	* areafix/areafix.h (1.4), src/areafix.c (1.14): implemented
-	%areafixpwd, %filefixpwd, %pktpwd, %ticpwd commands
+	  %areafixpwd, %filefixpwd, %pktpwd, %ticpwd commands
 
 2003-12-27 Saturday 19:31  andrew_ladutsko
 
 	* src/areafix.c (1.13): relink(): added support for reversed
-	patterns
+	  patterns
 
 2003-12-25 Thursday 07:45  val_khokhlov
 
 	* areafix/callback.h (1.4): update due to perl_setvars() calls
-	optimized
+	  optimized
 
 2003-12-24 Wednesday 13:31  val_khokhlov
 
 	* src/areafix.c (1.12): some cosmetic fixes (thanks to Andrew
-	Ladutsko)
+	  Ladutsko)
 
 2003-12-24 Wednesday 13:26  val_khokhlov
 
 	* src/areafix.c (1.11): misc fixed in pause_resume_link() (patch by
-	Andrew Ladutsko)
+	  Andrew Ladutsko)
 
 2003-12-24 Wednesday 08:10  val_khokhlov
 
@@ -290,7 +330,7 @@
 2003-12-23 Tuesday 14:53  val_khokhlov
 
 	* areafix/areafix.h (1.3), src/areafix.c (1.8): relink and
-	resubscribe moved here from hpt (patch by Andrew Ladutsko)
+	  resubscribe moved here from hpt (patch by Andrew Ladutsko)
 
 2003-12-22 Monday 09:30  val_khokhlov
 
@@ -299,7 +339,7 @@
 2003-12-22 Monday 09:25  val_khokhlov
 
 	* src/areafix.c (1.7): yet further splitting of hpt and htick in
-	libareafix
+	  libareafix
 
 2003-12-22 Monday 02:22  andr_lukyanov
 
@@ -308,32 +348,32 @@
 2003-12-22 Monday 02:08  andr_lukyanov
 
 	* COPYING (1.1), HISTORY (1.1), INSTALL (1.1), VERSION (1.1): Added
-	lecense description
+	  lecense description
 
 2003-12-18 Thursday 08:56  val_khokhlov
 
 	* TODO (1.3), src/areafix.c (1.6): modifications to distinguish hpt
-	and htick in libareafix
+	  and htick in libareafix
 
 2003-12-16 Tuesday 13:43  val_khokhlov
 
 	* src/areafix.c (1.5): afix requests from command-line didn't pass
-	security checks, fixed
+	  security checks, fixed
 
 2003-12-16 Tuesday 09:01  val_khokhlov
 
 	* make/: makefile.inc (1.3), makefile.mvc (1.3): patches to
-	makefiles weren't applied, fixed
+	  makefiles weren't applied, fixed
 
 2003-12-16 Tuesday 08:56  val_khokhlov
 
 	* src/areafix.c (1.4): some my patches weren't applied (.rej),
-	fixed
+	  fixed
 
 2003-12-16 Tuesday 08:42  val_khokhlov
 
 	* src/areafix.c (1.3): fix areas permissions when pausing/resuming
-	(patch by Andrew Ladutsko)
+	  (patch by Andrew Ladutsko)
 
 2003-12-16 Tuesday 08:36  val_khokhlov
 
@@ -342,22 +382,22 @@
 2003-12-16 Tuesday 08:30  val_khokhlov
 
 	* TODO (1.2), areafix/afglobal.h (1.2), areafix/areafix.h (1.2),
-	areafix/callback.h (1.3), areafix/query.h (1.2), make/makefile.inc
-	(1.2), src/afglobal.c (1.2), src/areafix.c (1.2), src/query.c
-	(1.3): libareafix - second edition: 1) all undefined references
-	fixed :) 2) attempts to distinguish filefix and areafix have been
-	started in areafix.c 3) win32 dll-aware makefile, but it still
-	doesn't work
+	  areafix/callback.h (1.3), areafix/query.h (1.2),
+	  make/makefile.inc (1.2), src/afglobal.c (1.2), src/areafix.c
+	  (1.2), src/query.c (1.3): libareafix - second edition: 1) all
+	  undefined references fixed :) 2) attempts to distinguish filefix
+	  and areafix have been started in areafix.c 3) win32 dll-aware
+	  makefile, but it still doesn't work
 
 2003-12-15 Monday 13:24  val_khokhlov
 
 	* src/query.c (1.2): fix: distinguish autoAreaCreateFlag for echoes
-	and file-echoes
+	  and file-echoes
 
 2003-12-15 Monday 13:14  mche
 
 	* make/AreafixDll.vcproj (1.1): project file for building areafix
-	added
+	  added
 
 2003-12-15 Monday 13:06  val_khokhlov
 
@@ -370,8 +410,8 @@
 2003-12-15 Monday 09:44  val_khokhlov
 
 	* Makefile (1.1), TODO (1.1), areafix/afglobal.h (1.1),
-	areafix/areafix.h (1.1), areafix/callback.h (1.1), areafix/query.h
-	(1.1), make/makefile.inc (1.1), make/makefile.mvc (1.1),
-	src/afglobal.c (1.1), src/areafix.c (1.1), src/callback.c (1.1),
-	src/query.c (1.1): Initial revision
+	  areafix/areafix.h (1.1), areafix/callback.h (1.1),
+	  areafix/query.h (1.1), make/makefile.inc (1.1), make/makefile.mvc
+	  (1.1), src/afglobal.c (1.1), src/areafix.c (1.1), src/callback.c
+	  (1.1), src/query.c (1.1): Initial revision
 
