@@ -240,8 +240,14 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     w_log( LL_FUNC, "%s::autoCreate() begin", __FILE__ );
 
-    if (isPatternLine(c_area)) {
-         w_log( LL_FUNC, "%s::autoCreate() rc=7", __FILE__ );
+    if(c_area == NULL)
+    {
+        w_log( LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_NO_AREATAG);
+        return BM_NO_AREATAG;
+    }
+	
+	if (isPatternLine(c_area)) {
+         w_log( LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_ILLEGAL_CHARS);
          return BM_ILLEGAL_CHARS;
     }
     if (call_isValid) {
@@ -262,7 +268,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     if (creatingLink == NULL) {
 	w_log(LL_ERR, "creatingLink == NULL !!!");
-        w_log( LL_FUNC, "%s::autoCreate() rc=8", __FILE__ );
+        w_log( LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_SENDER_NOT_FOUND );
 	return BM_SENDER_NOT_FOUND;
     }
 
@@ -272,7 +278,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     f = fopen(fileName, "a+b");
     if (f == NULL) {
 	fprintf(stderr, "autocreate: cannot open af_config file\n");
-    w_log( LL_FUNC, "%s::autoCreate() rc=9", __FILE__ );
+    w_log( LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_CANT_OPEN_CONFIG);
 	return BM_CANT_OPEN_CONFIG;
     }
     /*  setting up msgbase dir */
@@ -287,13 +293,13 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
         if( areaNode ) /*  if area in query */
         {
             if( stricmp(areaNode->type,czKillArea) == 0 ){
-                w_log( LL_FUNC, "%s::autoCreate() rc=4", __FILE__ );
+                w_log( LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_AREA_KILLED );
                 return BM_AREA_KILLED;  /*  area already unsubscribed */
             }
             if( stricmp(areaNode->type,czFreqArea) == 0 &&
                 addrComp(pktOrigAddr, areaNode->downlinks[0])!=0)
             {
-                w_log( LL_FUNC, "%s::autoCreate() rc=4", __FILE__ );
+                w_log( LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_WRONG_LINK_TO_AUTOCREATE );
                 return BM_WRONG_LINK_TO_AUTOCREATE;  /*  wrong link to autocreate from */
             }
             if( stricmp(areaNode->type,czFreqArea) == 0 )
@@ -358,8 +364,8 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
               w_log(LL_ERROR, "cannot make all subdirectories for %s\n",
                   fileechoFileName);
               nfree(buff);
-              w_log( LL_FUNC, "%s::autoCreate() rc=1", __FILE__ );
-              return 1;
+              w_log( LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_CANT_CREATE_PATH );
+              return BM_CANT_CREATE_PATH;
           }
 #if defined (__UNIX__)
           if(af_config->fileAreaCreatePerms && chmod(buff, af_config->fileAreaCreatePerms))
@@ -505,7 +511,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
     }
 
     w_log( LL_FUNC, "%s::autoCreate() end", __FILE__ );
-    return 0;
+    return BM_MAIL_OK;
 }
 
 

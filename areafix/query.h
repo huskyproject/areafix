@@ -37,23 +37,26 @@ extern "C" {
 
 /* Badmail reason (area write access) numbers (from hpt/h/fcommon.h) */
 typedef enum {
- BM_DENY_CREATE=0,
- BM_NOT_IN_GROUP=1,
- BM_LOW_WRITE_LEVEL=2,
- BM_DENY_IMPORT=3,
- BM_NOT_LINKED=4,
- BM_DENY_BY_FILTER=5,
- BM_MSGAPI_ERROR=6,
- BM_ILLEGAL_CHARS=7,
- BM_SENDER_NOT_FOUND=8,
- BM_CANT_OPEN_CONFIG=9,
- BM_NO_LINKS=10,
- BM_AREATAG_TOO_LONG=11,
- BM_AREA_KILLED=12,
- BM_DENY_NEWAREAREFUSEFILE=13,
- BM_WRONG_LINK_TO_AUTOCREATE=14,
- BM_AREA_IS_PAUSED=15,
- BM_MAXERROR=15       /* Set to max value, equivalence of last element */
+ BM_MAIL_OK=0,
+ BM_DENY_CREATE=1,
+ BM_NOT_IN_GROUP=2,
+ BM_LOW_WRITE_LEVEL=3,
+ BM_DENY_IMPORT=4,
+ BM_NOT_LINKED=5,
+ BM_DENY_BY_FILTER=6,
+ BM_MSGAPI_ERROR=7,
+ BM_ILLEGAL_CHARS=8,
+ BM_SENDER_NOT_FOUND=9,
+ BM_CANT_OPEN_CONFIG=10,
+ BM_NO_LINKS=11,
+ BM_AREATAG_TOO_LONG=12,
+ BM_AREA_KILLED=13,
+ BM_DENY_NEWAREAREFUSEFILE=14,
+ BM_WRONG_LINK_TO_AUTOCREATE=15,
+ BM_AREA_IS_PAUSED=16,
+ BM_NO_AREATAG=17,
+ BM_CANT_CREATE_PATH=18,
+ BM_MAXERROR=18       /* Set to max value, equivalence of last element */
 } e_BadmailReasons;
 
 HUSKYEXT e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_addr forwardAddr);
