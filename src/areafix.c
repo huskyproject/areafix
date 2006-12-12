@@ -492,7 +492,19 @@ char* GetWordByPos(char* str, UINT pos)
     }
     return str; 
 }
-
+/*
+  Change config - make areafix action.
+  Action may be:
+         0:   Forward Request To Link 
+         1:   Remove link from passthrough area
+         2:   Delete area (was: Make passive)
+         3:   Add link to existing area (add downlink)
+         4:   Delete area
+         5:   Subscribe us to passthrough area
+         6:   Make area passive
+         7:   Remove link from non-passthrough area
+        10:   Add link as defLink to existing area (add uplink)
+*/
 int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
     char *cfgline=NULL, *token=NULL, *tmpPtr=NULL, *line=NULL, *buff=NULL;
     char *strbegfileName = fileName;
@@ -556,6 +568,10 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
         }
     case 3: /*  add link to existing area */
         xscatprintf(&cfgline, " %s", aka2str(link->hisAka));
+        if (area->def_ro)
+            xstrscat(&cfgline, " -r");
+        else if (area->def_wo)
+            xstrscat(&cfgline, " -w");
         nRet = ADD_OK;
         break;
     case 10: /*  add link as defLink to existing area */
