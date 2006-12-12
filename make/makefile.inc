@@ -25,10 +25,10 @@ TARGETLIB = $(LIBPREFIX)$(LIBNAME)$(LIBSUFFIX)$(_LIB)
 TARGETDLL = $(DLLPREFIX)$(LIBNAME)$(DLLSUFFIX)$(_DLL)
 
 # Object files: programs
-OBJS    = areafix$(_OBJ) query$(_OBJ) afglobal$(_OBJ) callback$(_OBJ)
+OBJS    = areafix$(_OBJ) query$(_OBJ) afglobal$(_OBJ) callback$(_OBJ) version$(_OBJ)
 
 # Header files
-HEADERS	= areafix.h query.h callback.h afglobal.h
+HEADERS	= areafix.h query.h callback.h afglobal.h version.h
 
 # Sources directory
 _SRC_DIR= ../src/
