@@ -568,9 +568,9 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
         }
     case 3: /*  add link to existing area */
         xscatprintf(&cfgline, " %s", aka2str(link->hisAka));
-        if (area->def_ro)
+        if (area->def_subscribing == RO)
             xstrscat(&cfgline, " -r");
-        else if (area->def_wo)
+        else if (area->def_subscribing == WO)
             xstrscat(&cfgline, " -w");
         nRet = ADD_OK;
         break;
