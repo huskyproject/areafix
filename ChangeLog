@@ -1,3 +1,37 @@
+2006-12-14 Thursday 13:54  nick_voronin
+
+	* src/areafix.c (1.62): Fix error in previous fix
+
+2006-12-14 Thursday 13:46  nick_voronin
+
+	* src/areafix.c (1.61): Get rid of one real and one possible memory
+	  leak. Several FIXME comments are added.
+
+2006-12-12 Tuesday 11:33  stas_degteff
+
+	* areafix/version.h (1.1), make/makefile.inc (1.5), src/version.c
+	  (1.1): Add version information and version check into areafix
+	  library
+
+2006-12-12 Tuesday 10:58  stas_degteff
+
+	* src/areafix.c (1.60): Default RO and default RW for areas - fix
+
+2006-12-12 Tuesday 10:52  stas_degteff
+
+	* src/areafix.c (1.59): Default RO and default RW for areas
+
+2006-11-28 Tuesday 09:07  stas_degteff
+
+	* src/areafix.c (1.58): Check result of MsgWriteMsg() always
+
+2006-11-25 Saturday 15:51  nick_voronin
+
+	* areafix/query.h (1.5), src/query.c (1.25): fix crash when no
+	  valid AREA:.*<cr> line is found in message, add new badmail
+	  reasons, change actual number codes for BM_*. May have side
+	  effects on code which use numbers instead of enums.
+
 2006-11-04 Saturday 15:40  nick_voronin
 
 	* src/areafix.c (1.57): fix crash when areafix report is multipart
