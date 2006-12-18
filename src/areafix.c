@@ -49,6 +49,10 @@
 #include <huskylib/compiler.h>
 #include <huskylib/huskylib.h>
 
+#ifdef HAS_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+
 #ifdef HAS_IO_H
 #include <io.h>
 #endif
