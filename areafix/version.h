@@ -35,8 +35,6 @@
 extern "C" {
 #endif
 
-#include "areafix.h"
-
 /* values for 5th parameter of GenVersionStr() */
 /* typedef enum { */
 /*        BRANCH_CURRENT=1, BRANCH_STABLE=2, BRANCH_RELEASE=3 */
