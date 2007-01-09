@@ -44,7 +44,6 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/param.h>
 #include <ctype.h>
 
 #include <huskylib/compiler.h>
