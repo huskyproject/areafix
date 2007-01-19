@@ -537,15 +537,15 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
 
     switch( act )
     {
-    case FIND:
+    case FIND: /* Find area in query list */
         if( !bFind || tmpNode == queryAreasHead )
             tmpNode = NULL;
         break;
-    case FINDFREQ:
+    case FINDFREQ: /* Find area with "freq" or "idle" state in query list (query-in-progress area) */
         if( !bFind || tmpNode == queryAreasHead || stricmp(tmpNode->type,czKillArea) == 0 )
             tmpNode = NULL;
         break;
-    case ADDFREQ:
+    case ADDFREQ: /* Add downlink-node into existing query in list */
         if( bFind ) {
             if( stricmp(tmpNode->type,czKillArea) == 0 && 
                 uplink && addrComp(tmpNode->downlinks[0],*uplink) != 0 )
@@ -578,7 +578,7 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
             tmpNode =areaNode;
         }
         break;
-    case ADDIDLE:
+    case ADDIDLE: /* Create idle forward request for area into query list */
         if( bFind ) {
         } else {
             areaNode = af_AddAreaListNode( areatag, czIdleArea );
@@ -590,7 +590,7 @@ s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink
             tmpNode =areaNode;
         }
         break;
-    case DELIDLE:
+    case DELIDLE: /* Remove idle forward request to area from query list */
         if( bFind && stricmp(tmpNode->type,czIdleArea) == 0 )
         {
             queryAreasHead->nFlag = 1;
