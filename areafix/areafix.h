@@ -95,16 +95,15 @@ typedef struct linkdata {
 typedef enum { lt_all, lt_linked, lt_unlinked } s_listype;
 typedef enum { PERL_CONF_MAIN = 1, PERL_CONF_LINKS = 2, PERL_CONF_AREAS = 4 } e_perlconftype;
 typedef enum { ACT_PAUSE, ACT_UNPAUSE } e_pauseAct;
+typedef enum { OK_FORWARDED = 0, OK_NOTHING = 1, ERR_NOT_FORWARDED = 2 } e_forwardRequest_result;
 
 HUSKYEXT int init_areafix(char *robotName);
 
-/* export for htick */
 HUSKYEXT unsigned char RetFix;
 HUSKYEXT char *list(s_listype type, s_link *link, char *cmdline);
 HUSKYEXT char *help(s_link *link);
 HUSKYEXT char *available(s_link *link, char *cmdline);
 HUSKYEXT int changeconfig(char *fileName, s_area *area, s_link *link, int action);
-HUSKYEXT int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink);
 HUSKYEXT char *subscribe(s_link *link, char *cmd);
 HUSKYEXT char *errorRQ(char *line);
 HUSKYEXT char *unsubscribe(s_link *link, char *cmd);
@@ -115,7 +114,6 @@ HUSKYEXT char *textHead(void);
 HUSKYEXT char *areaStatus(char *report, char *preport);
 HUSKYEXT void RetMsg(s_message *msg, s_link *link, char *report, char *subj);
 HUSKYEXT void sendAreafixMessages();
-/* end of list */
 
 HUSKYEXT char *print_ch(int len, char ch);
 HUSKYEXT int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd);
@@ -124,7 +122,19 @@ HUSKYEXT int pauseArea(e_pauseAct pauseAct, s_link *searchLink, s_area *searchAr
 HUSKYEXT char *rescan(s_link *link, char *cmd);
 HUSKYEXT char *errorRQ(char *line);
 HUSKYEXT int isPatternLine(char *s);
-HUSKYEXT int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink);
+
+/*  forwardRequest()
+    Forward request to areatag. Request initiated by dwlink.
+    lastRlink is pointer to last requested link in uplinks array, uses for
+    repeat calls of forwardRequest() (uplinks array is sorted by
+    forward-priority of link). lastRlink may be NULL
+    Return values:
+    OK_FORWARDED (0) - request is forwarded
+    OK_NOTHING   (1) - echo already requested (link is queued to echo-subcribing) or action isn't required
+    ERR_NOT_FORWARDED (2) - request is not forwarded (deny area-link, not found, ...)
+*/
+HUSKYEXT e_forwardRequest_result forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink);
+
 HUSKYEXT int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act);
 HUSKYEXT void sendAreafixMessages();
 HUSKYEXT char *do_delete(s_link *link, s_area *area);

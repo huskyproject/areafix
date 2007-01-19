@@ -735,8 +735,9 @@ static int compare_links_priority(const void *a, const void *b) {
     else return 0;
 }
 
-int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink) {
-    unsigned int i=0, rc = 1;
+e_forwardRequest_result forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink) {
+    unsigned int i=0;
+    e_forwardRequest_result rc = OK_NOTHING;
     s_link *uplink=NULL;
     int *Indexes=NULL;
     unsigned int Requestable = 0;
@@ -773,46 +774,46 @@ int forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink) {
             /* skip downlink from list of uplinks */
             if(addrComp(uplink->hisAka, dwlink->hisAka) == 0)
             {
-                rc = 2;
+                rc = ERR_NOT_FORWARDED; /* don't forward to requester back */
                 continue;
             }
             if (r->numDfMask && tag_mask(areatag, r->dfMask, r->numDfMask))
             {
-                rc = 2;
+                rc = ERR_NOT_FORWARDED; /* areatag not matched */
                 continue;
             }
             if (r->denyFwdFile && IsAreaAvailable(areatag,r->denyFwdFile,NULL,0))
             {
-                rc = 2;
+                rc = ERR_NOT_FORWARDED; /* area is listed in denyfwdfile */
                 continue;
             }
-            rc = 0;
+            rc = OK_FORWARDED;
             if (r->fwdFile) {
                 /*  first try to find the areatag in forwardRequestFile */
                 if (tag_mask(areatag, r->frMask, r->numFrMask) ||
                     IsAreaAvailable(areatag, r->fwdFile, NULL, 0))
                 {
-                    break;
+                    break; /* area is listed in forwardRequestFile and avaiabled */
                 }
                 else
-                { rc = 2; }/*  found link with freqfile, but there is no areatag */
+                { rc = ERR_NOT_FORWARDED; }/*  found link with freqfile, but there is no areatag */
             } else {
                 if (r->numFrMask) /*  found mask */
                 {
                     if (tag_mask(areatag, r->frMask, r->numFrMask))
-                        break;
-                    else rc = 2;
+                        break; /* areatag is matched areatag mask */
+                    else rc = ERR_NOT_FORWARDED;  /* area not matched areatag mask for uplink */
                 } else { /*  unconditional forward request */
                     if (r->denyUFRA==0)
-                        break;
-                    else rc = 2;
+                        break;  /* Unconditional forward requests for link is allowed */
+                    else rc = ERR_NOT_FORWARDED; /* Deny unconditional forward requests for link */
                 }
             }/* (r->fwdFile) */
 
         }/*  if (r->forwardRequests && (uplink->LinkGrp) ? */
     }/*  for (i = 0; i < Requestable; i++) { */
 
-    if(rc == 0)
+    if(rc == OK_FORWARDED)
         forwardRequestToLink(areatag, uplink, dwlink, 0);
 
     nfree(Indexes);
