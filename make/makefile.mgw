@@ -38,7 +38,9 @@ CFLAGS	= -Wno-long-long -Wall -O3
 LFLAGS	=
 OBJOPT	= -c
 LIBOPT	= -static
-DLLOPT  =
+DLLIBS	= ../../fidoconf/fidoconf.dll ../../huskylib/make/husky.dll ../../smapi/make/smapi.dll
+#DLLOPT  =
+DLLOPT  = -shared
 NAMEOPT	= -o
 ARFLAGS	= r
 ARCFLAGS= -9 -j
@@ -92,15 +94,19 @@ dll:	$(TARGETDLL)
 
 %$(_OBJ): $(_SRC_DIR)%$(_C)
 	@echo Compiling $<
+	@echo $(CC) $(CFLAGS) $(CDEFS) $(OBJOPT) $<
 	@$(CC) $(CFLAGS) $(CDEFS) $(OBJOPT) $<
 
 $(TARGETLIB):	$(OBJS)
 	@echo Creating $(TARGETLIB)
+	@echo $(AR) $(ARFLAGS) $@ $?
 	@$(AR) $(ARFLAGS) $@ $?
+	@echo $(RANLIB) $@
 	@$(RANLIB) $@
 	
-$(TARGETDLL):	$(OBJS)
+$(TARGETDLL):	$(OBJS) $(DLLIBS)
 	@echo Creating $(TARGETDLL)
+	@echo $(CC) $(DLLOPT) $(CFLAGS) $(NAMEOPT)$@ $^
 	@$(CC) $(DLLOPT) $(CFLAGS) $(NAMEOPT)$@ $^
 
 
