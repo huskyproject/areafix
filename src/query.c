@@ -960,6 +960,7 @@ void af_QueueUpdate()
         if( stricmp(tmpNode->type,czIdleArea) == 0 )
         {
             ps_area delarea;
+            int mandatoryal=0;
             queryAreasHead->nFlag = 1; /*  query was changed */
             strcpy(tmpNode->type, czKillArea);
             tmpNode->bTime = tnow;
@@ -969,9 +970,10 @@ void af_QueueUpdate()
             dwlink = getLinkFromAddr(af_config, tmpNode->downlinks[0]);
             /* delete area from config, unsubscribe at downlinks */
             delarea = (*call_getArea)(tmpNode->name);
-            if (delarea) do_delete(dwlink, delarea);
+            mandatoryal=mandatoryCheck(delarea,dwlink);
+            if (delarea && !mandatoryal) do_delete(dwlink, delarea);
             /* unsubscribe at uplink */
-            if (dwlink) forwardRequestToLink(tmpNode->name, dwlink, NULL, 2);
+            if (dwlink && !(delarea && mandatoryal)) forwardRequestToLink(tmpNode->name, dwlink, NULL, 2);
         }
     }
     /* send notification messages */
