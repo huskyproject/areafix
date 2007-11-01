@@ -135,7 +135,7 @@ char *list(s_listype type, s_link *link, char *cmdline) {
     char *report = NULL;
     char *list = NULL;
     char *pattern = NULL;
-    int reversed;
+    int reversed = 0;
     ps_arealist al;
     ps_area area;
     int grps = (af_config->listEcho == lemGroup) || (af_config->listEcho == lemGroupName);
@@ -2195,7 +2195,7 @@ void RetRules (s_message *msg, s_link *link, char *areaName)
 
     xscatprintf(&fileName, "%s%s.rul", af_robot->rulesDir, strLower(makeMsgbFileName(af_config, areaName)));
 
-    for (nrul=0; nrul<=9 && (f = fopen (fileName, "rb")); nrul++) {
+    for (nrul=0; nrul<=9 && (f = fopen (fileName, "rb")) != NULL; nrul++) {
 
 	len = fsize (fileName);
 	text = (*call_smalloc) (len+1);
@@ -2595,8 +2595,8 @@ void afix(hs_addr addr, char *cmd)
                 if (SQmsg == NULL) continue;
 
                 MsgReadMsg(SQmsg, &xmsg, 0, 0, NULL, 0, NULL);
-                cvtAddr(xmsg.orig, &orig);
-                cvtAddr(xmsg.dest, &dest);
+                orig = xmsg.orig;
+                dest = xmsg.dest;
                 w_log(LL_DEBUG, "Reading msg %lu from %s -> %s", i,
                       aka2str(orig), aka2str(dest));
 
@@ -2650,7 +2650,8 @@ void afix(hs_addr addr, char *cmd)
 /* mode==1 - resubscribe mode (fromLink -> toLink)*/
 int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
     ps_area       areas = NULL;
-    unsigned int  i, j, k, count, addMode, areaCount = 0, reversed = 0;
+    unsigned int  i, j, k, count, addMode, areaCount = 0;
+    int reversed = 0;
     s_link        *fromLink = NULL, *toLink = NULL;
     char          *fromCmd  = NULL, *toCmd  = NULL;
     char          *fromAka  = NULL, *toAka  = NULL;

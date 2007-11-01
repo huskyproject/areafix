@@ -872,7 +872,7 @@ void af_QueueUpdate()
     s_link *dwlink;
     s_message **tmpmsg = NULL;
     size_t i = 0;
-    int j = 0;
+    unsigned int j = 0;
 
     tmpmsg = (s_message**) (*call_smalloc)( af_config->linkCount * sizeof(s_message*));
     for (i = 0; i < af_config->linkCount; i++)
@@ -1020,7 +1020,7 @@ int af_OpenQuery()
         w_log(LL_ERR, "queueFile for %s not defined in af_config", af_robot->name);
         return 0;
     }
-    if ( !(queryFile = fopen(af_robot->queueFile,"r")) ) /* can't open query file */
+	if ( (queryFile = fopen(af_robot->queueFile,"r")) == NULL ) /* can't open query file */
     {
        w_log(LL_ERR, "Can't open queueFile %s: %s", af_robot->queueFile, strerror(errno) );
        return 0;
@@ -1079,8 +1079,10 @@ int af_OpenQuery()
             {
 
                 areaNode->linksCount++;
-                areaNode->downlinks = (*call_srealloc)( areaNode->downlinks, sizeof(hs_addr)*areaNode->linksCount );
-                string2addr(token ,
+                areaNode->downlinks = (*call_srealloc)( areaNode->downlinks, 
+                            sizeof(hs_addr)*areaNode->linksCount );
+                memset(&(areaNode->downlinks[areaNode->linksCount-1]), 0, sizeof(hs_addr));
+                parseFtnAddrZS(token,
                             &(areaNode->downlinks[areaNode->linksCount-1]));
                 token = strtok( NULL, seps );
             }
@@ -1124,9 +1126,9 @@ int af_CloseQuery()
         }
         else
         {
-            if( (chanagedflag = af_GetQFlagName()) )
+            if( (chanagedflag = af_GetQFlagName()) != NULL)
             {
-              if( (QFlag = fopen(chanagedflag,"w")) )
+              if( (QFlag = fopen(chanagedflag,"w")) != NULL)
                 fclose(QFlag);
               nfree(chanagedflag);
             }
