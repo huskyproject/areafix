@@ -640,7 +640,7 @@ char* af_Req2Idle(char *areatag, char* report, hs_addr linkAddr)
                     w_log(LL_AREAFIX, "%s: make request idle for area: %s", af_robot->name, areaNode->name);
                     /* send unsubscribe message to uplink when moving from freq to idle
                      * because the last link waiting in queue cancelled its request */ 
-                    UPlink = getLinkFromAddr(af_config, tmpNode->downlinks[0]);
+                    UPlink = getLinkFromAddr(af_config, areaNode->downlinks[0]);
                     if (UPlink) forwardRequestToLink(areaNode->name, UPlink, NULL, 1);
                 }
                 xscatprintf(&report, " %s %s  request canceled\r",
