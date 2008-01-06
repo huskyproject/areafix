@@ -1,0 +1,3 @@
+usr/include/areafix/*.h
+usr/lib/lib*.a
+usr/lib/lib*.so
