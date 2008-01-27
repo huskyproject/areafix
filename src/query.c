@@ -79,6 +79,43 @@ s_query_areas *queryAreasHead = NULL;
 
 extern char       *af_versionStr;
 
+char *escapeConfigWord(char *src)
+/* Replace special characters with escape-sequiences: [ -> [[], ` -> [`], " -> ["], ...
+ * Return new string (malloc)
+*/
+{
+  int c=sstrlen(src)+1;
+  char *dst, *pp;
+  for( pp=src; *pp; pp++ )
+  {
+    switch( *pp )
+    {
+      case '"':
+      case '\'':
+      case '`':
+      case '[':
+                c++;
+    }
+  }
+  dst=smalloc(c);
+  for( pp=src, c=0; *pp; pp++ )
+  {
+    switch( *pp )
+    {
+      case '"':
+      case '\'':
+      case '`':
+      case '[':
+                dst[c++]='[';
+                dst[c++]=*pp;
+                dst[c++]=']';
+                break;
+      default:
+                dst[c++]=*pp;
+    }
+  }
+  return dst;
+}
 
 int checkRefuse(char *areaName)
 {
@@ -125,7 +162,7 @@ char* makeAreaParam(s_link *creatingLink, s_link_robot *r, char* c_area, char* m
 {
     char *msgbFileName=NULL;
     char *msgbtype, *newAC=NULL, *desc, *quote_areaname;
-    char *cp, *buff=NULL;                    /* temp. usage */
+    char *cp, *buff=NULL, *d_area;                    /* temp. usage */
 
     msgbFileName = makeMsgbFileName(af_config, c_area);
 
@@ -145,7 +182,8 @@ char* makeAreaParam(s_link *creatingLink, s_link_robot *r, char* c_area, char* m
     if(!msgbDir)
         msgbDir = creatingLink->areafix.baseDir ? creatingLink->areafix.baseDir : af_config->msgBaseDir;
 
-    quote_areaname = strchr(TRUE_COMMENT "\"", *c_area) ? "\"" : "";
+    quote_areaname = strchr(TRUE_COMMENT " \"", *c_area) ? "\"" : "";
+    d_area = escapeConfigWord(c_area);
 
     if (stricmp(msgbDir, "passthrough")!=0 && NULL==fc_stristr(newAC,"passthrough"))
     {
@@ -172,19 +210,19 @@ char* makeAreaParam(s_link *creatingLink, s_link_robot *r, char* c_area, char* m
         }
         if (!need_dos_file)
             xscatprintf(&buff, "EchoArea %s%s%s %s%s",
-            quote_areaname, c_area, quote_areaname,
+            quote_areaname, d_area, quote_areaname,
             msgbDir, msgbFileName);
         else {
             sleep(1); /*  to prevent time from creating equal numbers */
             xscatprintf(&buff,"EchoArea %s%s%s %s%8lx",
-                quote_areaname, c_area, quote_areaname,
+                quote_areaname, d_area, quote_areaname,
                 msgbDir, (long)time(NULL));
         }
 
     } else {
         /*  passthrough */
         xscatprintf(&buff, "EchoArea %s%s%s passthrough",
-	    quote_areaname, c_area, quote_areaname);
+	    quote_areaname, d_area, quote_areaname);
 
         del_tok(&newAC, "passthrough");
         del_tok(&newAC, "-b ");  /*  del "-b msgbtype" from autocreate defaults */
@@ -220,6 +258,7 @@ char* makeAreaParam(s_link *creatingLink, s_link_robot *r, char* c_area, char* m
     }
     if (newAC && (*newAC)) xstrcat(&buff, newAC);
     nfree(newAC);
+    nfree(d_area);
     return buff;
 }
 
@@ -376,12 +415,14 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
       }
 
       /* write new line in config file */
-
-      xscatprintf(&buff, "FileArea %s %s%s -a %s ",
-          c_area, bDir,
+      { char *d_area = escapeConfigWord(c_area);
+        xscatprintf(&buff, "FileArea %s %s%s -a %s ",
+          d_area, bDir,
           (strcasecmp(bDir,"passthrough") == 0) ? "" : fileechoFileName,
           aka2str(*(creatingLink->ourAka))
           );
+        nfree(d_area);
+      }
 
       if ( creatingLink->LinkGrp &&
           !( r->autoCreateDefaults && fc_stristr(r->autoCreateDefaults, "-g ") )
