@@ -84,8 +84,9 @@ char *escapeConfigWord(char *src)
  * Return new string (malloc)
 */
 {
-  int c=sstrlen(src)+1;
+  int c=1;
   char *dst, *pp;
+
   for( pp=src; *pp; pp++ )
   {
     switch( *pp )
@@ -94,10 +95,10 @@ char *escapeConfigWord(char *src)
       case '\'':
       case '`':
       case '[':
-                c++;
+                c+=2;
     }
   }
-  dst=smalloc(c);
+  dst=smalloc(c+sstrlen(src));
   for( pp=src, c=0; *pp; pp++ )
   {
     switch( *pp )
