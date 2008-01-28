@@ -87,6 +87,8 @@ char *escapeConfigWord(char *src)
   int c=1;
   char *dst, *pp;
 
+  if( !src ) return NULL;
+
   for( pp=src; *pp; pp++ )
   {
     switch( *pp )
@@ -98,6 +100,10 @@ char *escapeConfigWord(char *src)
                 c+=2;
     }
   }
+
+  if( c<2 )
+    return sstrdup(src);
+
   dst=smalloc(c+sstrlen(src));
   for( pp=src, c=0; *pp; pp++ )
   {
