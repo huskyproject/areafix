@@ -921,8 +921,8 @@ void af_QueueReport()
 void af_QueueUpdate()
 {
     s_query_areas *tmpNode  = NULL;
-    s_link *lastRlink;
-    s_link *dwlink;
+    s_link *lastRlink = NULL;
+    s_link *dwlink = NULL;
     s_message **tmpmsg = NULL;
     size_t i = 0;
     unsigned int j = 0;
@@ -944,8 +944,15 @@ void af_QueueUpdate()
             continue;
         if( stricmp(tmpNode->type,czFreqArea) == 0 )
         {
-            lastRlink = getLinkFromAddr(af_config,tmpNode->downlinks[0]);
-            dwlink    = getLinkFromAddr(af_config,tmpNode->downlinks[1]);
+            if(tmpNode->linksCount >= 1)
+                lastRlink = getLinkFromAddr(af_config,tmpNode->downlinks[0]);
+            if(tmpNode->linksCount >= 2)
+                dwlink = getLinkFromAddr(af_config,tmpNode->downlinks[1]);
+			if(lastRlink == NULL)
+            {
+                /* TODO: Make appropriate error message and remove (?) line */
+                continue;
+            }
             forwardRequestToLink(tmpNode->name, lastRlink, NULL, 2);
             w_log( LL_AREAFIX, "%s: request for %s is canceled for node %s",
                    af_robot->name, tmpNode->name, aka2str(lastRlink->hisAka));
@@ -1018,12 +1025,18 @@ void af_QueueUpdate()
             strcpy(tmpNode->type, czKillArea);
             tmpNode->bTime = tnow;
             tmpNode->eTime = tnow + af_robot->killedRequestTimeout*secInDay;
-            tmpNode->linksCount = 1;
             w_log( LL_AREAFIX, "%s: request for %s is going to be killed", af_robot->name, tmpNode->name);
-            dwlink = getLinkFromAddr(af_config, tmpNode->downlinks[0]);
+            if(tmpNode->linksCount >= 1)
+            {
+                dwlink = getLinkFromAddr(af_config, tmpNode->downlinks[0]);
+                tmpNode->linksCount = 1;
+            }
+            /* TODO: Make sure that all of the following won't crash and will do
+             * something reasonable when dwlink == NULL */
             /* delete area from config, unsubscribe at downlinks */
             delarea = (*call_getArea)(tmpNode->name);
-            mandatoryal=mandatoryCheck(delarea,dwlink);
+            if(delarea != NULL)
+                mandatoryal=mandatoryCheck(delarea,dwlink);
             if (delarea && !mandatoryal) do_delete(dwlink, delarea);
             /* unsubscribe at uplink */
             if (dwlink && !(delarea && mandatoryal)) forwardRequestToLink(tmpNode->name, dwlink, NULL, 2);
