@@ -1035,7 +1035,7 @@ void af_QueueUpdate()
              * something reasonable when dwlink == NULL */
             /* delete area from config, unsubscribe at downlinks */
             delarea = (*call_getArea)(tmpNode->name);
-            if(delarea != NULL)
+            if(delarea != NULL && dwlink != NULL)
                 mandatoryal=mandatoryCheck(delarea,dwlink);
             if (delarea && !mandatoryal) do_delete(dwlink, delarea);
             /* unsubscribe at uplink */
