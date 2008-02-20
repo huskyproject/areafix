@@ -2159,10 +2159,10 @@ void RetMsg(s_message *msg, s_link *link, char *report, char *subj)
         preprocText(split, tmpmsg, reply, link);
 
         if (af_config->outtab != NULL) {
-            recodeToTransportCharset((CHAR*)tmpmsg->subjectLine);
-            recodeToTransportCharset((CHAR*)tmpmsg->fromUserName);
-            recodeToTransportCharset((CHAR*)tmpmsg->toUserName);
-            recodeToTransportCharset((CHAR*)tmpmsg->text);
+            recodeToTransportCharset((char*)tmpmsg->subjectLine);
+            recodeToTransportCharset((char*)tmpmsg->fromUserName);
+            recodeToTransportCharset((char*)tmpmsg->toUserName);
+            recodeToTransportCharset((char*)tmpmsg->text);
             tmpmsg->recode &= ~(REC_HDR|REC_TXT);
         }
 
