@@ -1,14 +1,14 @@
 Source: areafix
 Priority: extra
 Maintainer: Stanislav Maslovski <stanislav.maslovski@gmail.com>
-Build-Depends: debhelper (>= 5), libhusky-dev (>> 1.9-0), libfidoconf1-dev (>> 1.9-0)
+Build-Depends: debhelper (>= 5), libhusky-dev (>> 1.9-0), libsmapi2cur-dev (>> 2.5-0), libfidoconf1-dev (>> 1.9-0)
 Standards-Version: 3.7.2
 Section: libs
 
 Package: libareafix-dev
 Section: libdevel
 Architecture: any
-Depends: libareafix1 (= ${Source-Version}), libhusky-dev (>> 1.9-0), libfidoconf1-dev (>> 1.9-0)
+Depends: libareafix1 (= ${Source-Version}), libhusky-dev (>> 1.9-0), libsmapi2cur-dev (>> 2.5-0), libfidoconf1-dev (>> 1.9-0)
 Description: areafix development files
  This library is a part of HUSKY Portable Fidosoft Project.
 
