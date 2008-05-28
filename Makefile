@@ -29,6 +29,7 @@ TARGETLIB = $(LIBPREFIX)$(LIBNAME)$(_LIB)
 TARGETDLL = $(LIBPREFIX)$(LIBNAME)$(_DLL)
 
 CDEFS=-D$(OSTYPE) $(ADDCDEFS) -I$(H_DIR) -I$(INCDIR)
+LIBS=-lhusky -lsmapi -lfidoconfig
 
 ifeq ($(DYNLIBS), 1)
 all: $(TARGETLIB) $(TARGETDLL).$(VER)
@@ -49,11 +50,11 @@ endif
 ifeq ($(DYNLIBS), 1)
   ifeq (~$(MKSHARED)~,~ld~)
 $(TARGETDLL).$(VER): $(OBJS)
-	$(LD) $(LFLAGS) -o $(TARGETDLL).$(VER) $(OBJS)
+	$(LD) $(LFLAGS) -o $(TARGETDLL).$(VER) $(OBJS) $(LIBS)
   else
 $(TARGETDLL).$(VER): $(OBJS)
 	$(CC) -shared -Wl,-soname,$(TARGETDLL).$(VERH) \
-          -o $(TARGETDLL).$(VER) $(OBJS)
+          -o $(TARGETDLL).$(VER) $(OBJS) $(LIBS)
   endif
 
 instdyn: $(TARGETLIB) $(TARGETDLL).$(VER)
