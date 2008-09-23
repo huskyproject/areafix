@@ -4,6 +4,9 @@
 ifeq ($(DEBIAN), 1)
 # Every Debian-Source-Paket has one included.
 include /usr/share/husky/huskymak.cfg
+else ifdef RPM_BUILD_ROOT
+# For RPM build is require all files in one directory branch
+include huskymak.cfg
 else
 include ../huskymak.cfg
 endif
@@ -58,13 +61,13 @@ $(TARGETDLL).$(VER): $(OBJS)
   endif
 
 instdyn: $(TARGETLIB) $(TARGETDLL).$(VER)
-	-$(MKDIR) $(MKDIROPT) $(LIBDIR)
-	$(INSTALL) $(ILOPT) $(TARGETDLL).$(VER) $(LIBDIR)
-	-$(RM) $(RMOPT) $(LIBDIR)$(DIRSEP)$(TARGETDLL).$(VERH)
-	-$(RM) $(RMOPT) $(LIBDIR)$(DIRSEP)$(TARGETDLL)
+	-$(MKDIR) $(MKDIROPT) $(DESTDIR)$(LIBDIR)
+	$(INSTALL) $(ILOPT) $(TARGETDLL).$(VER) $(DESTDIR)$(LIBDIR)
+	-$(RM) $(RMOPT) $(DESTDIR)$(LIBDIR)$(DIRSEP)$(TARGETDLL).$(VERH)
+	-$(RM) $(RMOPT) $(DESTDIR)$(LIBDIR)$(DIRSEP)$(TARGETDLL)
 # Changed the symlinks from symlinks with full path to just symlinks.
 # Better so :)
-	cd $(LIBDIR) ;\
+	cd $(DESTDIR)$(LIBDIR) ;\
 	$(LN) $(LNOPT) $(TARGETDLL).$(VER) $(TARGETDLL).$(VERH) ;\
 	$(LN) $(LNOPT) $(TARGETDLL).$(VER) $(TARGETDLL)
 ifneq (~$(LDCONFIG)~, ~~)
@@ -79,22 +82,22 @@ endif
 FORCE:
 
 install-h-dir: FORCE
-	-$(MKDIR) $(MKDIROPT) $(INCDIR)/$(H_DIR)
+	-$(MKDIR) $(MKDIROPT) $(DESTDIR)$(INCDIR)/$(H_DIR)
 
 %.h: FORCE
-	-$(INSTALL) $(IIOPT) $(H_DIR)$@ $(INCDIR)/$(H_DIR)
+	-$(INSTALL) $(IIOPT) $(H_DIR)$@ $(DESTDIR)$(INCDIR)/$(H_DIR)
         
 install-h: install-h-dir $(HEADERS)
 
 install: install-h instdyn
-	-$(MKDIR) $(MKDIROPT) $(LIBDIR)
-	$(INSTALL) $(ISLOPT) $(TARGETLIB) $(LIBDIR)
+	-$(MKDIR) $(MKDIROPT) $(DESTDIR)$(LIBDIR)
+	$(INSTALL) $(ISLOPT) $(TARGETLIB) $(DESTDIR)$(LIBDIR)
 
 uninstall:
-	-cd $(INCDIR)/$(H_DIR) ;\
+	-cd $(DESTDIR)$(INCDIR)/$(H_DIR) ;\
 	$(RM) $(RMOPT) $(HEADERS)
-	-$(RM) $(RMOPT) $(LIBDIR)/$(TARGETLIB)
-	-$(RM) $(RMOPT) $(LIBDIR)/$(TARGETDLL)*
+	-$(RM) $(RMOPT) $(DESTDIR)$(LIBDIR)/$(TARGETLIB)
+	-$(RM) $(RMOPT) $(DESTDIR)$(LIBDIR)/$(TARGETDLL)*
 
 clean:
 	-$(RM) $(RMOPT) *$(_OBJ)
