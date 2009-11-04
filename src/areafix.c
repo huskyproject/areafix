@@ -2335,20 +2335,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
         } else security=2; /* areafix is turned off */
     }
 
-    /*  remove kluges */
-    tmp = msg->text;
-    token = strseparate (&tmp,"\n\r");
-
-    while(token != NULL) {
-        if( !strcmp(token,"---") || !strncmp(token,"--- ",4) )
-            /*  stop on tearline ("---" or "--- text") */
-            break;
-        if( token[0] != '\001' )
-            xstrscat(&textBuff,token,"\r",NULL);
-        token = strseparate (&tmp,"\n\r");
-    }
-    nfree(msg->text);
-    msg->text = textBuff;
+    remove_kludges(msg);
 
     if ( hook_afixreq && (*hook_afixreq)(msg, pktHeader ? pktHeader->origAddr : msg->origAddr) )
         link = getLinkFromAddr(af_config, msg->origAddr);
