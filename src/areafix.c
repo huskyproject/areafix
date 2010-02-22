@@ -2614,7 +2614,7 @@ void afix(hs_addr addr, char *cmd)
                     } else {
                         xmsg.attr |= MSGREAD;
                         if( 0!=MsgWriteMsg(SQmsg, 0, &xmsg, NULL, 0, 0, 0, NULL) )
-                           w_log(LL_ERR, "Could not write msg in netmailarea %s! Plaese check the integrity of the messagebase.", af_config->netMailAreas[k].areaName);
+                           w_log(LL_ERR, "Could not write msg in netmailarea %s! Please check the integrity of the messagebase.", af_config->netMailAreas[k].areaName);
                         MsgCloseMsg(SQmsg);
                     }
                     freeMsgBuffers(&msg);
