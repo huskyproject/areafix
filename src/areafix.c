@@ -235,7 +235,7 @@ char *list(s_listype type, s_link *link, char *cmdline) {
     }
 /*    xscatprintf(&report,  "\r for link %s\r", aka2str(link->hisAka));*/
 
-    if (r->echoLimit) xscatprintf(&report, "\rYour limit is %u areas for subscribe\r", r->echoLimit);
+    if (r->echoLimit) xscatprintf(&report, "\rYour limit is %u areas for subscription\r", r->echoLimit);
   } /* hook_echolist */
     switch (type) {
       case lt_all:
@@ -423,8 +423,8 @@ char *available(s_link *link, char *cmdline)
     }	
 
     if (report==NULL) {
-	xstrcat(&report, "\r  No links for creating Available Area List\r");
-        w_log(LL_AREAFIX, "%s: No links for creating Available Area List", af_robot->name);
+	xstrcat(&report, "\r  No links to create Available Area List\r");
+        w_log(LL_AREAFIX, "%s: No links to create Available Area List", af_robot->name);
     }
     return report;
 }
@@ -938,7 +938,7 @@ char *subscribe(s_link *link, char *cmd) {
             break;
 	default : /*  rc = 2  not access */
 	    if (!area->hide && !isPatternLine(line)) {
-		w_log(LL_AREAFIX, "%s: %s no access for area \'%s\'", af_robot->name,
+		w_log(LL_AREAFIX, "%s: %s no access to area \'%s\'", af_robot->name,
 		      an, aka2str(link->hisAka));
 		xscatprintf(&report," %s %s  no access\r", an,
 			    print_ch(49-strlen(an), '.'));
@@ -1234,7 +1234,7 @@ char *unsubscribe(s_link *link, char *cmd) {
                             pauseArea(ACT_PAUSE, NULL, area);
                     }
                     if (j != DEL_OK) {
-                        w_log(LL_AREAFIX, "%s: %s doesn't unlinked from area \'%s\'", af_robot->name,
+                        w_log(LL_AREAFIX, "%s: %s is not unlinked from area \'%s\'", af_robot->name,
                             aka2str(link->hisAka), an);
                     } else {
                         w_log(LL_AREAFIX,"%s: %s unlinked from area \'%s\'", af_robot->name, aka2str(link->hisAka),an);
@@ -1764,8 +1764,8 @@ char *change_token(s_link *link, char *cmdline)
                 return report;
             }
             if ((RetFix == PKTPWD || RetFix == TICPWD) && strlen(c_new) > 8) {
-                w_log(LL_AREAFIX, "%s: Password is longer then 8 characters", af_robot->name);
-                xstrcat(&report, "Password is longer then 8 characters. Only passwords no longer than 8 characters are allowed. No changes were made.\r\r");
+                w_log(LL_AREAFIX, "%s: Password is longer than 8 characters", af_robot->name);
+                xstrcat(&report, "Password is longer than 8 characters. Only passwords containing 8 characters at most are allowed. No changes were made.\r\r");
                 return report;
             }
             xscatprintf(&cfgline, "%s %s", token, c_new);
@@ -2614,7 +2614,7 @@ void afix(hs_addr addr, char *cmd)
                     } else {
                         xmsg.attr |= MSGREAD;
                         if( 0!=MsgWriteMsg(SQmsg, 0, &xmsg, NULL, 0, 0, 0, NULL) )
-                           w_log(LL_ERR, "Could not write msg in netmailarea %s! Check the wholeness of messagebase, please.", af_config->netMailAreas[k].areaName);
+                           w_log(LL_ERR, "Could not write msg in netmailarea %s! Plaese check the integrity of the messagebase.", af_config->netMailAreas[k].areaName);
                         MsgCloseMsg(SQmsg);
                     }
                     freeMsgBuffers(&msg);
