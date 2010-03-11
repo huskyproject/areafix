@@ -131,7 +131,7 @@ char *getPatternFromLine(char *line, int *reversed)
 }
 
 char *list(s_listype type, s_link *link, char *cmdline) {
-    unsigned int cnt, i, j, export, import, mandatory, active, avail, rc = 0;
+    unsigned int cnt, i, j, aexport, import, mandatory, active, avail, rc = 0;
     char *report = NULL;
     char *list = NULL;
     char *pattern = NULL;
@@ -172,11 +172,11 @@ char *list(s_listype type, s_link *link, char *cmdline) {
              || (type == lt_unlinked && rc == 1)
            ) { /*  add line */
 
-            import = export = 1; mandatory = 0;
+            import = aexport = 1; mandatory = 0;
             for (j = 0; j < area->downlinkCount; j++) {
                if (addrComp(link->hisAka, area->downlinks[j]->link->hisAka) == 0) {
                   import = area->downlinks[j]->import;
-                  export = area->downlinks[j]->export;
+                  aexport = area->downlinks[j]->aexport;
                   mandatory = area->downlinks[j]->mandatory;
                   break;
                }
@@ -187,12 +187,12 @@ char *list(s_listype type, s_link *link, char *cmdline) {
                 /* if matches pattern and not reversed (or vise versa) */
                 if (patimat(area->areaName, pattern)!=reversed)
                 {
-                    addAreaListItem(al,rc==0, getLinkRescanAccess(area, link), import, export, mandatory, area->areaName,area->description,area->group);
+                    addAreaListItem(al,rc==0, getLinkRescanAccess(area, link), import, aexport, mandatory, area->areaName,area->description,area->group);
                     if (rc==0) active++; avail++;
                 }
             } else
             {
-                addAreaListItem(al,rc==0, getLinkRescanAccess(area, link), import, export, mandatory, area->areaName,area->description,area->group);
+                addAreaListItem(al,rc==0, getLinkRescanAccess(area, link), import, aexport, mandatory, area->areaName,area->description,area->group);
                 if (rc==0) active++; avail++;
             }
 	} /* end add line */
@@ -2733,22 +2733,22 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
                         if(af_config->writeOnly[k].areaMask[0] != '!') {
                             if (patimat(areas[i].areaName, af_config->writeOnly[k].areaMask) &&
                                 patmat(toAka, af_config->writeOnly[k].addrMask)) {
-                                    arealink->export = 0;
+                                    arealink->aexport = 0;
                             }
                         } else {
                             exclMask = af_config->writeOnly[k].areaMask;
                             exclMask++;
                             if (patimat(areas[i].areaName, exclMask) &&
                                 patmat(toAka, af_config->writeOnly[k].addrMask)) {
-                                    arealink->export = 1;
+                                    arealink->aexport = 1;
                             }
                         }
                     }
                 }
 
-                if ((arealink->export == 0) || (arealink->import == 0)) {
-                    w_log(LL_AREAFIX, "%s: Link %s will not have full access (export=%s import=%s) to %s %s, skipped",
-                           af_robot->name, toAka, arealink->export?"on":"off", arealink->import?"on":"off", af_robot->strA, areas[i].areaName);
+                if ((arealink->aexport == 0) || (arealink->import == 0)) {
+                    w_log(LL_AREAFIX, "%s: Link %s will not have full access (aexport=%s import=%s) to %s %s, skipped",
+                           af_robot->name, toAka, arealink->aexport?"on":"off", arealink->import?"on":"off", af_robot->strA, areas[i].areaName);
                     continue;
                 }
 

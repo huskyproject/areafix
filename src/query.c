@@ -1335,7 +1335,7 @@ int checkAreaLink(s_area *area, hs_addr aka, int type)
 	if (type==0) {
 	    if (!arealink->import) writeAccess = BM_DENY_IMPORT;
 	} else {
-	    if (!arealink->export) writeAccess = BM_DENY_IMPORT;
+	    if (!arealink->aexport) writeAccess = BM_DENY_IMPORT;
 	}
     } else {
 	if (addrComp(aka, *area->useAka)!=0) writeAccess = BM_NOT_LINKED;
