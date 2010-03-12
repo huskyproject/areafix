@@ -406,7 +406,7 @@ char *available(s_link *link, char *cmdline)
  			    if (link->availlist != AVAILLIST_UNIQUEONE)
  			        xscatprintf(&report, "\rAvailable Area List from %s:\r", aka2str(uplink->hisAka));
 			    if (line)
- 			        xstrscat(&report, "\r", line,print_ch(77,'-'), "\r", NULL);
+ 			        xstrscat(&report, "\r", line,print_ch(77,'-'), "\r", NULLP);
  			    nfree(line);
 	 	        }
  		    }
@@ -449,9 +449,9 @@ int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act
       msg->text = createKludges(af_config, NULL, uplink->ourAka, &(uplink->hisAka),
                                 af_versionStr);
       if (r->reportsFlags)
-        xstrscat(&(msg->text), "\001FLAGS ", r->reportsFlags, "\r",NULL);
+        xstrscat(&(msg->text), "\001FLAGS ", r->reportsFlags, "\r", NULLP);
       else if (af_robot->reportsFlags)
-        xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r",NULL);
+        xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULLP);
       uplink->msg = msg;
     } else msg = uplink->msg;
 	
@@ -470,7 +470,7 @@ int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act
                 r->baseDir = base;
             }
         }
-        xstrscat(&msg->text, "+", areatag, "\r", NULL);
+        xstrscat(&msg->text, "+", areatag, "\r", NULLP);
     } else if (act==1) {
         xscatprintf(&(msg->text), "-%s\r", areatag);
     } else {
@@ -593,9 +593,9 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
     case 3: /*  add link to existing area */
         xscatprintf(&cfgline, " %s", aka2str(link->hisAka));
         if (area->def_subscribing == RO)
-            xstrscat(&cfgline, " -r");
+            xstrscat(&cfgline, " -r", NULLP);
         else if (area->def_subscribing == WO)
-            xstrscat(&cfgline, " -w");
+            xstrscat(&cfgline, " -w", NULLP);
         nRet = ADD_OK;
         break;
     case 10: /*  add link as defLink to existing area */
@@ -667,7 +667,7 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
             }
 
             *(--tmpPtr) = '\0';
-            xstrscat(&buff, cfgline, " ", bDir, msgbFileName, tmpPtr+12, NULL);
+            xstrscat(&buff, cfgline, " ", bDir, msgbFileName, tmpPtr+12, NULLP);
             nfree(cfgline);
             cfgline = buff;
 
@@ -675,7 +675,7 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
         } else  {
             tmpPtr = fc_stristr(cfgline,"-pass");
             *(--tmpPtr) = '\0';
-            xstrscat(&buff, cfgline, tmpPtr+6 , NULL);
+            xstrscat(&buff, cfgline, tmpPtr+6 , NULLP);
             nfree(cfgline);
             cfgline = buff;
         }
@@ -685,7 +685,7 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
         tmpPtr = GetWordByPos(cfgline,4);
         if ( tmpPtr ) {
             *(--tmpPtr) = '\0';
-            xstrscat(&buff, cfgline, " -pass ", ++tmpPtr , NULL);
+            xstrscat(&buff, cfgline, " -pass ", ++tmpPtr , NULLP);
             nfree(cfgline);
             cfgline = buff;
         } else {
@@ -697,7 +697,7 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
         tmpPtr = GetWordByPos(cfgline,4);
         if ( tmpPtr ) {
             *(--tmpPtr) = '\0';
-            xstrscat(&buff, cfgline, " -paused ", ++tmpPtr , NULL);
+            xstrscat(&buff, cfgline, " -paused ", ++tmpPtr , NULLP);
             nfree(cfgline);
             cfgline = buff;
         } else {
@@ -708,7 +708,7 @@ int changeconfig(char *fileName, s_area *area, s_link *link, int action) {
     case 9: /*  make area not paused */
         tmpPtr = fc_stristr(cfgline,"-paused");
         *(--tmpPtr) = '\0';
-        xstrscat(&buff, cfgline, tmpPtr+8 , NULL);
+        xstrscat(&buff, cfgline, tmpPtr+8 , NULLP);
         nfree(cfgline);
         cfgline = buff;
         nRet = ADD_OK;
@@ -1037,7 +1037,7 @@ char *errorRQ(char *line) {
     char *report = NULL;
 
     if (strlen(line)>48) {
-	xstrscat(&report, " ", line, " .......... error line\r", NULL);
+	xstrscat(&report, " ", line, " .......... error line\r", NULLP);
     }
     else xscatprintf(&report, " %s %s  error line\r",
 		    line, print_ch(49-strlen(line),'.'));
@@ -1084,9 +1084,9 @@ char *do_delete(s_link *link, s_area *area) {
                 tmpmsg->text = createKludges(af_config, NULL, dwlink->ourAka,
                     &(dwlink->hisAka), af_versionStr);
                 if (r->reportsFlags)
-                    xstrscat(&(tmpmsg->text), "\001FLAGS ", r->reportsFlags, "\r", NULL);
+                    xstrscat(&(tmpmsg->text), "\001FLAGS ", r->reportsFlags, "\r", NULLP);
                 else if (af_robot->reportsFlags)
-                    xstrscat(&(tmpmsg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULL);
+                    xstrscat(&(tmpmsg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULLP);
 
                 xscatprintf(&tmpmsg->text, "\r Area \'%s\' is deleted.\r", area->areaName);
                     xstrcat(&tmpmsg->text, "\r Do not forget to remove it from your configs.\r");
@@ -1418,9 +1418,9 @@ int pauseArea(e_pauseAct pauseAct, s_link *searchLink, s_area *searchArea) {
       msg->text = createKludges(af_config, NULL, uplink->ourAka, &(uplink->hisAka),
                       af_versionStr);
       if (r->reportsFlags)
-        xstrscat(&(msg->text), "\001FLAGS ", r->reportsFlags, "\r",NULL);
+        xstrscat(&(msg->text), "\001FLAGS ", r->reportsFlags, "\r", NULLP);
       else if (af_robot->reportsFlags)
-        xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r",NULL);
+        xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULLP);
       uplink->msg = msg;
     } else msg = uplink->msg;
 
@@ -1461,7 +1461,7 @@ char *pause_resume_link(s_link *link, int mode)
       /* update perl vars */
       if (hook_onConfigChange) (*hook_onConfigChange)(PERL_CONF_LINKS|PERL_CONF_AREAS);
    }
-   xstrscat(&report, " System switched to ", mode ? "active" : "passive", "\r\r", NULL);
+   xstrscat(&report, " System switched to ", mode ? "active" : "passive", "\r\r", NULLP);
    tmp = list(lt_linked, link, NULL);/*linked (link);*/
    xstrcat(&report, tmp);
    nfree(tmp);
@@ -1606,7 +1606,7 @@ char *add_rescan(s_link *link, char *line) {
     report = subscribe (link, line);
     if (p) *p = ' '; /* resume original string */
 
-    xstrscat(&line2,"%rescan ", line, NULL);
+    xstrscat(&line2,"%rescan ", line, NULLP);
     xstrcat(&report, rescan(link, line2));
     nfree(line2);
     if (p) *p = '\0';
@@ -1739,7 +1739,7 @@ char *change_token(s_link *link, char *cmdline)
         case RULES:
             mode = 3;
             i_prev = &(r->noRules);
-            xstrscat(&token, af_robot->name, "NoRules", NULL);
+            xstrscat(&token, af_robot->name, "NoRules", NULLP);
             token2 = "noRules";
             desc = "Send rules";
             break;
@@ -2058,9 +2058,9 @@ void preprocText(char *split, s_message *msg, char *reply, s_link *link)
     }
     /* xstrcat(&(msg->text), "\001FLAGS NPD DIR\r"); */
     if (r->reportsFlags)
-        xstrscat(&(msg->text), "\001FLAGS ", r->reportsFlags, "\r",NULL);
+        xstrscat(&(msg->text), "\001FLAGS ", r->reportsFlags, "\r", NULLP);
     else if (af_robot->reportsFlags)
-        xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r",NULL);
+        xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULLP);
     xscatprintf(&split, "\r--- %s areafix\r", af_versionStr);
     if (orig && orig[0]) {
         xscatprintf(&split, " * Origin: %s (%s)\r", orig, aka2str(msg->origAddr));
@@ -2104,9 +2104,9 @@ void RetMsg(s_message *msg, s_link *link, char *report, char *subj)
     reply = (char *) GetCtrlToken((byte *) msg->ctl, (byte *) "MSGID");
 
     if (msg->text)
-        xstrscat(&report,"\rFollowing is the original message text\r--------------------------------------\r",msg->text,"\r--------------------------------------\r",NULL);
+        xstrscat(&report,"\rFollowing is the original message text\r--------------------------------------\r",msg->text,"\r--------------------------------------\r",NULLP);
     else
-        xstrscat(&report,"\r",NULL);
+        xstrscat(&report,"\r",NULLP);
 
     text = report;
 
@@ -2468,7 +2468,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
     if ( report != NULL ) {
         if (af_robot->queryReports) {
             preport = list (lt_linked, link, NULL);/*linked (link);*/
-            xstrscat(&report, "\r", preport, NULL);
+            xstrscat(&report, "\r", preport, NULLP);
             nfree(preport);
         }
         RetMsg(msg, link, report, "Areafix reply: node change request");
@@ -2601,7 +2601,7 @@ void afix(hs_addr addr, char *cmd)
                 }
                 {
                    char* tmp_to=NULL;
-                   xstrscat(&tmp_to, " ", (char*)xmsg.to, " ");
+                   xstrscat(&tmp_to, " ", (char*)xmsg.to, " ", NULLP);
                 if ((sstrlen((char*)xmsg.to)>0) &&
                     fc_stristr(af_robot->names,tmp_to))
                 {
@@ -2822,9 +2822,9 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
         msg->text = createKludges(af_config, NULL, fromLink->ourAka,
                        &(fromLink->hisAka), af_versionStr);
         if (rf->reportsFlags)
-            xstrscat(&(msg->text), "\001FLAGS ", rf->reportsFlags, "\r",NULL);
+            xstrscat(&(msg->text), "\001FLAGS ", rf->reportsFlags, "\r", NULLP);
         else if (af_robot->reportsFlags)
-            xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r",NULL);
+            xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULLP);
 
         xstrcat(&(msg->text), fromCmd);
 
@@ -2856,9 +2856,9 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
         msg->text = createKludges(af_config, NULL, toLink->ourAka,
                        &(toLink->hisAka), af_versionStr);
         if (rt->reportsFlags)
-            xstrscat(&(msg->text), "\001FLAGS ", rt->reportsFlags, "\r",NULL);
+            xstrscat(&(msg->text), "\001FLAGS ", rt->reportsFlags, "\r", NULLP);
         else if (af_robot->reportsFlags)
-            xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r",NULL);
+            xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULLP);
 
         xstrcat(&(msg->text), toCmd);
 

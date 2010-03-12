@@ -182,7 +182,7 @@ char* makeAreaParam(s_link *creatingLink, s_link_robot *r, char* c_area, char* m
     else strLower(msgbFileName);
 
     if (r->autoCreateDefaults)
-      xstrscat(&newAC, " ", r->autoCreateDefaults, NULL);
+      xstrscat(&newAC, " ", r->autoCreateDefaults, NULLP);
 
     msgbtype = fc_stristr(newAC, "-b ");
 
@@ -715,19 +715,19 @@ w_log(LL_FUNC, "af_GetQFlagName(): begin");
     if (af_config->lockfile)
     {
        logdir = dirname(af_config->lockfile);  /* slash-trailed */
-       xstrscat(&chanagedflag,logdir,(char*)czChangFlg,NULL);
+       xstrscat(&chanagedflag,logdir,(char*)czChangFlg,NULLP);
        nfree(logdir);
     }
     else if (af_config->echotosslog)
     {
        logdir = dirname(af_config->echotosslog);  /* slash-trailed */
-       xstrscat(&chanagedflag,logdir,(char*)czChangFlg,NULL);
+       xstrscat(&chanagedflag,logdir,(char*)czChangFlg,NULLP);
        nfree(logdir);
     }
     else if (af_config->semaDir)
     {
        logdir = dirname(af_config->echotosslog);  /* slash-trailed */
-       xstrscat(&chanagedflag,logdir,(char*)czChangFlg,NULL);
+       xstrscat(&chanagedflag,logdir,(char*)czChangFlg,NULLP);
        nfree(logdir);
     }
     else
@@ -905,7 +905,7 @@ void af_QueueReport()
     msg->recode |= (REC_HDR|REC_TXT);
 
     if (af_robot->reportsFlags)
-	xstrscat( &(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULL);
+	xstrscat( &(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULLP);
     xstrcat( &(msg->text), report );
 
     w_log(LL_STOP, "End generating queue report");
@@ -995,7 +995,7 @@ void af_QueueUpdate()
                                     &(dwlink->hisAka),
                                     af_versionStr);
                                     if (rf)
-                                        xstrscat(&(tmpmsg[j]->text), "\001FLAGS ", rf, "\r",NULL);
+                                        xstrscat(&(tmpmsg[j]->text), "\001FLAGS ", rf, "\r", NULLP);
 
                                   xstrcat(&tmpmsg[j]->text, "\r Your requests for the following areas were forwarded to uplinks,\r");
                                 xscatprintf(&tmpmsg[j]->text, " but no messages were received at least in %u days. Your requests\r",af_robot->forwardRequestTimeout);
