@@ -2599,11 +2599,8 @@ void afix(hs_addr addr, char *cmd)
                     MsgCloseMsg(SQmsg);
                     continue;
                 }
-                {
-                   char* tmp_to=NULL;
-                   xstrscat(&tmp_to, " ", (char*)xmsg.to, " ", NULLP);
-                if ((sstrlen((char*)xmsg.to)>0) &&
-                    fc_stristr(af_robot->names,tmp_to))
+                if ((strlen((char*)xmsg.to)>0) &&
+                    fc_stristr(af_robot->names,(char*)xmsg.to))
                 {
                     memset(&msg,'\0',sizeof(s_message));
                     MsgToStruct(SQmsg, xmsg, &msg);
@@ -2623,8 +2620,6 @@ void afix(hs_addr addr, char *cmd)
                 {
                     w_log(LL_DEBUG, "Message is not to AreaFix, skipping");
                     MsgCloseMsg(SQmsg);
-                }
-                  nfree( tmp_to );
                 }
             }
 
