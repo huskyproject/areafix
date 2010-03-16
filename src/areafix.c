@@ -2600,7 +2600,7 @@ void afix(hs_addr addr, char *cmd)
                     continue;
                 }
                 if ((strlen((char*)xmsg.to)>0) &&
-                    fc_stristr(af_robot->names,(char*)xmsg.to))
+                    (findInStrArray(af_robot->names, (char*)xmsg.to) >= 0))
                 {
                     memset(&msg,'\0',sizeof(s_message));
                     MsgToStruct(SQmsg, xmsg, &msg);
