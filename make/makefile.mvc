@@ -1,80 +1,122 @@
 # $Id$
 #
-# Microsoft Visual C++ Makefile for build static program(s)
-# No support for the Husky build environment.
-#
-# Tested on MS Visual C 6.0
-#
-include makefile.inc
+# Microsoft Visual C++ Makefile for build areafix LIB or DLL
 
-## programs ##
 
-CC	= cl
-AR	= lib
-LINK	= link
-RANLIB	=
-RM	= del
+## include common makefiles part ##
+!include ../../huskymak.cfg
 
-## file suffixes ##
-_C	= .c
-_OBJ	= .obj
-_LIB	= .lib
-_EXE	= .exe
-_DLL	= .dll
-_EXP	= .exp
-_ILK	= .ilk
-_PDB	= .pdb
+!if "$(OBJOUT)" != ""
+
+OBJOUT2=$(OBJOUT)areafix/
+
+!if [if not exist $(OBJOUT2:/=\) $(MKDIR) $(OBJOUT2:/=\)] == 0
+OBJOUT =$(OBJOUT)areafix/
+!endif
+
+!endif
+
+!include makefile.inc
+
+IMPLIBNAME=$(LIBOUT)$(IMPLIBPREFIX)$(LIBNAME)$(DLLSUFFIX)
+DLLNAME=$(BINOUT)$(DLLPREFIX)$(LIBNAME)$(DLLSUFFIX)
+DLLIMPORTLIB=$(IMPLIBNAME)$(_LIB)
+PROGRAMSILK=$(PROGRAMS:.exe=.ilk)
+PROGRAMSPDB=$(PROGRAMS:.exe=.pdb)
+
 
 ## program options ##
-CFLAGS=-nologo -Zp1
-CINCL = -I$(H_DIR) -I..\..\fidoconf -I..\..\smapi -I..\..\huskylib
-LFLAGS= /link /opt:nowin98
-CDEFS =-D__NT__ -D_CONSOLE
-COPT  = -Ob2
-# DLL additional
-CFLAGS_DLL= -D_MAKE_DLL -MD
-LFLAGS_DLL= msvcrt.lib Kernel32.lib /nologo /opt:nowin98 /dll /nodefaultlib /implib:$(TARGETLIB)
 
-EXENAMEFLAG=-Fe
+## options for compiler ##
 
-# List of HUSKY libraries required to build binary file(s)
-LIBS	= ..\..\fidoconf\make\fconfmvc.lib \
-          ..\..\smapi\make\smapimvc.lib \
-	  ..\..\huskylib\make\huskymvc.lib
+CINCL	= -I$(H_DIR) -I..\..\fidoconf -I..\..\huskylib -I..\..\smapi
+
+CFLAGS	= $(CFLAGS) $(CINCL)
+
+## options for linker ##
+LFLAGS=$(LFLAGS) $(LINKPDBOPT)$(BINOUT)
+
+LDLLFLAGS=$(LDLLFLAGS) $(LINKNAMEOPT)$(TARGETDLL) \
+	  $(LINKPDBOPT)$(BINOUT) /implib:"$(DLLIMPORTLIB)"
+
+# libraries need to build binary file
+# for dynamic libraries:
+#DLLS	= $(LIBS)
+
+# for executables
+#LIBSL	= $(LIBS)
+
+!if $(DYNLIBS)==1
+DLLS	= $(LIBS) $(IMPLIBPREFIX)smapi$(DLLSUFFIX)$(_LIB) \
+	  $(IMPLIBPREFIX)husky$(DLLSUFFIX)$(_LIB) \
+	  $(IMPLIBPREFIX)fidoconfig$(DLLSUFFIX)$(_LIB)
+LIBSL	= $(DLLS) $(DLLIMPORTLIB)
+
+TARGETLIBNAME=$(TARGETDLL)
+!else
+LIBSL	= $(LIBS) $(TARGETLIB) $(LIBPREFIX)smapi$(LIBSUFFIX)$(_LIB) \
+	  $(LIBPREFIX)husky$(LIBSUFFIX)$(_LIB) \
+	  $(LIBPREFIX)fidoconfig$(LIBSUFFIX)$(_LIB)
+
+TARGETLIBNAME=$(TARGETLIB)
+!endif
+
+
 
 default:
-	@echo Run 'make static' to build static version ($(TARGETLIB))
-	@echo Run 'make programs' to build dynamic version ($(PROGRAMS))
-	@echo Run 'make dll' to build dynamic version ($(TARGETDLL))
-	@echo Run 'make dllprograms' to build dynamic version ($(TARGETDLL)
-	@echo $(PROGRAMS))
-	@echo Run 'make all' to build all above
+	@echo Set DYNLIBS=1 in huskymak.cfg to build dynamic version of library
+	@echo Run 'make lib' to build library ($(TARGETLIBNAME))
+	@echo Run 'make all' to build library ($(TARGETLIBNAME))
+	@echo _    and programs ($(PROGRAMS))
 
-all: programs dllprograms
+lib: $(TARGETLIBNAME)
 
-static: $(TARGETLIB)
+programs: $(PROGRAMS)
 
-programs: static $(PROGRAMS)
+all: lib programs
 
-dll: $(TARGETDLL)
+$(OBJS) : $(HEADERS) makefile.mvc ../../huskymak.cfg makefile.inc
 
-dllprograms: dll $(PROGRAMS)
+#$(OBJS) $(PRGOBJS):: $(SRC_DIR)$(@B)$(_C)
+#	@$(CC) $(CFLAGS) $(OBJOPT) $(OBJNAMEOPT)$(O) $?
 
-{$(_SRC_DIR)}.c$(_OBJ):
-	@$(CC) $(CFLAGS) $(CINCL) $(CDEFS) $(COPT) -c $<
+{$(_SRC_DIR)}$(_C){$(O)}$(_OBJ)::
+	@$(CC) $(CFLAGS) $(OBJOPT) $(OBJNAMEOPT)$(O) @<<
+$<
+<<
 
-$(TARGETLIB): $(OBJS)
-	@$(AR) /out:$(LIBNAME)$(_LIB) $(OBJS)
 
-$(TARGETDLL):
-	@!$(MAKE) -f makefile.mvc CFLAGS="$(CFLAGS) $(CFLAGS_DLL)" $(OBJS)
+$(TARGETLIB):	$(OBJS)
+	@echo Create $(TARGETLIB)...
+	@$(AR) $(ARFLAGS) $(LIBNAMEOPT)$@ @<<
+$**
+<<
+
+
+$(TARGETDLL):	$(OBJS)
 	@echo Create $(TARGETDLL)...
-	@$(LINK) $(LFLAGS_DLL) /out:$(TARGETDLL) $(OBJS) $(LIBS)
+	@$(LINK) $(LDLLFLAGS) $(DLLS) @<<
+$(OBJS)
+<<
+
+
+#$(PROGRAMS): $(O)$(@B)$(_OBJ)
+#	@echo Create $@...
+#	@$(LINK) $(LINKNAMEOPT)$@ $** $(LFLAGS) $(LIBSL)
 
 clean:
-	-$(RM) $(RMOPT) *$(_OBJ)
+	-$(RM) $(RMOPT) $(OBJS:/=\)
+	-$(RM) $(RMOPT) VC*$(_PDB)
+	-$(RM) $(RMOPT) $(IMPLIBNAME:/=\)$(_EXP)
+	-$(RM) $(RMOPT) $(DLLNAME:/=\)$(_ILK)
+	-$(RM) $(RMOPT) $(PRGOBJS:/=\)
+	-$(RM) $(RMOPT) $(PROGRAMSILK:/=\)
+	-$(RM) $(RMOPT) $(DLLNAME:/=\)$(_ILK)
 
 distclean: clean
-	-$(RM) $(RMOPT) $(TARGETLIB)
-	-$(RM) $(RMOPT) $(TARGETDLL)
-	-$(RM) $(RMOPT) *$(_EXP)
+	-$(RM) $(RMOPT) $(DLLNAME:/=\)$(_PDB)
+	-$(RM) $(RMOPT) $(PROGRAMSPDB:/=\)
+	-$(RM) $(RMOPT) $(PROGRAMS:/=\)
+	-$(RM) $(RMOPT) $(TARGETLIB:/=\)
+	-$(RM) $(RMOPT) $(TARGETDLL:/=\)
+	-$(RM) $(RMOPT) $(DLLIMPORTLIB:/=\)
