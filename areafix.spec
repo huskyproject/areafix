@@ -9,7 +9,7 @@ Group: Libraries/FTN
 Summary: FTN areafix library
 URL: http://husky.sf.net
 License: GPL
-Requires: perl >= 5.8.8, huskylib >= 1.9, smapi >= 2.5
+Requires: perl >= 5.8.8, fidoconf >= 1.9
 Source: %{name}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
