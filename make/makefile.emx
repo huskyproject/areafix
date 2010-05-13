@@ -1,0 +1,53 @@
+# $Id$
+# Makefile to build libareafix/emx
+# No support for the Husky build environment.
+
+# include Husky-Makefile-Config,
+# copy this file from ../../huskybse/huskymak.cfg.cyg
+include ../../huskymak.cfg
+
+include makefile.inc
+
+# includes directories
+CINCL	= -I$(H_DIR) -I../../huskylib/ -I../../fidoconf/ -I../../smapi/
+
+# libraries need to build binary file
+LIBS	= $(TARGETLIB) \
+	  ../../fidoconf/make/$(LIBPREFIX)fidoconfig$(LIBSUFFIX)$(_LIB) \
+	  ../../smapi/make/$(LIBPREFIX)smapi$(LIBSUFFIX)$(_LIB) \
+	  ../../huskylib/make/$(LIBPREFIX)husky$(LIBSUFFIX)$(_LIB)
+
+READMEFILES= ../ChangeLog ../HISTORY ../VERSION ../INSTALL \
+	     ../TODO ../COPYING
+
+default:
+default:
+	@echo
+	@echo Run \'make dll\' to build dll version \($(TARGETDLL)\)
+	@echo
+	@echo Run \'make static\' to build static version \($(TARGETLIB), $(PROGRAMS)\)
+	@echo
+	@echo Run \'make dllprograms\' to build dll version of programs \($(TARGETDLL), $(PROGRAMS)\)
+	@echo
+	@echo Run \'make programs\' to build static version of programs \($(PROGRAMS)\)
+	@echo
+	@echo Run \'make all\' to build all above
+
+all:	static dll
+
+static: $(TARGETLIB)
+dll:	$(TARGETLIB) $(TARGETDLL)
+programs: $(TARGETLIB) $(PROGRAMS)
+dllprograms: $(TARGETLIB) $(TARGETDLL) $(PROGRAMS)
+
+%$(_OBJ): $(_SRC_DIR)%$(_C)
+	@echo Compiling $<
+	@$(CC) $(CFLAGS) $(CDEFS) $(CINCL) $(OPTCFLAGS) $<
+
+$(TARGETLIB):	$(OBJS)
+	@echo Create $(TARGETLIB)
+	@$(AR) $(AR_R) $@ $?
+
+$(TARGETDLL):	$(OBJS)
+	@echo Create $(TARGETDLL)
+	@$(CC) $(DLLOPT) $(CFLAGS) $(EXENAMEFLAG) $@ $^ $(LIBS)
