@@ -2,112 +2,49 @@
 # Makefile to build AREAFIX with cross-compiler Mingw32 on unix
 # No support for the Husky build environment.
 
-# Uncomment this for compile info for gdb and display more compiler warnings
-DEBUG	= -g -pedantic
-
-# Uncomment this for strip all simbols from binaries to reduce file sizes
-#STRIP	= -s
-
-
-## programs ##
-
-CC	= gcc
-AR	= ar
-RANLIB	= ranlib
-LINK	= ld
-ARCHIVER= zip
-
-ifeq ($(OSTYPE),msys)
-RM	= rm
-else
-RM	= del
-endif
-
-## file suffixes ##
-
-_C	= .c
-_OBJ	= .o
-_LIB	= .a
-_EXE	= .exe
-_DLL	= .dll
-
-## program options ##
-
-CDEFS	=
-CFLAGS	= -Wno-long-long -Wall -O3
-LFLAGS	=
-OBJOPT	= -c
-LIBOPT	= -static
-DLLIBS	= ../../fidoconf/fidoconf.dll ../../huskylib/make/husky.dll ../../smapi/make/smapi.dll
-#DLLOPT  =
-DLLOPT  = -shared
-NAMEOPT	= -o
-ARFLAGS	= r
-ARCFLAGS= -9 -j
-
-ifeq ($(RM),rm)
-RMFLAGS	= -f
-else
-RMFLAGS	=
-endif
-
-## Library filename elements ##
-
-LIBPREFIX=lib
-DLLPREFIX=
-LIBSUFFIX=mgw
-DLLSUFFIX=
-
-## Binary package name ##
-
-PACKAGENAME=$(LIBNAME)$(LIBSUFFIX)
+## include common makefiles part ##
+include ../../huskybse/huskymak.mgw
+include makefile.inc
 
 ## make directives ##
 
-.PHONY:	distclean clean all static dll programs default doc package
+.PHONY: distclean clean all static dll programs default doc package
 
 ## Default make rule ##
 
 default:
 	@echo Run 'make dll' to build dll version ($(TARGETDLL))
 	@echo Run 'make static' to build static version ($(TARGETLIB))
+	@echo Run 'make all' to build all above
 
-## include common makefiles part ##
-
-include makefile.inc
+all:	static dll
 
 # libraries need to build binary file
-LIBS	+=	..\..\fidoconf\make\$(LIBPREFIX)fidoconfig$(LIBSUFFIX).$(_LIB) \
-		..\..\smapi\make\$(LIBPREFIX)smapi$(LIBSUFFIX).$(_LIB) \
-		..\..\huskylib\make\$(LIBPREFIX)husky$(LIBSUFFIX).$(_LIB)
-
-## other, usualy not modify below ##
+LIBS	+= ../../fidoconf/make/$(LIBPREFIX)fidoconfig$(LIBSUFFIX)$(_LIB) \
+	   ../../smapi/make/$(LIBPREFIX)smapi$(LIBSUFFIX)$(_LIB) \
+	   ../../huskylib/make/$(LIBPREFIX)husky$(LIBSUFFIX)$(_LIB)
 
 ## Additions (add into end of strings) ##
-CFLAGS	+= -I$(H_DIR) -I../../huskylib -I../../smapi -I../../fidoconf $(DEBUG)
+CFLAGS	+= -I$(H_DIR) -I../../huskylib -I../../smapi -I../../fidoconf
 
 ## make rules ##
 
-static:	$(TARGETLIB)
+static: $(TARGETLIB)
 dll:	$(TARGETDLL)
 
 
 %$(_OBJ): $(_SRC_DIR)%$(_C)
 	@echo Compiling $<
-	@echo $(CC) $(CFLAGS) $(CDEFS) $(OBJOPT) $<
 	@$(CC) $(CFLAGS) $(CDEFS) $(OBJOPT) $<
 
 $(TARGETLIB):	$(OBJS)
 	@echo Creating $(TARGETLIB)
-	@echo $(AR) $(ARFLAGS) $@ $?
 	@$(AR) $(ARFLAGS) $@ $?
-	@echo $(RANLIB) $@
 	@$(RANLIB) $@
-	
-$(TARGETDLL):	$(OBJS) $(DLLIBS)
+
+$(TARGETDLL):	$(OBJS) $(LIBS)
 	@echo Creating $(TARGETDLL)
-	@echo $(CC) $(DLLOPT) $(CFLAGS) $(NAMEOPT)$@ $^
-	@$(CC) $(DLLOPT) $(CFLAGS) $(NAMEOPT)$@ $^
+	@$(CC) $(DLLOPT) $(CFLAGS) $(EXENAMEFLAG)$@ $^
 
 
 clean:
@@ -119,4 +56,3 @@ distclean: clean
 	@-$(RM) $(RMOPT) $(TARGETDLL)
 	@echo Deleting $(TARGETLIB)
 	@-$(RM) $(RMOPT) $(TARGETLIB)
-
