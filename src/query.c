@@ -323,9 +323,11 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 
     f = fopen(fileName, "a+b");
     if (f == NULL) {
-	fprintf(stderr, "autocreate: cannot open af_config file\n");
-    w_log( LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_CANT_OPEN_CONFIG);
-	return BM_CANT_OPEN_CONFIG;
+      w_log( LL_ERR, "%s::autoCreate(): cannot open config file \"%s\", link %s, OS error: \"%s\", please check configuration (and run tparser!)",
+             __FILE__, fileName, aka2str5d(creatingLink->hisAka), strerror(errno) );
+//    fprintf(stderr, "autocreate: cannot open af_config file\n");
+      w_log( LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_CANT_OPEN_CONFIG);
+      return BM_CANT_OPEN_CONFIG;
     }
     /*  setting up msgbase dir */
     if (af_config->createFwdNonPass == 0 && forwardAddr)
