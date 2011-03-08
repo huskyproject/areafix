@@ -2,10 +2,13 @@
 #
 # Microsoft Visual C++ Makefile for build areafix LIB or DLL
 
+MAKEFILE_MVC = makefile.mvc
+MAKEFILE_HUSKYMAK = ../../huskybse/huskymak.cfg.mvc
+MAKEFILE_INC = makefile.inc
 
 ## include common makefiles part ##
-!include makefile.inc
-!include ../../huskymak.cfg
+!include $(MAKEFILE_INC)
+!include $(MAKEFILE_HUSKYMAK)
 
 
 ## program options ##
@@ -44,18 +47,19 @@ TARGETLIBNAME=$(TARGETLIB)
 
 
 default:
-	@echo Set DYNLIBS=1 in huskymak.cfg to build dynamic version of library
+	@echo Specify a parameter DYNLIBS=1 in the command line to build dynamic version
+	@echo of the library
 	@echo Run 'make lib' to build library ($(TARGETLIBNAME))
 	@echo Run 'make all' to build library ($(TARGETLIBNAME))
-	@echo _    and programs ($(PROGRAMS))
+	@echo "    and programs ($(PROGRAMS))"
 
 lib: $(TARGETLIBNAME)
 
-programs: $(PROGRAMS)
+programs: $(PROGRAMS) $(PROGRAMS) $(MAKEFILE_MVC) $(MAKEFILE_HUSKYMAK) $(MAKEFILE_INC)
 
 all: lib programs
 
-$(OBJS) : $(HEADERS) makefile.mvc ../../huskymak.cfg makefile.inc
+$(OBJS) : $(HEADERS) $(PROGRAMS) $(MAKEFILE_MVC) $(MAKEFILE_HUSKYMAK) $(MAKEFILE_INC)
 
 {$(_SRC_DIR)}$(_C){$(O)}$(_OBJ)::
 	@$(CC) $(CFLAGS) $(OBJOPT) $(OBJNAMEOPT)$(O) @<<
