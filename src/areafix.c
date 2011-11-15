@@ -1483,7 +1483,7 @@ char *info_link(s_link *link)
     unsigned int i;
     s_link_robot *r = (*call_getLinkRobot)(link);
 
-    sprintf(linkAka,aka2str(link->hisAka));
+    sprintf(linkAka, "%s", aka2str(link->hisAka));
     xscatprintf(&report, "Here is some information about our link:\r\r");
     xscatprintf(&report, "            Your address: %s\r", linkAka);
     xscatprintf(&report, "           AKA used here: %s\r", aka2str(*link->ourAka));
