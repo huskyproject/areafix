@@ -2197,12 +2197,13 @@ void RetRules (s_message *msg, s_link *link, char *areaName)
 
     for (nrul=0; nrul<=9 && (f = fopen (fileName, "rb")) != NULL; nrul++) {
 
+	int rlen;
 	len = fsize (fileName);
 	text = (*call_smalloc) (len+1);
-	len = fread (text, len, 1, f);
+	rlen = fread (text, len, 1, f);
 	fclose (f);
 
-	if (len<=0) break; /* Doesn't send empty rules file */
+	if (rlen<=0) break; /* Doesn't send empty rules file and unreadable file */
 
 	text[len] = '\0';
 
