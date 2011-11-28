@@ -26,6 +26,8 @@ else
   LFLAGS=$(OPTLFLAGS)
 endif
 
+LFLAGS+=$(LIBDIR)
+
 SRC_DIR = src/
 H_DIR   = areafix/
 TARGETLIB = $(LIBPREFIX)$(LIBNAME)$(_LIB)
@@ -56,7 +58,7 @@ $(TARGETDLL).$(VER): $(OBJS)
 	$(LD) $(LFLAGS) -o $(TARGETDLL).$(VER) $(OBJS) $(LIBS)
   else
 $(TARGETDLL).$(VER): $(OBJS)
-	$(CC) -shared -Wl,-soname,$(TARGETDLL).$(VERH) \
+	$(CC) $(LFLAGS) -shared -Wl,-soname,$(TARGETDLL).$(VERH) \
           -o $(TARGETDLL).$(VER) $(OBJS) $(LIBS)
   endif
 
