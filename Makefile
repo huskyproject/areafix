@@ -26,7 +26,7 @@ else
   LFLAGS=$(OPTLFLAGS)
 endif
 
-LFLAGS+=$(LIBDIR)
+LFLAGS+=-L$(LIBDIR)
 
 SRC_DIR = src/
 H_DIR   = areafix/
