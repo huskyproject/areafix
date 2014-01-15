@@ -182,6 +182,9 @@ char *list(s_listype type, s_link *link, char *cmdline) {
                }
             }
 
+            if ((import) && (area->levelwrite > link->level)) import = 0;
+            if ((aexport) && (area->levelread > link->level)) aexport = 0;
+
             if (pattern)
             {
                 /* if matches pattern and not reversed (or vise versa) */
