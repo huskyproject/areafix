@@ -56,7 +56,8 @@ typedef enum {
  BM_AREA_IS_PAUSED=16,
  BM_NO_AREATAG=17,
  BM_CANT_CREATE_PATH=18,
- BM_MAXERROR=18       /* Set to max value, equivalence of last element */
+ BM_TOO_OLD=19,
+ BM_MAXERROR=19       /* Set to max value, equivalence of last element */
 } e_BadmailReasons;
 
 HUSKYEXT e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_addr forwardAddr);
