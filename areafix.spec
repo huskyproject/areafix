@@ -10,6 +10,7 @@ Summary: FTN areafix library
 URL: http://husky.sf.net
 License: GPL
 Requires: perl >= 5.8.8, fidoconf >= 1.9
+BuildRequires: fidoconf-devel >= 1.9
 Source: %{name}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
@@ -36,4 +37,5 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%{_prefix}/*
+%{_includedir}/%{name}/*
+%{_libdir}/*
