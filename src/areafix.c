@@ -90,6 +90,10 @@
 #include <afglobal.h>
 #include <callback.h>
 
+/* flags to support areafix processing (bitmask type) */
+#define FLAG_CMD_LINE           1
+#define FLAG_FROM_LOCAL_AKA     2
+
 unsigned char RetFix;
 static int rescanMode = 0;
 static int rulesCount = 0;
@@ -1137,8 +1141,9 @@ char *do_delete(s_link *link, s_area *area) {
     return report;
 }
 
-char *delete(s_link *link, char *cmd) {
+char *delete(s_link *link, char *cmd, unsigned int flags) {
     int rc;
+    unsigned int bypass_check = 0;
     char *line, *report = NULL, *an;
     s_area *area;
 
@@ -1154,7 +1159,14 @@ char *delete(s_link *link, char *cmd) {
       w_log(LL_AREAFIX, "%s: Not found area \'%s\'", af_robot->name, line);
       return report;
     }
-    rc = subscribeCheck(area, link);
+
+    /* check if invoked via command line and from local AKA */
+    if ((flags & FLAG_CMD_LINE) && (flags & FLAG_FROM_LOCAL_AKA)) bypass_check = 1;
+
+    /* check subscription */
+    if (bypass_check) rc = 0;                     /* bypass check */
+    else rc = subscribeCheck(area, link);         /* check */
+
     an = area->areaName;
 
     switch (rc) {
@@ -1170,12 +1182,16 @@ char *delete(s_link *link, char *cmd) {
 	w_log(LL_AREAFIX, "%s: Area \'%s\' no access for %s", af_robot->name, an, aka2str(link->hisAka));
 	return report;
     }
-    if (link->LinkGrp == NULL || (area->group && strcmp(link->LinkGrp, area->group))) {
-	xscatprintf(&report, " %s %s  delete not allowed\r",
-		    an, print_ch(49-strlen(an), '.'));
-	w_log(LL_AREAFIX, "%s: Area \'%s\' delete not allowed for %s", af_robot->name,
-	      an, aka2str(link->hisAka));
-	return report;
+
+    /* check LingGrp */
+    if (bypass_check == 0) {
+        if (link->LinkGrp == NULL || (area->group && strcmp(link->LinkGrp, area->group))) {
+            xscatprintf(&report, " %s %s  delete not allowed\r",
+                an, print_ch(49-strlen(an), '.'));
+            w_log(LL_AREAFIX, "%s: Area \'%s\' delete not allowed for %s", af_robot->name,
+                an, aka2str(link->hisAka));
+            return report;
+        }
     }
     return do_delete(link, area);
 }
@@ -1958,7 +1974,7 @@ int tellcmd(char *cmd) {
     return 0;/*  - Unreachable */
 }
 
-char *processcmd(s_link *link, char *line, int cmd) {
+char *processcmd(s_link *link, char *line, int cmd, unsigned int flags) {
 
     char *report = NULL;
 
@@ -1993,7 +2009,7 @@ char *processcmd(s_link *link, char *line, int cmd) {
     case DEL: report = unsubscribe (link, line);
         RetFix=STAT;
         break;
-    case REMOVE: report = delete (link, line);
+    case REMOVE: report = delete (link, line, flags);
         RetFix=STAT;
         break;
     case AVAIL: report = available (link, line);
@@ -2273,7 +2289,7 @@ void sendAreafixMessages()
 
 int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 {
-    unsigned int security = 0, notforme = 0;
+    unsigned int security = 0, notforme = 0, flags = 0;
     s_link *curlink = NULL;  /* perform areafix changes on this link */
                              /* can be changed by %from command */
     s_link *link = NULL;  /* whom to send areafix reports */
@@ -2341,6 +2357,13 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
         } else security=2; /* areafix is turned off */
     }
 
+    /* set flags */
+    if (force_pwd) flags |= FLAG_CMD_LINE;        /* invoked via command line */
+    if (link != NULL) {                           /* check if origin is a local AKA */
+        if (addrComp(link->hisAka, *link->ourAka) == 0)
+            flags |= FLAG_FROM_LOCAL_AKA;
+    }
+
     remove_kludges(msg);
 
     if ( hook_afixreq && (*hook_afixreq)(msg, pktHeader ? pktHeader->origAddr : msg->origAddr) )
@@ -2355,7 +2378,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 	    while ((*token == ' ') || (*token == '\t')) token++;
 	    while(isspace(token[strlen(token)-1])) token[strlen(token)-1]='\0';
             w_log(LL_AREAFIX, "Process command: %s", token);
-	    preport = processcmd( curlink, token, tellcmd (token) );
+	    preport = processcmd(curlink, token, tellcmd(token), flags);
             if (RetFix == FROM && preport == NULL) {
                 preport = change_link(&curlink, link, token);
             }
@@ -2370,7 +2393,7 @@ int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd)
 		case ADD:
 		    report = areaStatus(report, preport);
 		    if (rescanMode) {
-			preport = processcmd( link, token, RESCAN );
+			preport = processcmd(link, token, RESCAN, flags);
 			if (preport != NULL)
 			    report = areaStatus(report, preport);
 		    }
