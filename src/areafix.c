@@ -2593,9 +2593,6 @@ void afix(hs_addr addr, char *cmd)
 
         netmail = MsgOpenArea((unsigned char *) af_config->netMailAreas[k].fileName,
             MSGAREA_NORMAL,
-            /*af_config -> netMailArea.fperm,
-            af_config -> netMailArea.uid,
-            af_config -> netMailArea.gid,*/
             (word)af_config -> netMailAreas[k].msgbType);
 
         if (netmail != NULL) {
