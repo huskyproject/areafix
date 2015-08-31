@@ -273,7 +273,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 {
     FILE *f;
     char *fileName, *fileechoFileName;
-    char *buff=NULL, *hisaddr=NULL;
+    char *buff=NULL, *hisaddr=NULL, *autoSubscribedAddr=NULL;
     char *msgbDir=NULL, *bDir=NULL;
     s_link *creatingLink;
     s_area *area;
@@ -499,18 +499,17 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
         }
     }
 
-	/* subscribe links with autoSubscribe "on" */
-	for(i = 0; i < af_config->linkCount; i++)
-	{
-		r = (*call_getLinkRobot)(af_config->links[i]);
-		if(r->autoSubscribe && !isLinkOfArea(af_config->links[i], area))
-		{
-			nfree(hisaddr);
-			xstrcat(&hisaddr, aka2str(af_config->links[i]->hisAka));
-			xscatprintf(&buff, " %s", hisaddr);
-			Addlink(af_config, af_config->links[i], area);
-		}
-	}
+    /* subscribe links with autoSubscribe "on" */
+    for(i = 0; i < af_config->linkCount; i++)
+    {
+        r = (*call_getLinkRobot)(af_config->links[i]);
+        if(r->autoSubscribe && !isLinkOfArea(af_config->links[i], area))
+        {
+            xstrcat(&autoSubscribedAddr, aka2str(af_config->links[i]->hisAka));
+            xscatprintf(&buff, " %s", autoSubscribedAddr);
+            Addlink(af_config, af_config->links[i], area);
+        }
+    }
 
     /*  fix if dummys del \n from the end of file */
     if( fseek (f, -2L, SEEK_END) == 0)
