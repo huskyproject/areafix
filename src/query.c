@@ -273,7 +273,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
 {
     FILE *f;
     char *fileName, *fileechoFileName;
-    char *buff=NULL, *hisaddr=NULL, *autoSubscribedAddr=NULL;
+    char *buff=NULL, *hisaddr=NULL;
     char *msgbDir=NULL, *bDir=NULL;
     s_link *creatingLink;
     s_area *area;
@@ -505,8 +505,7 @@ e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_a
         r = (*call_getLinkRobot)(af_config->links[i]);
         if(r->autoSubscribe && !isLinkOfArea(af_config->links[i], area))
         {
-            xstrcat(&autoSubscribedAddr, aka2str(af_config->links[i]->hisAka));
-            xscatprintf(&buff, " %s", autoSubscribedAddr);
+            xscatprintf(&buff, " %s", aka2str(af_config->links[i]->hisAka));
             Addlink(af_config, af_config->links[i], area);
         }
     }
