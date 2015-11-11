@@ -2261,6 +2261,7 @@ void sendAreafixMessages()
     s_link *link = NULL;
     s_message *linkmsg;
     unsigned int i;
+    FILE *f = NULL;
 
     for (i = 0; i < af_config->linkCount; i++) {
         if (af_config->links[i]->msg == NULL) continue;
@@ -2282,6 +2283,16 @@ void sendAreafixMessages()
         (*call_sendMsg)(linkmsg);
         nfree(linkmsg);
         link->msg = NULL;
+    }
+
+    /*  create flag for netmail trackers */
+    if (af_config->netmailFlag) {
+        if (NULL == (f = fopen(af_config->netmailFlag,"a")))
+            w_log(LL_ERR, "Could not create netmail flag: %s", af_config->netmailFlag);
+        else {
+            w_log(LL_FLAG, "Created netmail flag: %s", af_config->netmailFlag);
+            fclose(f);
+        }
     }
 }
 
