@@ -1,4 +1,4 @@
-%define reldate 20151111
+%define reldate 20160316
 %define reltype C
 # may be one of: C (current), R (release), S (stable)
 
@@ -9,8 +9,8 @@ Group: Libraries/FTN
 Summary: FTN areafix library
 URL: http://husky.sf.net
 License: GPL
-Requires: perl >= 5.8.8, fidoconf >= 1.9
-BuildRequires: fidoconf-devel >= 1.9
+Requires: perl >= 5.8.8
+BuildRequires: fidoconf >= 1.9
 Source: %{name}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
@@ -38,4 +38,4 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root)
 %{_includedir}/%{name}/*
-%{_libdir}/*
+%{_libdir}/*.a
