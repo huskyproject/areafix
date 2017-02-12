@@ -2670,50 +2670,94 @@ void afix(hs_addr addr, char *cmd)
 }
 
 
-/* mode==0 - relink mode */
-/* mode==1 - resubscribe mode (fromLink -> toLink)*/
-int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
+int sendRelinkMsg(e_relinkType mode, hs_addr addr, char *cmd, e_subscribeMode smode)
+{
+    s_message *msg;
+    s_link *link;
+    char *aka;
+    s_link_robot *rob;
+
+    link = getLinkFromAddr(af_config, addr);
+    if (link == NULL)
+    {
+        w_log(LL_ERR, "Unknown link address %s", aka2str(addr));
+        return 1;
+    }
+    aka = (*call_sstrdup)(aka2str(link->hisAka));
+    rob = (*call_getLinkRobot)(link);
+
+    msg = makeMessage(link->ourAka, &(link->hisAka), af_config->sysop,
+                      rob->name ? rob->name : af_robot->name,
+                      rob->pwd ? rob->pwd : "",
+                      1,
+                      rob->reportsAttr ? rob->reportsAttr : af_robot->reportsAttr);
+    msg->text = createKludges(af_config, NULL, link->ourAka,
+                   &(link->hisAka), af_versionStr);
+    if (rob->reportsFlags)
+        xstrscat(&(msg->text), "\001FLAGS ", rob->reportsFlags, "\r", NULLP);
+    else if (af_robot->reportsFlags)
+        xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULLP);
+
+    xstrcat(&(msg->text), cmd);
+
+    xscatprintf(&(msg->text), " \r--- %s %s\r", af_versionStr, af_robot->name);
+    msg->textLength = strlen(msg->text);
+    w_log(LL_AREAFIX, "%s message to %s has been created",
+		mode == modeRelink ? "Relinking" : (smode == smodeSubscribe ? "Subscribing" : "Unsubscribing"), aka);
+    (*call_sendMsg)(msg);
+    nfree(msg);
+    return 0;
+}
+
+
+int relink(e_relinkType mode, char *pattern, hs_addr fromAddr, hs_addr toAddr,
+           char **fromCmd, char **toCmd, unsigned *count)
+{
     ps_area       areas = NULL;
-    unsigned int  i, j, k, count, addMode, areaCount = 0;
+    unsigned int  i, j, k, addMode, areaCount = 0;
     int reversed = 0;
     s_link        *fromLink = NULL, *toLink = NULL;
-    char          *fromCmd  = NULL, *toCmd  = NULL;
     char          *fromAka  = NULL, *toAka  = NULL;
     char          *exclMask;
     s_arealink    *arealink = NULL;
     s_link_robot  *rf, *rt = NULL;
     char          *ucStrA;
-    
-    w_log(LL_START, "Start relink...");
 
-    fromLink = getLinkFromAddr(af_config, fromAddr);
-    if (fromLink == NULL) {
-        w_log(LL_ERR, "Unknown link address %s", aka2str(fromAddr));
-        return 1;
-    }
-    fromAka = (*call_sstrdup)(aka2str(fromLink->hisAka));
-    rf = (*call_getLinkRobot)(fromLink);
+	fromLink = getLinkFromAddr(af_config, fromAddr);
+	if (fromLink == NULL)
+	{
+		w_log(LL_ERR, "Unknown link address %s", aka2str(fromAddr));
+		return 1;
+	}
+	fromAka = (*call_sstrdup)(aka2str(fromLink->hisAka));
+	rf = (*call_getLinkRobot)(fromLink);
 
-    if (mode) {
-        toLink = getLinkFromAddr(af_config, toAddr);
-        if (toLink == NULL) {
-            w_log(LL_ERR, "Unknown link address %s", aka2str(toAddr));
-            return 1;
-        }
-        toAka = (*call_sstrdup)(aka2str(toLink->hisAka));
-        rt = (*call_getLinkRobot)(toLink);
+    if (mode != modeRelink)
+	{
+		toLink = getLinkFromAddr(af_config, toAddr);
+		if (toLink == NULL)
+		{
+			w_log(LL_ERR, "Unknown link address %s", aka2str(toAddr));
+			return 1;
+		}
+		toAka = (*call_sstrdup)(aka2str(toLink->hisAka));
+		rt = (*call_getLinkRobot)(toLink);
+		/* allocate memory to check for read/write access for new link */
+		arealink = (s_arealink*) scalloc(1, sizeof(s_arealink));
+	}
 
-        /* allocate memory to check for read/write access for new link */
-        arealink = (s_arealink*) scalloc(1, sizeof(s_arealink));
-    }
-
-    if (pattern) {
-        if ((strlen(pattern) > 2) && (pattern[0] == '!') && (isspace(pattern[1]))) {
+    if (pattern)
+	{
+        if ((strlen(pattern) > 2) && (pattern[0] == '!') && (isspace(pattern[1])))
+		{
             reversed = 1;
             pattern++;
             while (isspace(pattern[0])) pattern++;
-        } else reversed = 0;
-        if (strlen(pattern) == 0) pattern = NULL;
+        }
+		else
+			reversed = 0;
+        if (strlen(pattern) == 0)
+			pattern = NULL;
     }
 
     ucStrA = sstrdup(af_robot->strA);
@@ -2721,72 +2765,108 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
 
     areas = *(af_robot->areas);
     areaCount = *(af_robot->areaCount);
-    count = 0;
-    for (i = 0; i < areaCount; i++) {
-
+    for (i = 0; i < areaCount; i++)
+	{
         if ((pattern) && (patimat(areas[i].areaName, pattern) == reversed))
             continue;
 
-        for (j = 0; j < areas[i].downlinkCount; j++) {
+        for (j = 0; j < areas[i].downlinkCount; j++)
+		{
 
             if (fromLink != areas[i].downlinks[j]->link)
                 continue;
 
             addMode = areas[i].downlinks[j]->defLink ? 10 : 3;
 
-            /* resubscribe */
-            if (mode) {
+            if (mode == modeRelink)
+			{
+				/* relink */
+                if (areas[i].paused)
+				{
+                    w_log(LL_AREAFIX, "%s \'%s\' is paused, no command will be sent",
+                          ucStrA, areas[i].areaName);
+                }
+				else
+				{
+                    (*count)++;
+                    xscatprintf(fromCmd, "+%s\r", areas[i].areaName);
+                }
+
+                w_log(LL_AREAFIX, "%s \'%s\' from link %s is relinked",
+                      ucStrA,
+                      areas[i].areaName, fromAka);
+            }
+            else
+			{
+				/* resubscribe */
 
                 /* check if new link would have full access to area */
                 /* report to log and skip relink/resubscribe if not */
                 arealink->link = toLink;
                 setLinkAccess(af_config, &areas[i], arealink);
 
-                if (af_config->readOnlyCount) {
-                    for (k=0; k < af_config->readOnlyCount; k++) {
-                        if(af_config->readOnly[k].areaMask[0] != '!') {
+                if (af_config->readOnlyCount)
+				{
+                    for (k=0; k < af_config->readOnlyCount; k++)
+					{
+                        if(af_config->readOnly[k].areaMask[0] != '!')
+						{
                             if (patimat(areas[i].areaName, af_config->readOnly[k].areaMask) &&
-                                patmat(toAka, af_config->readOnly[k].addrMask)) {
-                                    arealink->import = 0;
+                                patmat(toAka, af_config->readOnly[k].addrMask))
+							{
+                                arealink->import = 0;
                             }
-                        } else {
+                        }
+						else
+						{
                             exclMask = af_config->readOnly[k].areaMask;
                             exclMask++;
                             if (patimat(areas[i].areaName, exclMask) &&
-                                patmat(toAka, af_config->readOnly[k].addrMask)) {
-                                    arealink->import = 1;
+                                patmat(toAka, af_config->readOnly[k].addrMask))
+							{
+                                arealink->import = 1;
                             }
                         }
                     }
                 }
                 
-                if (af_config->writeOnlyCount) {
-                    for (k=0; k < af_config->writeOnlyCount; k++) {
-                        if(af_config->writeOnly[k].areaMask[0] != '!') {
+                if (af_config->writeOnlyCount)
+				{
+                    for (k=0; k < af_config->writeOnlyCount; k++)
+					{
+                        if(af_config->writeOnly[k].areaMask[0] != '!')
+						{
                             if (patimat(areas[i].areaName, af_config->writeOnly[k].areaMask) &&
-                                patmat(toAka, af_config->writeOnly[k].addrMask)) {
-                                    arealink->aexport = 0;
+                                patmat(toAka, af_config->writeOnly[k].addrMask))
+							{
+                                arealink->aexport = 0;
                             }
-                        } else {
+                        }
+						else
+						{
                             exclMask = af_config->writeOnly[k].areaMask;
                             exclMask++;
                             if (patimat(areas[i].areaName, exclMask) &&
-                                patmat(toAka, af_config->writeOnly[k].addrMask)) {
-                                    arealink->aexport = 1;
+                                patmat(toAka, af_config->writeOnly[k].addrMask))
+							{
+                                arealink->aexport = 1;
                             }
                         }
                     }
                 }
 
-                if ((arealink->aexport == 0) || (arealink->import == 0)) {
+                if ((arealink->aexport == 0) || (arealink->import == 0))
+				{
                     w_log(LL_AREAFIX, "%s: Link %s will not have full access (aexport=%s import=%s) to %s %s, skipped",
-                           af_robot->name, toAka, arealink->aexport?"on":"off", arealink->import?"on":"off", af_robot->strA, areas[i].areaName);
+                          af_robot->name, toAka, arealink->aexport?"on":"off", arealink->import?"on":"off", 
+						  af_robot->strA, areas[i].areaName);
                     continue;
                 }
 
                 /* unsubscribe fromLink from area */
                 if (changeconfig(af_cfgFile ? af_cfgFile : getConfigFileName(),
-                         &areas[i],fromLink,7) != DEL_OK) {
+                         &areas[i],fromLink,7) != DEL_OK)
+				{
                     w_log(LL_AREAFIX, "%s: Can't unlink %s from %s \'%s\'",
                           af_robot->name, fromAka, af_robot->strA,
                           areas[i].areaName);
@@ -2794,7 +2874,8 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
                 }
                 RemoveLink(fromLink, &areas[i]);
 
-                if (isLinkOfArea(toLink, &areas[i])) {
+                if (isLinkOfArea(toLink, &areas[i]))
+				{
                     w_log(LL_AREAFIX, "Link %s is already subscribed to %s \'%s\'",
                           toAka, af_robot->strA,
                           areas[i].areaName);
@@ -2803,7 +2884,8 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
 
                 /* subscribe toLink to area */
                 if (changeconfig(af_cfgFile?af_cfgFile:getConfigFileName(),
-                         &areas[i],toLink,addMode) != ADD_OK) {
+                         &areas[i],toLink,addMode) != ADD_OK)
+				{
                     w_log(LL_AREAFIX, "%s: Can't subscribe %s to %s \'%s\'",
                           af_robot->name, toAka, af_robot->strA,
                           areas[i].areaName);
@@ -2811,113 +2893,31 @@ int relink (int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr) {
                 }
                 Addlink(af_config, toLink, &areas[i]);
 
-                count++;
+                (*count)++;
 
-                if (areas[i].paused) {
+                if (areas[i].paused)
+				{
                     w_log(LL_AREAFIX, "%s \'%s\' is paused, no command will be sent",
                           ucStrA, areas[i].areaName);
-                } else {
-                    xscatprintf(&fromCmd, "-%s\r", areas[i].areaName);
-                    xscatprintf(&toCmd, "+%s\r", areas[i].areaName);
+                }
+				else
+				{
+                    xscatprintf(fromCmd, "-%s\r", areas[i].areaName);
+                    xscatprintf(toCmd, "+%s\r", areas[i].areaName);
                 }
 
                 w_log(LL_AREAFIX, "%s \'%s\' is resubscribed from link %s to link %s",
                       ucStrA,
                       areas[i].areaName, fromAka, toAka);
-
-            /* relink */
-            } else {
-                if (areas[i].paused) {
-                    w_log(LL_AREAFIX, "%s \'%s\' is paused, no command will be sent",
-                          ucStrA, areas[i].areaName);
-                } else {
-                    count++;
-                    xscatprintf(&fromCmd, "+%s\r", areas[i].areaName);
-                }
-
-                w_log(LL_AREAFIX, "%s \'%s\' from link %s is relinked",
-                      ucStrA,
-                      areas[i].areaName, fromAka);
             }
             break;
         }
-    }
-
-    if (fromCmd) {
-        s_message *msg;
-
-        msg = makeMessage(fromLink->ourAka, &(fromLink->hisAka), af_config->sysop,
-                          rf->name ? rf->name : af_robot->name, 
-                          rf->pwd ? rf->pwd : "", 
-                          1, 
-                          rf->reportsAttr ? rf->reportsAttr : af_robot->reportsAttr);
-        msg->text = createKludges(af_config, NULL, fromLink->ourAka,
-                       &(fromLink->hisAka), af_versionStr);
-        if (rf->reportsFlags)
-            xstrscat(&(msg->text), "\001FLAGS ", rf->reportsFlags, "\r", NULLP);
-        else if (af_robot->reportsFlags)
-            xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULLP);
-
-        xstrcat(&(msg->text), fromCmd);
-
-        xscatprintf(&(msg->text), " \r--- %s %s\r", af_versionStr, af_robot->name);
-        msg->textLength = strlen(msg->text);
-        w_log(LL_AREAFIX, "%s message created to %s",
-            mode ? "Resubscribe" : "Relink", fromAka);
-/*
-        processNMMsg(msg, NULL,
-                     getRobotsArea(config),
-                 1, MSGLOCAL|MSGKILL);
-        writeEchoTossLogEntry(getRobotsArea(config)->areaName);
-        closeOpenedPkt();
-        freeMsgBuffers(msg);
-*/
-        (*call_sendMsg)(msg);
-        nfree(msg);
-        nfree(fromCmd);
-    }
-
-    if (toCmd) {
-        s_message *msg;
-
-        msg = makeMessage(toLink->ourAka, &(toLink->hisAka), af_config->sysop,
-                          rt->name ? rt->name : af_robot->name, 
-                          rt->pwd ? rt->pwd : "", 
-                          1, 
-                          rt->reportsAttr ? rt->reportsAttr : af_robot->reportsAttr);
-        msg->text = createKludges(af_config, NULL, toLink->ourAka,
-                       &(toLink->hisAka), af_versionStr);
-        if (rt->reportsFlags)
-            xstrscat(&(msg->text), "\001FLAGS ", rt->reportsFlags, "\r", NULLP);
-        else if (af_robot->reportsFlags)
-            xstrscat(&(msg->text), "\001FLAGS ", af_robot->reportsFlags, "\r", NULLP);
-
-        xstrcat(&(msg->text), toCmd);
-
-        xscatprintf(&(msg->text), " \r--- %s %s\r", af_versionStr, af_robot->name);
-        msg->textLength = strlen(msg->text);
-        w_log(LL_AREAFIX, "%s message created to %s",
-            mode ? "Resubscribe" : "Relink", toAka);
-/*
-        processNMMsg(msg, NULL,
-                     getRobotsArea(config),
-                 1, MSGLOCAL|MSGKILL);
-        writeEchoTossLogEntry(getRobotsArea(config)->areaName);
-        closeOpenedPkt();
-        freeMsgBuffers(msg);
-*/
-        (*call_sendMsg)(msg);
-        nfree(msg);
-        nfree(toCmd);
     }
 
     nfree(ucStrA);
     nfree(fromAka);
     nfree(toAka);
     nfree(arealink);
-
-    w_log(LL_AREAFIX, "%s %i %s(s)", mode ? "Resubscribed" : "Relinked",
-             count, af_robot->strA);
 
     return 0;
 }

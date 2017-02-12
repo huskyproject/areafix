@@ -96,6 +96,8 @@ typedef enum { lt_all, lt_linked, lt_unlinked } s_listype;
 typedef enum { PERL_CONF_MAIN = 1, PERL_CONF_LINKS = 2, PERL_CONF_AREAS = 4 } e_perlconftype;
 typedef enum { ACT_PAUSE, ACT_UNPAUSE } e_pauseAct;
 typedef enum { OK_FORWARDED = 0, OK_NOTHING = 1, ERR_NOT_FORWARDED = 2 } e_forwardRequest_result;
+typedef enum relinkType { modeNone, modeRelink, modeResubsribeWithPattern, modeResubsribeWithFile } e_relinkType;
+typedef enum subscribeMode { smodeNone, smodeSubscribe, smodeUnsubscribe } e_subscribeMode;
 
 HUSKYEXT int init_areafix(char *robotName);
 
@@ -138,8 +140,9 @@ HUSKYEXT e_forwardRequest_result forwardRequest(char *areatag, s_link *dwlink, s
 HUSKYEXT int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act);
 HUSKYEXT void sendAreafixMessages();
 HUSKYEXT char *do_delete(s_link *link, s_area *area);
-HUSKYEXT int relink(int mode, char *pattern, hs_addr fromAddr, hs_addr toAddr);
-
+HUSKYEXT int relink(e_relinkType mode, char *pattern, hs_addr fromAddr, hs_addr toAddr,
+                    char **fromCmd, char **toCmd, unsigned *count);
+HUSKYEXT int sendRelinkMsg(e_relinkType mode, hs_addr addr, char *cmd, e_subscribeMode smode);
 HUSKYEXT int changeconfig(char *fileName, s_area *area, s_link *link, int action);
 
 #ifdef __cplusplus
