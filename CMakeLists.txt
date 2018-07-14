@@ -3,6 +3,7 @@ PROJECT(areafix C)
 set(areafix_VERSION 1.9.0)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+option(BUILD_SHARED_LIBS "Build shared libs" ON)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   ADD_DEFINITIONS(-g -DDEBUG -D_DEBUG)
@@ -13,6 +14,9 @@ else(CMAKE_BUILD_TYPE MATCHES Debug)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 if (MSVC)
+  if (BUILD_SHARED_LIBS)
+    ADD_DEFINITIONS(-D_DLL -D_MAKE_DLL)
+  endif()
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../out/lib")
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../out/bin")
   ADD_DEFINITIONS(-DWIN32 -D_WINDOWS -D_DLL -D_CONSOLE -D_MAKE_DLL -D_CRT_SECURE_NO_WARNINGS)
@@ -38,6 +42,7 @@ message("Prefix            : ${CMAKE_INSTALL_PREFIX} (run \"cmake . -DCMAKE_INST
 message("libhusky          : ${husky_LIB}")
 message("libfidoconfig     : ${fidoconfig_LIB}")
 message("libsmapi          : ${smapi_LIB}")
+message("Build shared      : ${BUILD_SHARED_LIBS}")
 message("Build type        : ${CMAKE_CONFIGURATION_TYPES}")
 message("-------------------------")
 
@@ -56,7 +61,7 @@ SET(areafix_HEADERS
   areafix/version.h
 )
 
-ADD_LIBRARY(areafix SHARED ${areafix_SOURCES})
+ADD_LIBRARY(areafix ${areafix_SOURCES})
 set_target_properties(areafix PROPERTIES VERSION ${areafix_VERSION})
 set_target_properties(areafix PROPERTIES PUBLIC_HEADER "${areafix_HEADERS}")
 target_link_libraries(areafix ${husky_LIB} ${fidoconfig_LIB} ${smapi_LIB})
@@ -64,6 +69,7 @@ if (NOT MSVC)
 INSTALL(TARGETS areafix
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
   PUBLIC_HEADER DESTINATION include/areafix
 )
   set(CPACK_GENERATOR ${CPACK_GENERATOR} TGZ)
