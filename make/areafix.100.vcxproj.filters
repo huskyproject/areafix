@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{f78397e6-6cdd-440c-81d9-5cdb97b8186c}</UniqueIdentifier>
+      <Extensions>*.c</Extensions>
+    </Filter>
+    <Filter Include="headers">
+      <UniqueIdentifier>{ec6823cf-022c-412f-9fde-94e247fcd0e2}</UniqueIdentifier>
+      <Extensions>*.h</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\areafix\afglobal.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\areafix\areafix.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\areafix\callback.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\areafix\query.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\afglobal.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\areafix.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\callback.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\query.c">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
