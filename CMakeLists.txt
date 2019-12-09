@@ -3,6 +3,8 @@ PROJECT(areafix C)
 set(areafix_VERSION 1.9.0)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+include(GNUInstallDirs)
+
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -80,8 +82,8 @@ target_link_libraries(areafix ${husky_LIB} ${fidoconfig_LIB} ${smapi_LIB})
 if (NOT MSVC)
 INSTALL(TARGETS areafix
   RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   PUBLIC_HEADER DESTINATION include/areafix
 )
   set(CPACK_GENERATOR ${CPACK_GENERATOR} TGZ)
