@@ -62,14 +62,14 @@ URL: https://github.com/huskyproject/%main_name/archive/v%ver_major.%ver_minor.%
 License: GPL
 Source: %main_name-%ver_major.%ver_minor.%reldate.tar.gz
 %if %{with static}
-BuildRequires: huskylib-static huskylib-devel
-BuildRequires: fidoconf-static fidoconf-devel
+BuildRequires: huskylib-static huskylib-static-devel
+BuildRequires: fidoconf-static fidoconf-static-devel
 %else
 BuildRequires: huskylib huskylib-devel
 BuildRequires: fidoconf fidoconf-devel
 Requires: huskylib fidoconf
 %endif
-BuildRequires: perl >= 5.8.8
+BuildRequires: perl >= 5.8.8, perl-devel >= 5.8.8
 Requires: perl >= 5.8.8
 
 %description
