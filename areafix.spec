@@ -1,7 +1,7 @@
 %global ver_major 1
 %global ver_minor 9
 %global ver_patch 0
-%global reldate 20201016
+%global reldate 20201018
 %global reltype C
 # may be one of: C (current), R (release), S (stable)
 
@@ -63,11 +63,13 @@ License: LGPLv2
 Source: %main_name-%ver_major.%ver_minor.%reldate.tar.gz
 %if %{with static}
 BuildRequires: huskylib-static huskylib-static-devel
+BuildRequires: smapi-static smapi-static-devel
 BuildRequires: fidoconf-static fidoconf-static-devel
 %else
 BuildRequires: huskylib huskylib-devel
+BuildRequires: smapi smapi-devel
 BuildRequires: fidoconf fidoconf-devel
-Requires: huskylib fidoconf
+Requires: huskylib smapi fidoconf
 %endif
 BuildRequires: perl >= 5.8.8, perl-devel >= 5.8.8
 Requires: perl >= 5.8.8
