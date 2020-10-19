@@ -61,6 +61,7 @@ Summary: Dynamic areafix library for the Husky Project software
 URL: https://github.com/huskyproject/%main_name/archive/v%ver_major.%ver_minor.%reldate.tar.gz
 License: LGPLv2
 Source: %main_name-%ver_major.%ver_minor.%reldate.tar.gz
+BuildRequires: gcc
 %if %{with static}
 BuildRequires: huskylib-static huskylib-static-devel
 BuildRequires: smapi-static smapi-static-devel
