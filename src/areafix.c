@@ -2899,6 +2899,7 @@ int relink(e_relinkType mode, char *pattern, hs_addr fromAddr, hs_addr toAddr,
 				{
                     w_log(LL_AREAFIX, "%s \'%s\' is paused, no command will be sent",
                           ucStrA, areas[i].areaName);
+                    continue;
                 }
 				else
 				{
