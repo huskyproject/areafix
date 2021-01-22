@@ -34,19 +34,19 @@ extern "C" {
 #include <huskylib/huskyext.h>
 #include <fidoconf/fidoconf.h>
 
-HUSKYEXT s_fidoconfig* af_config;
-HUSKYEXT ps_robot      af_robot;
-HUSKYEXT char*         af_cfgFile;
-HUSKYEXT sApp*         af_app;
-HUSKYEXT char*         af_versionStr;
-HUSKYEXT int           af_quiet;
-HUSKYEXT int           af_silent_mode;
-HUSKYEXT int           af_report_changes;
-HUSKYEXT int           af_send_notify;
-HUSKYEXT int           af_pause;
+HUSKYEXT s_fidoconfig * af_config;
+HUSKYEXT ps_robot af_robot;
+HUSKYEXT char * af_cfgFile;
+HUSKYEXT sApp * af_app;
+HUSKYEXT char * af_versionStr;
+HUSKYEXT int af_quiet;
+HUSKYEXT int af_silent_mode;
+HUSKYEXT int af_report_changes;
+HUSKYEXT int af_send_notify;
+HUSKYEXT int af_pause;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif // ifndef AFGLOBAL_H

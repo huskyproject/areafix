@@ -35,59 +35,51 @@ extern "C" {
 #include <fidoconf/fidoconf.h>
 #include <fidoconf/arealist.h>
 #include "areafix.h"
-
 /* set to &safe_strdup for hpt */
-HUSKYEXT char* (*call_sstrdup)(const char *);
+HUSKYEXT char * (*call_sstrdup)(const char *);
 /* set to &safe_malloc for hpt */
-HUSKYEXT void* (*call_smalloc)(size_t);
+HUSKYEXT void *(* call_smalloc)(size_t);
 /* set to &safe_realloc for hpt */
-HUSKYEXT void* (*call_srealloc)(void *, size_t);
-
+HUSKYEXT void *(* call_srealloc)(void *, size_t);
 /* get area by name */
-HUSKYEXT s_area* (*call_getArea)(char *);
+HUSKYEXT s_area *(* call_getArea)(char *);
 /* validate a conference name */
-HUSKYEXT int (*call_isValid)(const char *);
+HUSKYEXT int (* call_isValid)(const char *);
 /* send a netmail message */
-HUSKYEXT int (*call_sendMsg)(s_message *);
+HUSKYEXT int (* call_sendMsg)(s_message *);
 /* send a message to sysop */
-HUSKYEXT int (*call_writeMsgToSysop)(s_message *);
+HUSKYEXT int (* call_writeMsgToSysop)(s_message *);
 /* return a pointer to robot's data in the link structure */
-HUSKYEXT s_link_robot* (*call_getLinkRobot)(s_link *link);
-
+HUSKYEXT s_link_robot *(* call_getLinkRobot)(s_link * link);
 /* do program-dependent stuff when creating area (e.g. announce) */
 /* possible usage: afReportAutoCreate */
-HUSKYEXT void (*hook_onAutoCreate)(char *c_area, char *descr, hs_addr pktOrigAddr, ps_addr forwardAddr);
-
+HUSKYEXT void (* hook_onAutoCreate)(char * c_area, char * descr, hs_addr pktOrigAddr,
+                                    ps_addr forwardAddr);
 /* do program-dependent stuff when deleting area (e.g. delete dupe base) */
 /* possible usage: afDeleteArea */
-HUSKYEXT int (*hook_onDeleteArea)(s_link *link, s_area *area);
-
+HUSKYEXT int (* hook_onDeleteArea)(s_link * link, s_area * area);
 /* do program-dependent stuff when rescanning area */
 /* possible usage: afRescanArea */
-HUSKYEXT int (*hook_onRescanArea)(char **report, s_link *link, s_area *area, long rescanCount, long rescanAfter);
-
+HUSKYEXT int (* hook_onRescanArea)(char ** report, s_link * link, s_area * area, long rescanCount,
+                                   long rescanAfter);
 /* call after config has been changed */
 /* possible usage: perl_invalidate */
-HUSKYEXT void (*hook_onConfigChange)(e_perlconftype configType);
-
+HUSKYEXT void (* hook_onConfigChange)(e_perlconftype configType);
 /* return 1 to use **report as %list result; 0 to use built-in */
 /* possible usage: perl_echolist */
-HUSKYEXT int (*hook_echolist)(char **report, s_listype type, ps_arealist al, char *aka);
-
+HUSKYEXT int (* hook_echolist)(char ** report, s_listype type, ps_arealist al, char * aka);
 /* return 1 to use **report as cmd result; 0 to use built-in */
 /* possible usage: perl_afixcmd */
-HUSKYEXT int (*hook_afixcmd)(char **report, int cmd, char *aka, char *line);
-
+HUSKYEXT int (* hook_afixcmd)(char ** report, int cmd, char * aka, char * line);
 /* return 1 to update request originating address */
 /* possible usage: perl_afixreq */
-HUSKYEXT int (*hook_afixreq)(s_message *msg, hs_addr pktOrigAddr);
-
+HUSKYEXT int (* hook_afixreq)(s_message * msg, hs_addr pktOrigAddr);
 /* return 1 to update robot's msg text and/or headers */
 /* possible usage: perl_robotmsg */
-HUSKYEXT int (*hook_robotmsg)(s_message *msg, char *type);
+HUSKYEXT int (* hook_robotmsg)(s_message * msg, char * type);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif // ifndef _CALLBACK_H

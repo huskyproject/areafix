@@ -24,20 +24,19 @@
 /* $Id$ */
 
 #include <fidoconf/fidoconf.h>
-
 /* export functions from DLL */
 #define DLLEXPORT
 #include <huskylib/huskyext.h>
 
 #include <afglobal.h>
 
-s_fidoconfig* af_config           = NULL;
-ps_robot      af_robot            = NULL;
-char*         af_cfgFile          = NULL;
-char*         af_versionStr       = NULL;
-int   	      af_quiet            = 0;
-int           af_silent_mode      = 0;
-int           af_report_changes   = 0;
-int           af_send_notify      = 0;
-sApp*         af_app;
-int           af_pause;
+s_fidoconfig * af_config = NULL;
+ps_robot af_robot        = NULL;
+char * af_cfgFile        = NULL;
+char * af_versionStr     = NULL;
+int af_quiet             = 0;
+int af_silent_mode       = 0;
+int af_report_changes    = 0;
+int af_send_notify       = 0;
+sApp * af_app;
+int af_pause;

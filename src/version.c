@@ -29,7 +29,6 @@
  */
 #include <string.h>
 #include <huskylib/huskylib.h>
-
 /* export functions from DLL */
 #define DLLEXPORT
 #include <huskylib/huskyext.h>
@@ -37,24 +36,37 @@
 #define __VERSION__C__
 
 #include "version.h"
-
 /* Check version of areafix library
  * return zero if test failed; non-zero if passed
  * test cvs need for DLL version only, using #include <fidoconf/cvsdate.h>
  */
-HUSKYEXT int CheckAreafixVersion( int need_major, int need_minor,
-                      int need_patch, branch_t need_branch, const char *cvs )
-{ /* We don't need check pathlevel: see huskybse/develop-docs/ */
-
-static
+HUSKYEXT int CheckAreafixVersion(int need_major,
+                                 int need_minor,
+                                 int need_patch,
+                                 branch_t need_branch,
+                                 const char * cvs)
+{
+    /* We don't need check pathlevel: see huskybse/develop-docs/ */
+    static
 #include "../cvsdate.h"   /* char cvs_date[]=datestring; */
 
-  if( need_major==AF_VER_MAJOR && need_minor==AF_VER_MINOR ) {
-    if(need_branch==BRANCH_CURRENT) {
-      if(need_patch) fprintf(stderr, "Areafix library: strange, current patch level can't be non-zero\n");
-      return (AF_VER_BRANCH==BRANCH_CURRENT) && !(cvs && strcmp(cvs,cvs_date));
+    if(need_major == AF_VER_MAJOR && need_minor == AF_VER_MINOR)
+    {
+        if(need_branch == BRANCH_CURRENT)
+        {
+            if(need_patch)
+            {
+                fprintf(stderr,
+                        "Areafix library: strange, current patch level can't be non-zero\n");
+            }
+
+            return (AF_VER_BRANCH == BRANCH_CURRENT) && !(cvs && strcmp(cvs, cvs_date));
+        }
+        else
+        {
+            return AF_VER_BRANCH != BRANCH_CURRENT;
+        }
     }
-    else return AF_VER_BRANCH!=BRANCH_CURRENT;
-  }
-  return 0;
+
+    return 0;
 }

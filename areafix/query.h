@@ -34,86 +34,84 @@ extern "C" {
 
 #include <huskylib/compiler.h>
 #include <huskylib/huskylib.h>
-
 /* Badmail reason (area write access) numbers (from hpt/h/fcommon.h) */
-typedef enum {
- BM_MAIL_OK=0,
- BM_DENY_CREATE=1,
- BM_NOT_IN_GROUP=2,
- BM_LOW_WRITE_LEVEL=3,
- BM_DENY_IMPORT=4,
- BM_NOT_LINKED=5,
- BM_DENY_BY_FILTER=6,
- BM_MSGAPI_ERROR=7,
- BM_ILLEGAL_CHARS=8,
- BM_SENDER_NOT_FOUND=9,
- BM_CANT_OPEN_CONFIG=10,
- BM_NO_LINKS=11,
- BM_AREATAG_TOO_LONG=12,
- BM_AREA_KILLED=13,
- BM_DENY_NEWAREAREFUSEFILE=14,
- BM_WRONG_LINK_TO_AUTOCREATE=15,
- BM_AREA_IS_PAUSED=16,
- BM_NO_AREATAG=17,
- BM_CANT_CREATE_PATH=18,
- BM_TOO_OLD=19,
- BM_TOO_NEW=20,
- BM_MAXERROR=20       /* Set to max value, equivalence of last element */
+typedef enum
+{
+    BM_MAIL_OK                  = 0, BM_DENY_CREATE = 1, BM_NOT_IN_GROUP = 2,
+    BM_LOW_WRITE_LEVEL          = 3,
+    BM_DENY_IMPORT              = 4, BM_NOT_LINKED = 5, BM_DENY_BY_FILTER = 6, BM_MSGAPI_ERROR = 7,
+    BM_ILLEGAL_CHARS            = 8, BM_SENDER_NOT_FOUND = 9, BM_CANT_OPEN_CONFIG = 10,
+    BM_NO_LINKS                 = 11,
+    BM_AREATAG_TOO_LONG         = 12, BM_AREA_KILLED = 13, BM_DENY_NEWAREAREFUSEFILE = 14,
+    BM_WRONG_LINK_TO_AUTOCREATE = 15, BM_AREA_IS_PAUSED = 16, BM_NO_AREATAG = 17,
+    BM_CANT_CREATE_PATH         = 18, BM_TOO_OLD = 19, BM_TOO_NEW = 20, BM_MAXERROR = 20 /* Set
+                                                                                            to
+                                                                                            max
+                                                                                            value,
+                                                                                            equivalence
+                                                                                            of
+                                                                                            last
+                                                                                            element
+                                                                                            */
 } e_BadmailReasons;
-
-HUSKYEXT e_BadmailReasons autoCreate(char *c_area, char *descr, hs_addr pktOrigAddr, ps_addr forwardAddr);
+HUSKYEXT e_BadmailReasons autoCreate(char * c_area,
+                                     char * descr,
+                                     hs_addr pktOrigAddr,
+                                     ps_addr forwardAddr);
 
 typedef struct query_areas
 {
-    char *name;
-    char  type[5];
-    char *report;
-
-    time_t bTime;
-    time_t eTime;
-
-    int nFlag;
-    ps_addr downlinks;
-    size_t linksCount;
-    struct query_areas *next;
+    char *               name;
+    char                 type[5];
+    char *               report;
+    time_t               bTime;
+    time_t               eTime;
+    int                  nFlag;
+    ps_addr              downlinks;
+    size_t               linksCount;
+    struct query_areas * next;
 /*     struct query_areas *prev; */
 } s_query_areas;
-
-enum  query_action{
+enum  query_action
+{
     FIND,     /* Find area in query list */
     FINDFREQ, /* Find area with active query in query list */
     ADDFREQ,  /* Add node into existing query in list */
     ADDIDLE,  /* Create idle forward request into query list */
     DELIDLE   /* Remove idle forward request from query list */
 };
+
 typedef enum query_action e_query_action;
-
-enum  changeConfigRet{ I_ERR=-2, /*  read config error */
-                       O_ERR=-1, /*  write config error */
-                       IO_OK,    /*  config file rewrited */
-                       ADD_OK,   /*  link successfully added */
-                       DEL_OK    /*  link removed */
+enum  changeConfigRet
+{
+    I_ERR = -2,                  /*  read config error */
+    O_ERR = -1,                  /*  write config error */
+    IO_OK,                       /*  config file rewrited */
+    ADD_OK,                      /*  link successfully added */
+    DEL_OK                       /*  link removed */
 };
+
 typedef enum changeConfigRet e_changeConfigRet;
-
-HUSKYEXT int isValidConference(const char *s);
-HUSKYEXT s_query_areas* af_CheckAreaInQuery(char *areatag, ps_addr uplink, ps_addr dwlink, e_query_action act);
-HUSKYEXT char* af_Req2Idle(char *areatag, char* report, hs_addr linkAddr);
-HUSKYEXT int   af_OpenQuery();
-HUSKYEXT int   af_CloseQuery();
-HUSKYEXT void  af_QueueUpdate();
-HUSKYEXT void  af_QueueReport();
-HUSKYEXT int checkRefuse(char *areaName);
-
-
-/* originally from hpt/h/toss.h */
-HUSKYEXT s_arealink *getAreaLink(s_area *area, hs_addr aka);
+HUSKYEXT int isValidConference(const char * s);
+HUSKYEXT s_query_areas * af_CheckAreaInQuery(char * areatag,
+                                             ps_addr uplink,
+                                             ps_addr dwlink,
+                                             e_query_action act);
+HUSKYEXT char * af_Req2Idle(char * areatag, char * report, hs_addr linkAddr);
+HUSKYEXT int af_OpenQuery();
+HUSKYEXT int af_CloseQuery();
+HUSKYEXT void af_QueueUpdate();
+HUSKYEXT void af_QueueReport();
+HUSKYEXT int checkRefuse(char * areaName);
 
 /* originally from hpt/h/toss.h */
-HUSKYEXT int  checkAreaLink(s_area *area, hs_addr aka, int type);
+HUSKYEXT s_arealink * getAreaLink(s_area * area, hs_addr aka);
+
+/* originally from hpt/h/toss.h */
+HUSKYEXT int checkAreaLink(s_area * area, hs_addr aka, int type);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif // ifndef _HQUERY_H

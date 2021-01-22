@@ -34,31 +34,31 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 /* values for 5th parameter of GenVersionStr() */
 /* typedef enum { */
 /*        BRANCH_CURRENT=1, BRANCH_STABLE=2, BRANCH_RELEASE=3 */
 /* }branch_t; */
-
 /* this is version number of FidoConfig */
 #define AF_VER_MAJOR 1
 #define AF_VER_MINOR 9
 #define AF_VER_PATCH 0
 #define AF_VER_BRANCH BRANCH_CURRENT
-
 /* Check version of areafix library
  * return zero if test failed; non-zero if passed
  * test cvs needed for DLL version only,
  * test using cvsdate.h from areafix sources is needed for current branch
-  const char *areafixdate(){
-  static
-  #include "../../areafix/cvsdate.h"
-  return cvs_date;
-  }
-  CheckAreafixVersion( ..., areafixdate());
+   const char *areafixdate(){
+   static
+ #include "../../areafix/cvsdate.h"
+   return cvs_date;
+   }
+   CheckAreafixVersion( ..., areafixdate());
  */
-HUSKYEXT int CheckAreafixVersion( int need_major, int need_minor,
-                      int need_patch, branch_t need_branch, const char *cvs );
+HUSKYEXT int CheckAreafixVersion(int need_major,
+                                 int need_minor,
+                                 int need_patch,
+                                 branch_t need_branch,
+                                 const char * cvs);
 
 #ifdef __cplusplus
 }

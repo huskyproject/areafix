@@ -48,82 +48,98 @@ extern "C" {
 #include <huskylib/compiler.h>
 #include <huskylib/huskylib.h>
 
-#define NOTHING     0
-#define LIST        1
-#define HELP        2
-#define ADD         3
-#define DEL         4
-#define AVAIL       5
-#define QUERY       6
-#define UNLINKED    7
-#define PAUSE       8
-#define RESUME      9
-#define INFO        10
-#define RESCAN      11
-#define REMOVE      12
-#define ADD_RSC     13
-#define PACKER      14
-#define RSB         15
-#define RULES       16
-#define PKTSIZE     17
+#define NOTHING 0
+#define LIST 1
+#define HELP 2
+#define ADD 3
+#define DEL 4
+#define AVAIL 5
+#define QUERY 6
+#define UNLINKED 7
+#define PAUSE 8
+#define RESUME 9
+#define INFO 10
+#define RESCAN 11
+#define REMOVE 12
+#define ADD_RSC 13
+#define PACKER 14
+#define RSB 15
+#define RULES 16
+#define PKTSIZE 17
 #define ARCMAILSIZE 18
-#define AREAFIXPWD  19
-#define FILEFIXPWD  20
-#define PKTPWD      21
-#define TICPWD      22
-#define FROM        23
-#define DONE        100
-#define STAT        101
-#define RESEND      102
-#define AFERROR     255
+#define AREAFIXPWD 19
+#define FILEFIXPWD 20
+#define PKTPWD 21
+#define TICPWD 22
+#define FROM 23
+#define DONE 100
+#define STAT 101
+#define RESEND 102
+#define AFERROR 255
 
-typedef struct linkdata {
-    char  *robot;
-    char  *pwd;
-    char  *flags;
-    long   attrs;
-    int    numDfMask;
-    char **dfMask;
-    int    numFrMask;
-    char **frMask;
-    char  *denyFwdFile;
-    int    fwd;
-    char  *fwdFile;
-    int    advAfix;
+typedef struct linkdata
+{
+    char *  robot;
+    char *  pwd;
+    char *  flags;
+    long    attrs;
+    int     numDfMask;
+    char ** dfMask;
+    int     numFrMask;
+    char ** frMask;
+    char *  denyFwdFile;
+    int     fwd;
+    char *  fwdFile;
+    int     advAfix;
 } s_linkdata;
-
-typedef enum { lt_all, lt_linked, lt_unlinked } s_listype;
-typedef enum { PERL_CONF_MAIN = 1, PERL_CONF_LINKS = 2, PERL_CONF_AREAS = 4 } e_perlconftype;
-typedef enum { ACT_PAUSE, ACT_UNPAUSE } e_pauseAct;
-typedef enum { OK_FORWARDED = 0, OK_NOTHING = 1, ERR_NOT_FORWARDED = 2 } e_forwardRequest_result;
-typedef enum relinkType { modeNone, modeRelink, modeResubsribeWithPattern, modeResubsribeWithFile } e_relinkType;
-typedef enum subscribeMode { smodeNone, smodeSubscribe, smodeUnsubscribe } e_subscribeMode;
-
-HUSKYEXT int init_areafix(char *robotName);
+typedef enum {
+    lt_all, lt_linked,
+    lt_unlinked
+} s_listype;
+typedef enum {
+    PERL_CONF_MAIN  = 1, PERL_CONF_LINKS = 2,
+    PERL_CONF_AREAS = 4
+} e_perlconftype;
+typedef enum {
+    ACT_PAUSE,
+    ACT_UNPAUSE
+} e_pauseAct;
+typedef enum {
+    OK_FORWARDED      = 0, OK_NOTHING = 1,
+    ERR_NOT_FORWARDED = 2
+} e_forwardRequest_result;
+typedef enum relinkType {
+    modeNone, modeRelink, modeResubsribeWithPattern,
+    modeResubsribeWithFile
+} e_relinkType;
+typedef enum subscribeMode {
+    smodeNone, smodeSubscribe,
+    smodeUnsubscribe
+} e_subscribeMode;
+HUSKYEXT int init_areafix(char * robotName);
 
 HUSKYEXT unsigned char RetFix;
-HUSKYEXT char *list(s_listype type, s_link *link, char *cmdline);
-HUSKYEXT char *help(s_link *link);
-HUSKYEXT char *available(s_link *link, char *cmdline);
-HUSKYEXT int changeconfig(char *fileName, s_area *area, s_link *link, int action);
-HUSKYEXT char *subscribe(s_link *link, char *cmd);
-HUSKYEXT char *errorRQ(char *line);
-HUSKYEXT char *unsubscribe(s_link *link, char *cmd);
-HUSKYEXT char *pause_link(s_link *link);
-HUSKYEXT char *resume_link(s_link *link);
-HUSKYEXT void preprocText(char *split, s_message *msg, char *reply, s_link *link);
-HUSKYEXT char *textHead(void);
-HUSKYEXT char *areaStatus(char *report, char *preport);
-HUSKYEXT void RetMsg(s_message *msg, s_link *link, char *report, char *subj);
+HUSKYEXT char * list(s_listype type, s_link * link, char * cmdline);
+HUSKYEXT char * help(s_link * link);
+HUSKYEXT char * available(s_link * link, char * cmdline);
+HUSKYEXT int changeconfig(char * fileName, s_area * area, s_link * link, int action);
+HUSKYEXT char * subscribe(s_link * link, char * cmd);
+HUSKYEXT char * errorRQ(char * line);
+HUSKYEXT char * unsubscribe(s_link * link, char * cmd);
+HUSKYEXT char * pause_link(s_link * link);
+HUSKYEXT char * resume_link(s_link * link);
+HUSKYEXT void preprocText(char * split, s_message * msg, char * reply, s_link * link);
+HUSKYEXT char * textHead(void);
+HUSKYEXT char * areaStatus(char * report, char * preport);
+HUSKYEXT void RetMsg(s_message * msg, s_link * link, char * report, char * subj);
 HUSKYEXT void sendAreafixMessages();
-
-HUSKYEXT char *print_ch(int len, char ch);
-HUSKYEXT int processAreaFix(s_message *msg, s_pktHeader *pktHeader, unsigned force_pwd);
-HUSKYEXT void afix(hs_addr addr, char *cmd);
-HUSKYEXT int pauseArea(e_pauseAct pauseAct, s_link *searchLink, s_area *searchArea);
-HUSKYEXT char *rescan(s_link *link, char *cmd);
-HUSKYEXT char *errorRQ(char *line);
-HUSKYEXT int isPatternLine(char *s);
+HUSKYEXT char * print_ch(int len, char ch);
+HUSKYEXT int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd);
+HUSKYEXT void afix(hs_addr addr, char * cmd);
+HUSKYEXT int pauseArea(e_pauseAct pauseAct, s_link * searchLink, s_area * searchArea);
+HUSKYEXT char * rescan(s_link * link, char * cmd);
+HUSKYEXT char * errorRQ(char * line);
+HUSKYEXT int isPatternLine(char * s);
 
 /*  forwardRequest()
     Forward request to areatag. Request initiated by dwlink.
@@ -132,21 +148,28 @@ HUSKYEXT int isPatternLine(char *s);
     forward-priority of link). lastRlink may be NULL
     Return values:
     OK_FORWARDED (0) - request is forwarded
-    OK_NOTHING   (1) - echo already requested (link is queued to echo-subcribing) or action isn't required
+    OK_NOTHING   (1) - echo already requested (link is queued to echo-subcribing) or action
+       isn't required
     ERR_NOT_FORWARDED (2) - request is not forwarded (deny area-link, not found, ...)
-*/
-HUSKYEXT e_forwardRequest_result forwardRequest(char *areatag, s_link *dwlink, s_link **lastRlink);
-
-HUSKYEXT int forwardRequestToLink (char *areatag, s_link *uplink, s_link *dwlink, int act);
+ */
+HUSKYEXT e_forwardRequest_result forwardRequest(char * areatag,
+                                                s_link * dwlink,
+                                                s_link ** lastRlink);
+HUSKYEXT int forwardRequestToLink(char * areatag, s_link * uplink, s_link * dwlink, int act);
 HUSKYEXT void sendAreafixMessages();
-HUSKYEXT char *do_delete(s_link *link, s_area *area);
-HUSKYEXT int relink(e_relinkType mode, char *pattern, hs_addr fromAddr, hs_addr toAddr,
-                    char **fromCmd, char **toCmd, unsigned *count);
-HUSKYEXT int sendRelinkMsg(e_relinkType mode, hs_addr addr, char *cmd, e_subscribeMode smode);
-HUSKYEXT int changeconfig(char *fileName, s_area *area, s_link *link, int action);
+HUSKYEXT char * do_delete(s_link * link, s_area * area);
+HUSKYEXT int relink(e_relinkType mode,
+                    char * pattern,
+                    hs_addr fromAddr,
+                    hs_addr toAddr,
+                    char ** fromCmd,
+                    char ** toCmd,
+                    unsigned * count);
+HUSKYEXT int sendRelinkMsg(e_relinkType mode, hs_addr addr, char * cmd, e_subscribeMode smode);
+HUSKYEXT int changeconfig(char * fileName, s_area * area, s_link * link, int action);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif // ifndef _AREAFIX_H
