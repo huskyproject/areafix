@@ -94,6 +94,7 @@
 
 unsigned char RetFix;
 static int rescanMode    = 0;
+static int foundToRescan = 0;
 static int rulesCount    = 0;
 static char ** rulesList = NULL;
 char * print_ch(int len, char ch)
@@ -3133,6 +3134,7 @@ int tellcmd(char * cmd)
                 if(line[6] == '\0')
                 {
                     rescanMode = 1;
+                    foundToRescan = 0;
                     return NOTHING;
                 }
                 else
@@ -3677,10 +3679,10 @@ void sendAreafixMessages()
 int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
 {
     unsigned int security = 0, notforme = 0, flags = 0;
-    s_link * curlink = NULL; /* perform areafix changes on this link */
-                           /* can be changed by %from command */
-    s_link * link = NULL;  /* whom to send areafix reports */
-                           /* i.e. original sender of message */
+    s_link * curlink = NULL; /* perform areafix changes for this link */
+                             /* can be changed by %from command */
+    s_link * link = NULL;    /* to whom to send areafix reports */
+                             /* i.e. the original sender of the message */
     s_link_robot * rlink;
     s_link * tmplink = NULL;
     /* s_message *linkmsg; */
@@ -3744,7 +3746,7 @@ int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
         security = 5;                      /*  message to wrong AKA */
     }
 
-#if 0 /*  we're process only our messages here */
+#if 0 /* we process only our messages here */
 
     /*  ignore msg for other link (maybe this is transit...) */
     if(notforme || (link == NULL && security == 1))
@@ -3844,6 +3846,7 @@ int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
 
                         if(rescanMode)
                         {
+                            foundToRescan = 1;
                             preport = processcmd(link, token, RESCAN, flags);
 
                             if(preport != NULL)
@@ -3929,6 +3932,12 @@ int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
                 token = NULL;
             }
         } /* end while (token != NULL) */
+
+        if(rescanMode && !foundToRescan)
+        {
+            xscatprintf(&report, "\r No area specified to rescan\r");
+            w_log(LL_ERR, "No area specified to rescan");
+        }
         nfree(textBuff);
     }
     else
