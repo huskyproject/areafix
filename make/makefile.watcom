@@ -1,0 +1,46 @@
+#
+#  Makefile for Open Watcom 2.0.
+#
+#  Use Watcom Make:
+#
+#  wmake -f makefile.watcom NT=1
+#
+#    or
+#
+#  wmake -f makefile.watcom OS2=1
+#
+
+!ifdef __LINUX__
+SEP=/
+!else
+SEP=\
+!endif
+
+CC=wcl386
+WLIB=wlib -q -b
+
+SRC_DIR=..$(SEP)src
+INC=-I..$(SEP)areafix -I..$(SEP)..$(SEP)huskylib -I..$(SEP)..$(SEP)fidoconf &
+  -I..$(SEP)..$(SEP)smapi
+
+CFLAGS=-zq -bt=nt -l=nt
+TARGET=afixwcw.lib
+
+!ifdef OS2
+CFLAGS=-zq -bt=os2v2 -l=os2v2
+TARGET=afixwco.lib
+!endif
+
+OBJS=afglobal.obj areafix.obj callback.obj query.obj version.obj
+
+{$(SRC_DIR)}.c.obj:
+	@%erase $(TARGET)
+	$(CC) $(CFLAGS) $INC -fo=$@ -c $<
+
+$(TARGET): $(OBJS)
+	$(WLIB) $(TARGET) $(OBJS)
+
+.IGNORE
+clean: .SYMBOLIC
+	rm $(OBJS)
+	rm $(TARGET)
