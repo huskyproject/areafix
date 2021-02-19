@@ -10,18 +10,16 @@
 #  wmake -f makefile.watcom OS2=1
 #
 
-!ifdef __LINUX__
-SEP=/
-!else
-SEP=\
-!endif
-
 CC=wcl386
 WLIB=wlib -q -b
 
-SRC_DIR=..$(SEP)src
-INC=-I..$(SEP)areafix -I..$(SEP)..$(SEP)huskylib -I..$(SEP)..$(SEP)fidoconf &
-  -I..$(SEP)..$(SEP)smapi
+#  wcl386 in Windows & OS/2 will not accept forward slashes as path
+#  separators with the -I parameter unless you put the path in
+#  double quotes:
+
+INC=-I"../areafix" -I"../../huskylib" -I"../../fidoconf" -I"../../smapi"
+
+SRC_DIR=../src
 
 CFLAGS=-zq -bt=nt -l=nt
 TARGET=afixwcw.lib
@@ -35,7 +33,7 @@ OBJS=afglobal.obj areafix.obj callback.obj query.obj version.obj
 
 {$(SRC_DIR)}.c.obj:
 	@%erase $(TARGET)
-	$(CC) $(CFLAGS) $INC -fo=$@ -c $<
+	$(CC) $(CFLAGS) $(INC) -fo=$@ -c $<
 
 $(TARGET): $(OBJS)
 	$(WLIB) $(TARGET) $(OBJS)
