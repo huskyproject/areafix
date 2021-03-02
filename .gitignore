@@ -1,0 +1,12 @@
+build-stamp
+configure-stamp
+build/
+*.lib
+*.dll
+*.exp
+*.o
+*.obj
+*.dsw
+*.bak
+*.vcxproj.user
+strace_out
