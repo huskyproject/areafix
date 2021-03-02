@@ -884,7 +884,7 @@ int changeconfig(char * fileName, s_area * area, s_link * link, int action)
 
         case 7:
 
-            if((rc = DelLinkFromString(cfgline, link->hisAka)) == 1)
+            if((rc = DelLinkFromString(cfgline, &link->hisAka)) == 1)
             {
                 w_log(LL_ERR,
                       "%s: Unlink is not possible for %s from %s \'%s\'",
