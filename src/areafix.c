@@ -221,7 +221,7 @@ char * list(s_listype type, s_link * link, char * cmdline)
 
             for(j = 0; j < area->downlinkCount; j++)
             {
-                if(addrComp(link->hisAka, area->downlinks[j]->link->hisAka) == 0)
+                if(addrComp(&(link->hisAka), &(area->downlinks[j]->link->hisAka)) == 0)
                 {
                     import    = area->downlinks[j]->import;
                     aexport   = area->downlinks[j]->aexport;
@@ -1112,7 +1112,7 @@ e_forwardRequest_result forwardRequest(char * areatag, s_link * dwlink, s_link *
         {
             uplink = af_config->links[Indexes[i]];
 
-            if(addrComp(uplink->hisAka, (*lastRlink)->hisAka) == 0) /*  we found
+            if(addrComp(&(uplink->hisAka), &((*lastRlink)->hisAka)) == 0) /*  we found
                                                                        lastRequestedlink */
             {
                 i++;   /*  let's try next link */
@@ -1136,7 +1136,7 @@ e_forwardRequest_result forwardRequest(char * areatag, s_link * dwlink, s_link *
                                           dwlink->numAccessGrp) : 1)
         {
             /* skip downlink from list of uplinks */
-            if(addrComp(uplink->hisAka, dwlink->hisAka) == 0)
+            if(addrComp(&(uplink->hisAka), &(dwlink->hisAka)) == 0)
             {
                 rc = ERR_NOT_FORWARDED; /* don't forward to requester back */
                 continue;
@@ -1669,7 +1669,7 @@ char * do_delete(s_link * link, s_area * area)
 
     for(i = 0; i < area->downlinkCount; i++)
     {
-        if(addrComp(area->downlinks[i]->link->hisAka, link->hisAka))
+        if(addrComp(&(area->downlinks[i]->link->hisAka), &(link->hisAka)))
         {
             s_link * dwlink = area->downlinks[i]->link;
 
@@ -1905,8 +1905,8 @@ char * unsubscribe(s_link * link, char * cmd)
 
                     for(k = 0; k < area->downlinkCount; k++)
                     {
-                        if(addrComp(link->hisAka,
-                                    area->downlinks[k]->link->hisAka) == 0 &&
+                        if(addrComp(&(link->hisAka),
+                                    &(area->downlinks[k]->link->hisAka)) == 0 &&
                            area->downlinks[k]->defLink)
                         {
                             return do_delete(link, area);
@@ -3703,7 +3703,7 @@ int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
     /*  1st security check */
     if(pktHeader)
     {
-        security = addrComp(msg->origAddr, pktHeader->origAddr);
+        security = addrComp(&(msg->origAddr), &(pktHeader->origAddr));
     }
 
 #if 0
@@ -3739,7 +3739,7 @@ int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
     /*  is this for me? */
     if(link != NULL)
     {
-        notforme = addrComp(msg->destAddr, *link->ourAka);
+        notforme = addrComp(&(msg->destAddr), link->ourAka);
     }
     else if(!security)
     {
@@ -3795,7 +3795,7 @@ int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
 
     if(link != NULL)                              /* check if origin is a local AKA */
     {
-        if(addrComp(link->hisAka, *link->ourAka) == 0)
+        if(addrComp(&(link->hisAka), link->ourAka) == 0)
         {
             flags |= FLAG_FROM_LOCAL_AKA;
         }

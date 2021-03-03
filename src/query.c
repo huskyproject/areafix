@@ -438,8 +438,8 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
                 return BM_AREA_KILLED;  /*  area already unsubscribed */
             }
 
-            if(stricmp(areaNode->type,
-                       czFreqArea) == 0 && addrComp(pktOrigAddr, areaNode->downlinks[0]) != 0)
+            if(stricmp(areaNode->type, czFreqArea) == 0 &&
+               addrComp(&pktOrigAddr, &(areaNode->downlinks[0])) != 0)
             {
                 w_log(LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_WRONG_LINK_TO_AUTOCREATE);
                 return BM_WRONG_LINK_TO_AUTOCREATE;  /*  wrong link to autocreate from */
@@ -463,7 +463,7 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
             {
                 for(j = 0; j < af_config->addrCount; j++)
                 {
-                    if(addrComp(areaNode->downlinks[i], af_config->addr[j]) == 0)
+                    if(addrComp(&(areaNode->downlinks[i]), &(af_config->addr[j])) == 0)
                     {
                         bDir =
                             (creatingLink->filefix.baseDir) ? creatingLink->filefix.baseDir :
@@ -825,7 +825,7 @@ s_query_areas * af_CheckAreaInQuery(char * areatag,
             {
                 if(stricmp(tmpNode->type,
                            czKillArea) == 0 && uplink &&
-                   addrComp(tmpNode->downlinks[0], *uplink) != 0)
+                   addrComp(&(tmpNode->downlinks[0]), uplink) != 0)
                 {
                     memcpy(&(tmpNode->downlinks[0]), uplink, sizeof(hs_addr));
                 }
@@ -834,7 +834,7 @@ s_query_areas * af_CheckAreaInQuery(char * areatag,
                 {
                     i = 1;
 
-                    while(i < tmpNode->linksCount && addrComp(*dwlink, tmpNode->downlinks[i]) != 0)
+                    while(i < tmpNode->linksCount && addrComp(dwlink, &(tmpNode->downlinks[i])) != 0)
                     {
                         i++;
                     }
@@ -938,7 +938,7 @@ char * af_Req2Idle(char * areatag, char * report, hs_addr linkAddr)
 
             while(i < areaNode->linksCount)
             {
-                if(addrComp(areaNode->downlinks[i], linkAddr) == 0)
+                if(addrComp(&(areaNode->downlinks[i]), &linkAddr) == 0)
                 {
                     break;
                 }
@@ -1319,8 +1319,8 @@ void af_QueueUpdate()
 
                     for(j = 0; j < af_config->linkCount; j++)
                     {
-                        if(addrComp(dwlink->hisAka,
-                                    af_config->links[j]->hisAka) == 0 &&
+                        if(addrComp(&(dwlink->hisAka),
+                                    &(af_config->links[j]->hisAka)) == 0 &&
                            dwlink->sendNotifyMessages)
                         {
                             if(tmpmsg[j] == NULL)
@@ -1723,7 +1723,7 @@ s_arealink * getAreaLink(s_area * area, hs_addr aka)
 
     for(i = 0; i < area->downlinkCount; i++)
     {
-        if(addrComp(aka, area->downlinks[i]->link->hisAka) == 0)
+        if(addrComp(&aka, &(area->downlinks[i]->link->hisAka)) == 0)
         {
             return area->downlinks[i];
         }
@@ -1761,7 +1761,7 @@ int checkAreaLink(s_area * area, hs_addr aka, int type)
     }
     else
     {
-        if(addrComp(aka, *area->useAka) != 0)
+        if(addrComp(&aka, area->useAka) != 0)
         {
             writeAccess = BM_NOT_LINKED;
         }
