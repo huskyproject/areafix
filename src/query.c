@@ -478,7 +478,7 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
     }
 
     /*  making address of uplink */
-    xstrcat(&hisaddr, aka2str(pktOrigAddr));
+    xstrcat(&hisaddr, aka2str(&pktOrigAddr));
 
     /* HPT stuff */
     if(af_app->module == M_HPT)
@@ -560,7 +560,7 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
             char * d_area = escapeConfigWord(c_area);
             xscatprintf(&buff, "FileArea %s %s%s -a %s ", d_area, bDir,
                         (strcasecmp(bDir, "passthrough") == 0) ? "" : fileechoFileName,
-                        aka2str(*(creatingLink->ourAka)));
+                        aka2str(creatingLink->ourAka));
             nfree(d_area);
         }
 
@@ -657,7 +657,7 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
                (!isOurAka(af_config, areaNode->downlinks[i])))
             {
                 xstrcat(&buff, " ");
-                xstrcat(&buff, aka2str(areaNode->downlinks[i]));
+                xstrcat(&buff, aka2str(&areaNode->downlinks[i]));
                 Addlink(af_config, getLinkFromAddr(af_config, areaNode->downlinks[i]), area);
             }
         }
@@ -670,7 +670,7 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
 
         if(r->autoSubscribe && !isLinkOfArea(af_config->links[i], area))
         {
-            xscatprintf(&buff, " %s", aka2str(af_config->links[i]->hisAka));
+            xscatprintf(&buff, " %s", aka2str(&af_config->links[i]->hisAka));
             Addlink(af_config, af_config->links[i], area);
         }
     }
@@ -982,7 +982,7 @@ char * af_Req2Idle(char * areatag, char * report, hs_addr linkAddr)
                 w_log(LL_AREAFIX,
                       "%s: request canceled for [%s] area: %s",
                       af_robot->name,
-                      aka2str(linkAddr),
+                      aka2str(&linkAddr),
                       areaNode->name);
             }
         }
@@ -1086,12 +1086,12 @@ void af_QueueReport()
     {
         w_log(LL_DEBUGU, __FILE__ ":%u:af_QueueReport() tmpNode=%X", __LINE__, tmpNode);
         tmpNode = tmpNode->next;
-        strcpy(link1, aka2str(tmpNode->downlinks[0]));
+        strcpy(link1, aka2str(&tmpNode->downlinks[0]));
         strcpy(type, tmpNode->type);
 
         if(stricmp(tmpNode->type, czFreqArea) == 0)
         {
-            strcpy(link2, aka2str(tmpNode->downlinks[1]));
+            strcpy(link2, aka2str(&tmpNode->downlinks[1]));
 
             if(strcmp(tmpNode->type, czFreqArea) == 0)
             {
@@ -1289,7 +1289,7 @@ void af_QueueUpdate()
                   "%s: request for %s is canceled for node %s",
                   af_robot->name,
                   tmpNode->name,
-                  aka2str(lastRlink->hisAka));
+                  aka2str(&lastRlink->hisAka));
 
             if(dwlink && !forwardRequest(tmpNode->name, dwlink, &lastRlink))
             {
@@ -1300,7 +1300,7 @@ void af_QueueUpdate()
                       "%s: request for %s is going to node %s",
                       af_robot->name,
                       tmpNode->name,
-                      aka2str(lastRlink->hisAka));
+                      aka2str(&lastRlink->hisAka));
             }
             else
             {
@@ -1436,7 +1436,7 @@ void af_QueueUpdate()
  */
             (*call_sendMsg)(tmpmsg[i]);
             w_log(LL_AREAFIX, "%s: write notification msg for %s", af_robot->name,
-                  aka2str(af_config->links[i]->hisAka));
+                  aka2str(&af_config->links[i]->hisAka));
         }
 
         nfree(tmpmsg[i]);
@@ -1621,7 +1621,7 @@ int af_CloseQuery()
             for(i = 0; i < tmpNode->linksCount; i++)
             {
                 strcat(p, " ");
-                strcat(p, aka2str(tmpNode->downlinks[i]));
+                strcat(p, aka2str(&tmpNode->downlinks[i]));
             }
             strcat(buf, "\n");
             fputs(buf, queryFile);
