@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 2.8...3.19)
 PROJECT(areafix C)
 set(areafix_VERSION 1.9.0)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -60,7 +60,7 @@ message("Build shared      : ${BUILD_SHARED_LIBS}")
 message("Build type        : ${CMAKE_CONFIGURATION_TYPES}")
 message("-------------------------")
 
-SET(areafix_SOURCES 
+SET(areafix_SOURCES
   src/afglobal.c
   src/areafix.c
   src/callback.c
