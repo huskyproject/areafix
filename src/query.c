@@ -1492,8 +1492,22 @@ int af_OpenQuery()
             }
 
             token = strtok(NULL, seps);
+            if(token == NULL)
+            {
+                fclose(queryFile);
+                w_log(LL_ERR, "Wrong format of %s file\n", af_robot->queueFile);
+                return 0;
+            }
+
             strncpy(areaNode->type, token, 4);
             token = strtok(NULL, seps);
+            if (token == NULL)
+            {
+                fclose(queryFile);
+                w_log(LL_ERR, "Wrong format of %s file\n", af_robot->queueFile);
+                return 0;
+            }
+
             memset(&tr, '\0', sizeof(tr));
 
             if(sscanf(token, "%d-%d-%d@%d:%d", &tr.tm_year, &tr.tm_mon, &tr.tm_mday, &tr.tm_hour,
@@ -1511,6 +1525,12 @@ int af_OpenQuery()
             }
 
             token = strtok(NULL, seps);
+            if (token == NULL)
+            {
+                fclose(queryFile);
+                w_log(LL_ERR, "Wrong format of %s file\n", af_robot->queueFile);
+                return 0;
+            }
             memset(&tr, '\0', sizeof(tr));
 
             if(sscanf(token, "%d-%d-%d@%d:%d", &tr.tm_year, &tr.tm_mon, &tr.tm_mday, &tr.tm_hour,
