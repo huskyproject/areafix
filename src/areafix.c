@@ -126,18 +126,18 @@ char * getPatternFromLine(char * line, int * reversed)
         line++;                 /* exclude '%' sign */
     }
 
-    while((strlen(line) > 0) && isspace(line[0]))
+    while(line[0] != '\0' && isspace(line[0]))
     {
         line++;                                           /* exclude spaces between '%' and
                                                              command */
     }
 
-    while((strlen(line) > 0) && !isspace(line[0]))
+    while(line[0] != '\0' && !isspace(line[0]))
     {
         line++;                                            /* exclude command */
     }
 
-    while((strlen(line) > 0) && isspace(line[0]))
+    while(line[0] != '\0' && isspace(line[0]))
     {
         line++;                                           /* exclude spaces between command and
                                                              pattern */
@@ -154,7 +154,7 @@ char * getPatternFromLine(char * line, int * reversed)
         }
     }
 
-    if(strlen(line) > 0)
+    if(line[0] != '\0')
     {
         return line;
     }
@@ -2769,18 +2769,18 @@ char * change_token(s_link * link, char * cmdline)
         cmdline++;                    /* exclude '%' sign */
     }
 
-    while((strlen(cmdline) > 0) && isspace(cmdline[0]))
+    while(cmdline[0] != '\0' && isspace(cmdline[0]))
     {
         cmdline++;                                                 /* exclude spaces between '%'
                                                                       and command */
     }
 
-    while((strlen(cmdline) > 0) && !isspace(cmdline[0]))
+    while(cmdline[0] != '\0' && !isspace(cmdline[0]))
     {
         cmdline++;                                                  /* exclude command */
     }
 
-    while((strlen(cmdline) > 0) && isspace(cmdline[0]))
+    while(cmdline[0] != '\0' && isspace(cmdline[0]))
     {
         cmdline++;                                                 /* exclude spaces between
                                                                       command and rest of line
@@ -2987,18 +2987,18 @@ char * change_link(s_link ** link, s_link * origlink, char * cmdline)
         cmdline++;                    /* exclude '%' sign */
     }
 
-    while((strlen(cmdline) > 0) && isspace(cmdline[0]))
+    while(cmdline[0] != '\0' && isspace(cmdline[0]))
     {
         cmdline++;                                                 /* exclude spaces between '%'
                                                                       and command */
     }
 
-    while((strlen(cmdline) > 0) && !isspace(cmdline[0]))
+    while(cmdline[0] != '\0' && !isspace(cmdline[0]))
     {
         cmdline++;                                                  /* exclude command */
     }
 
-    while((strlen(cmdline) > 0) && isspace(cmdline[0]))
+    while(cmdline[0] != '\0' && isspace(cmdline[0]))
     {
         cmdline++;                                                 /* exclude spaces between
                                                                       command and rest of line
@@ -4159,7 +4159,7 @@ void afix(hs_addr addr, char * cmd)
                         continue;
                     }
 
-                    if((strlen((char *)xmsg.to) > 0) &&
+                    if(xmsg.to[0] != '\0' &&
                        (findInStrArray(af_robot->names, (char *)xmsg.to) >= 0))
                     {
                         memset(&msg, '\0', sizeof(s_message));
@@ -4316,7 +4316,7 @@ int relink(e_relinkType mode,
             reversed = 0;
         }
 
-        if(strlen(pattern) == 0)
+        if(pattern[0] == '\0')
         {
             pattern = NULL;
         }

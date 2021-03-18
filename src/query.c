@@ -1670,7 +1670,7 @@ s_query_areas * af_AddAreaListNode(char * areatag, const char * type)
 
     while(tmpNode)
     {
-        if(tmpNode->name && strlen(tmpNode->name) > 0)
+        if(tmpNode->name && tmpNode->name[0] != '\0')
         {
             if(stricmp(areatag, tmpNode->name) < 0)
             {
