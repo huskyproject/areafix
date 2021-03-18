@@ -3039,7 +3039,7 @@ int tellcmd(char * cmd)
 
     line = cmd;
 
-    if(line && *line && (line[1] == ' ' || line[1] == '\t'))
+    if(*line && (line[1] == ' ' || line[1] == '\t'))
     {
         return AFERROR;
     }
