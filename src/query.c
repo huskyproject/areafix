@@ -1692,7 +1692,7 @@ s_query_areas * af_AddAreaListNode(char * areatag, const char * type)
     {
         if(tmpNode->name && tmpNode->name[0] != '\0')
         {
-            if(stricmp(areatag, tmpNode->name) < 0)
+            if(areatag && stricmp(areatag, tmpNode->name) < 0)
             {
                 break;
             }

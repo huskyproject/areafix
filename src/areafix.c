@@ -2883,7 +2883,7 @@ char * change_token(s_link * link, char * cmdline)
                     return report;
                 }
 
-                if(RetFix == RULES && *i_prev != i_new)
+                if(RetFix == RULES && i_prev && *i_prev != i_new)
                 {
                     w_log(LL_AREAFIX,
                           "%s: %s is already set to %s",
@@ -2896,7 +2896,7 @@ char * change_token(s_link * link, char * cmdline)
                                 *i_prev ? "off" : "on");
                     return report;
                 }
-                else if(RetFix != RULES && *i_prev == i_new)
+                else if(RetFix != RULES && i_prev && *i_prev == i_new)
                 {
                     w_log(LL_AREAFIX,
                           "%s: %s is already set to %s",
@@ -2932,13 +2932,19 @@ char * change_token(s_link * link, char * cmdline)
             case 1:  /* AREAFIXPWD, PKTPWD, FILEFIXPWD, TICPWD */
                 w_log(LL_AREAFIX, "%s: %s password changed to '%s'", af_robot->name, desc, c_new);
                 xscatprintf(&report, "%s password changed to '%s'\r\r", desc, c_new);
-                *c_prev = (*call_sstrdup)(c_new ? c_new : "");
+                if(c_prev)
+                {
+                    *c_prev = (*call_sstrdup)(c_new ? c_new : "");
+                }
                 break;
 
             case 2:  /* ARCMAILSIZE, PKTSIZE */
                 w_log(LL_AREAFIX, "%s: %s size changed to %i kbytes", af_robot->name, desc, i_new);
                 xscatprintf(&report, "%s size changed to %i kbytes\r\r", desc, i_new);
-                *i_prev = i_new;
+                if(i_prev)
+                {
+                    *i_prev = i_new;
+                }
                 break;
 
             case 3:  /* RSB */
@@ -2948,7 +2954,10 @@ char * change_token(s_link * link, char * cmdline)
                       desc,
                       i_new ? "on" : "off");
                 xscatprintf(&report, "%s mode changed to %s\r\r", desc, i_new ? "on" : "off");
-                *i_prev = i_new;
+                if(i_prev)
+                {
+                    *i_prev = i_new;
+                }
                 break;
         }
 
