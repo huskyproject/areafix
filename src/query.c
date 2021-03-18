@@ -715,7 +715,7 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
     {
         w_log(LL_ERR, "Error creating area %s, config write failed: %s!", c_area, strerror(errno));
         fseek(f, i, SEEK_SET);
-        setfsize(fileno(f), i);
+        setfsize(fileno(f), (long)i);
     }
 
     fclose(f);
@@ -981,7 +981,7 @@ char * af_Req2Idle(char * areatag, char * report, hs_addr linkAddr)
                 }
 
                 xscatprintf(&report, " %s %s  request canceled\r", areaNode->name,
-                            print_ch(49 - strlen(areaNode->name), '.'));
+                            print_ch((int)(49 - strlen(areaNode->name)), '.'));
                 w_log(LL_AREAFIX,
                       "%s: request canceled for [%s] area: %s",
                       af_robot->name,
