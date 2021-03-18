@@ -4087,7 +4087,7 @@ void afix(hs_addr addr, char * cmd)
         {
             s_link_robot * r = (*call_getLinkRobot)(link);
 
-            if(cmd && strlen(cmd))
+            if(cmd[0] != '\0')
             {
                 tmpmsg = makeMessage(&addr,
                                      link->ourAka,
