@@ -434,6 +434,7 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
         {
             if(stricmp(areaNode->type, czKillArea) == 0)
             {
+                fclose(f);
                 w_log(LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_AREA_KILLED);
                 return BM_AREA_KILLED;  /*  area already unsubscribed */
             }
@@ -441,6 +442,7 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
             if(stricmp(areaNode->type, czFreqArea) == 0 &&
                addrComp(&pktOrigAddr, &(areaNode->downlinks[0])) != 0)
             {
+                fclose(f);
                 w_log(LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_WRONG_LINK_TO_AUTOCREATE);
                 return BM_WRONG_LINK_TO_AUTOCREATE;  /*  wrong link to autocreate from */
             }
@@ -540,6 +542,7 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
                 w_log(LL_ERROR, "cannot make all subdirectories for %s\n", fileechoFileName);
                 nfree(buff);
                 w_log(LL_FUNC, "%s::autoCreate() rc=%d", __FILE__, BM_CANT_CREATE_PATH);
+                fclose(f);
                 return BM_CANT_CREATE_PATH;
             }
 
