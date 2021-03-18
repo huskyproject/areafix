@@ -1294,7 +1294,7 @@ void af_QueueUpdate()
                   tmpNode->name,
                   aka2str(&lastRlink->hisAka));
 
-            if(dwlink && !forwardRequest(tmpNode->name, dwlink, &lastRlink))
+            if(dwlink && forwardRequest(tmpNode->name, dwlink, &lastRlink) == OK_FORWARDED)
             {
                 tmpNode->downlinks[0] = lastRlink->hisAka;
                 tmpNode->bTime        = tnow;
