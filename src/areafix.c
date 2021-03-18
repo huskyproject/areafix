@@ -4365,7 +4365,7 @@ int relink(e_relinkType mode,
                       areas[i].areaName,
                       fromAka);
             }
-            else
+            else if(arealink)
             {
                 /* resubscribe */
                 /* check if new link would have full access to area */
