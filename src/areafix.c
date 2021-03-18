@@ -372,7 +372,7 @@ char * help(s_link * link)
     FILE * f;
     int i = 1;
     char * help;
-    long endpos;
+    size_t endpos;
 
     if(af_robot->helpFile != NULL)
     {
@@ -398,9 +398,9 @@ char * help(s_link * link)
 
         fseek(f, 0L, SEEK_END);
         endpos = ftell(f);
-        help   = (char *)(*call_smalloc)((size_t)endpos + 1);
+        help   = (char *)(*call_smalloc)(endpos + 1);
         fseek(f, 0L, SEEK_SET);
-        endpos = fread(help, 1, (size_t)endpos, f);
+        endpos = fread(help, 1, endpos, f);
 
         for(i = 0; i < endpos; i++)
         {
@@ -440,7 +440,7 @@ char * available(s_link * link, char * cmdline)
     FILE * f;
     unsigned int j = 0, found;
     unsigned int k, rc;
-    char * report = NULL, * line, * token, * running, linkAka[SIZE_aka2str];
+    char * report = NULL, * line = NULL, * token, * running, linkAka[SIZE_aka2str];
     char * pattern;
     int reversed;
     s_link * uplink = NULL;
@@ -1315,7 +1315,7 @@ char * subscribe(s_link * link, char * cmd)
                 else
                 {
                     xscatprintf(&report, " %s %s  already linked\r", an,
-                                print_ch(49 - strlen(an), '.'));
+                                print_ch((int)(49 - strlen(an)), '.'));
                     w_log(LL_AREAFIX,
                           "%s: %s already linked to area \'%s\'",
                           af_robot->name,
@@ -1341,7 +1341,7 @@ char * subscribe(s_link * link, char * cmd)
                         {
                             af_CheckAreaInQuery(an, NULL, NULL, DELIDLE);
                             xscatprintf(&report, " %s %s  added\r", an,
-                                        print_ch(49 - strlen(an), '.'));
+                                        print_ch((int)(49 - strlen(an)), '.'));
                             w_log(LL_AREAFIX,
                                   "%s: %s subscribed to area \'%s\'",
                                   af_robot->name,
@@ -1356,7 +1356,7 @@ char * subscribe(s_link * link, char * cmd)
                         else
                         {
                             xscatprintf(&report, " %s %s  not subscribed\r", an,
-                                        print_ch(49 - strlen(an), '.'));
+                                        print_ch((int)(49 - strlen(an)), '.'));
                             w_log(LL_AREAFIX,
                                   "%s: %s not subscribed to area \'%s\', cause uplink",
                                   af_robot->name,
@@ -1374,7 +1374,7 @@ char * subscribe(s_link * link, char * cmd)
                          /*   that we already linked to this area */
                     {
                         xscatprintf(&report, " %s %s  already linked\r", an,
-                                    print_ch(49 - strlen(an), '.'));
+                                    print_ch((int)(49 - strlen(an)), '.'));
                         w_log(LL_AREAFIX,
                               "%s: %s already linked to area \'%s\'",
                               af_robot->name,
@@ -1390,7 +1390,7 @@ char * subscribe(s_link * link, char * cmd)
                         Addlink(af_config, link, area);
                         fixRules(link, area->areaName);
                         xscatprintf(&report, " %s %s  added\r", an,
-                                    print_ch(49 - strlen(an), '.'));
+                                    print_ch((int)(49 - strlen(an)), '.'));
                         w_log(LL_AREAFIX,
                               "%s: %s subscribed to area \'%s\'",
                               af_robot->name,
@@ -1423,7 +1423,7 @@ char * subscribe(s_link * link, char * cmd)
                     else
                     {
                         xscatprintf(&report, " %s %s  error. report to sysop!\r", an,
-                                    print_ch(49 - strlen(an), '.'));
+                                    print_ch((int)(49 - strlen(an)), '.'));
                         w_log(LL_AREAFIX,
                               "%s: %s not subscribed to area \'%s\'",
                               af_robot->name,
@@ -1458,7 +1458,7 @@ char * subscribe(s_link * link, char * cmd)
                           an,
                           aka2str(&(link->hisAka)));
                     xscatprintf(&report, " %s %s  no access\r", an,
-                                print_ch(49 - strlen(an), '.'));
+                                print_ch((int)(49 - strlen(an)), '.'));
                     found = 1;
                 }
 
@@ -1481,7 +1481,7 @@ char * subscribe(s_link * link, char * cmd)
         if(checkRefuse(line))
         {
             xscatprintf(&report, " %s %s  forwarding refused\r", line,
-                        print_ch(49 - strlen(line), '.'));
+                        print_ch((int)(49 - strlen(line)), '.'));
             w_log(LL_WARN,
                   "%s: Can't forward request for %s \'%s\' : refused by newAreaRefuseFile\n",
                   af_robot->name,
@@ -1500,7 +1500,7 @@ char * subscribe(s_link * link, char * cmd)
                 {
                     af_CheckAreaInQuery(line, &(node->downlinks[0]), &(link->hisAka), ADDFREQ);
                     xscatprintf(&report, " %s %s  request forwarded\r", line,
-                                print_ch(49 - strlen(line), '.'));
+                                print_ch((int)(49 - strlen(line)), '.'));
                     w_log(LL_AREAFIX,
                           "%s: Area \'%s\' is already requested at %s",
                           af_robot->name,
@@ -1511,14 +1511,14 @@ char * subscribe(s_link * link, char * cmd)
                 else if((rc = forwardRequest(line, link, NULL)) == 2)
                 {
                     xscatprintf(&report, " %s %s  no uplinks to forward\r", line,
-                                print_ch(49 - strlen(line), '.'));
+                                print_ch((int)(49 - strlen(line)), '.'));
                     w_log(LL_AREAFIX, "%s: No uplinks to forward area \'%s\'", af_robot->name,
                           line);
                 }
                 else if(rc == 0)
                 {
                     xscatprintf(&report, " %s %s  request forwarded\r", line,
-                                print_ch(49 - strlen(line), '.'));
+                                print_ch((int)(49 - strlen(line)), '.'));
                     w_log(LL_AREAFIX, "%s: Request forwarded to area \'%s\'", af_robot->name,
                           line);
 
@@ -1550,7 +1550,7 @@ char * subscribe(s_link * link, char * cmd)
                                 xscatprintf(&report,
                                             " %s %s  error. report to sysop!\r",
                                             an,
-                                            print_ch(49 - strlen(an), '.'));
+                                            print_ch((int)(49 - strlen(an)), '.'));
                                 w_log(LL_AREAFIX,
                                       "%s: %s not subscribed to area \'%s\'",
                                       af_robot->name,
@@ -1589,7 +1589,7 @@ char * subscribe(s_link * link, char * cmd)
               line,
               aka2str(&(link->hisAka)));
         xscatprintf(&report, " %s %s  no access (full limit)\r", line,
-                    print_ch(49 - strlen(line), '.'));
+                    print_ch((int)(49 - strlen(line)), '.'));
     }
 
     if(matched)
@@ -1610,7 +1610,7 @@ char * subscribe(s_link * link, char * cmd)
     }
     else if((report == NULL && found == 0) || (found && area->hide))
     {
-        xscatprintf(&report, " %s %s  not found\r", line, print_ch(49 - strlen(line), '.'));
+        xscatprintf(&report, " %s %s  not found\r", line, print_ch((int)(49 - strlen(line)), '.'));
         w_log(LL_AREAFIX, "%s: Not found area \'%s\'", af_robot->name, line);
     }
 
@@ -1636,7 +1636,7 @@ char * errorRQ(char * line)
     }
     else
     {
-        xscatprintf(&report, " %s %s  error line\r", line, print_ch(49 - strlen(line), '.'));
+        xscatprintf(&report, " %s %s  error line\r", line, print_ch((int)(49 - strlen(line)), '.'));
     }
 
     return report;
@@ -1665,7 +1665,7 @@ char * do_delete(s_link * link, s_area * area)
     }
 
     /* unsubscribe from downlinks */
-    xscatprintf(&report, " %s %s  deleted\r", an, print_ch(49 - strlen(an), '.'));
+    xscatprintf(&report, " %s %s  deleted\r", an, print_ch((int)(49 - strlen(an)), '.'));
 
     for(i = 0; i < area->downlinkCount; i++)
     {
@@ -1710,7 +1710,7 @@ char * do_delete(s_link * link, s_area * area)
                 xscatprintf(&tmpmsg->text, "\r Area \'%s\' is deleted.\r", area->areaName);
                 xstrcat(&tmpmsg->text, "\r Do not forget to remove it from your configs.\r");
                 xscatprintf(&tmpmsg->text, "\r\r--- %s %s\r", af_versionStr, af_robot->name);
-                tmpmsg->textLength = strlen(tmpmsg->text);
+                tmpmsg->textLength = (hINT32)strlen(tmpmsg->text);
                 (*call_sendMsg)(tmpmsg);
                 nfree(tmpmsg);
                 w_log(LL_AREAFIX, "%s: Write notification msg for %s", af_robot->name,
@@ -1791,7 +1791,7 @@ char * delete(s_link * link, char * cmd, unsigned int flags)
 
     if(!area)
     {
-        xscatprintf(&report, " %s %s  not found\r", line, print_ch(49 - strlen(line), '.'));
+        xscatprintf(&report, " %s %s  not found\r", line, print_ch((int)(49 - strlen(line)), '.'));
         w_log(LL_AREAFIX, "%s: Not found area \'%s\'", af_robot->name, line);
         return report;
     }
@@ -1820,13 +1820,13 @@ char * delete(s_link * link, char * cmd, unsigned int flags)
             break;
 
         case 1:
-            xscatprintf(&report, " %s %s  not linked\r", an, print_ch(49 - strlen(an), '.'));
+            xscatprintf(&report, " %s %s  not linked\r", an, print_ch((int)(49 - strlen(an)), '.'));
             w_log(LL_AREAFIX, "%s: Area \'%s\' is not linked to %s", af_robot->name, an,
                   aka2str(&(link->hisAka)));
             return report;
 
         case 2:
-            xscatprintf(&report, " %s %s  no access\r", an, print_ch(49 - strlen(an), '.'));
+            xscatprintf(&report, " %s %s  no access\r", an, print_ch((int)(49 - strlen(an)), '.'));
             w_log(LL_AREAFIX, "%s: Area \'%s\' no access for %s", af_robot->name, an,
                   aka2str(&(link->hisAka)));
             return report;
@@ -1838,7 +1838,7 @@ char * delete(s_link * link, char * cmd, unsigned int flags)
         if(link->LinkGrp == NULL || (area->group && strcmp(link->LinkGrp, area->group)))
         {
             xscatprintf(&report, " %s %s  delete not allowed\r", an,
-                        print_ch(49 - strlen(an), '.'));
+                        print_ch((int)(49 - strlen(an)), '.'));
             w_log(LL_AREAFIX,
                   "%s: Area \'%s\' delete not allowed for %s",
                   af_robot->name,
@@ -2020,12 +2020,12 @@ char * unsubscribe(s_link * link, char * cmd)
 
                 if(j == DEL_OK)
                 {
-                    xscatprintf(&report, " %s %s  unlinked\r", an, print_ch(49 - strlen(an), '.'));
+                    xscatprintf(&report, " %s %s  unlinked\r", an, print_ch((int)(49 - strlen(an)), '.'));
                 }
                 else
                 {
                     xscatprintf(&report, " %s %s  error. report to sysop!\r", an,
-                                print_ch(49 - strlen(an), '.'));
+                                print_ch((int)(49 - strlen(an)), '.'));
                 }
 
                 break;
@@ -2044,7 +2044,7 @@ char * unsubscribe(s_link * link, char * cmd)
                     break;
                 }
 
-                xscatprintf(&report, " %s %s  not linked\r", an, print_ch(49 - strlen(an), '.'));
+                xscatprintf(&report, " %s %s  not linked\r", an, print_ch((int)(49 - strlen(an)), '.'));
                 w_log(LL_AREAFIX,
                       "%s: Area \'%s\' is not linked to %s",
                       af_robot->name,
@@ -2054,7 +2054,7 @@ char * unsubscribe(s_link * link, char * cmd)
 
             case 5:
                 xscatprintf(&report, " %s %s  unlink is not possible\r", an,
-                            print_ch(49 - strlen(an), '.'));
+                            print_ch((int)(49 - strlen(an)), '.'));
                 w_log(LL_AREAFIX,
                       "%s: Area \'%s\' unlink is not possible for %s",
                       af_robot->name,
@@ -2077,12 +2077,12 @@ char * unsubscribe(s_link * link, char * cmd)
         if(matched)
         {
             xscatprintf(&report, " %s %s  no %ss to unlink\r", line,
-                        print_ch(49 - strlen(line), '.'), af_robot->strA);
+                        print_ch((int)(49 - strlen(line)), '.'), af_robot->strA);
             w_log(LL_AREAFIX, "%s: No areas to unlink", af_robot->name);
         }
         else
         {
-            xscatprintf(&report, " %s %s  not found\r", line, print_ch(49 - strlen(line), '.'));
+            xscatprintf(&report, " %s %s  not found\r", line, print_ch((int)(49 - strlen(line)), '.'));
             w_log(LL_AREAFIX, "%s: Area \'%s\' is not found", af_robot->name, line);
         }
     }
@@ -2466,7 +2466,7 @@ char * rescan(s_link * link, char * cmd)
 
             if(*endptr == 'd' || *endptr == 'D')
             {
-                rescanAfter = time(NULL) - (rescanCount * 24 * 3600L);
+                rescanAfter = (long)time(NULL) - (rescanCount * 24 * 3600L);
                 rescanCount = -1;
             }
         }
@@ -2507,7 +2507,7 @@ char * rescan(s_link * link, char * cmd)
                 else
                 {
                     xscatprintf(&report, " %s %s  rescan is not supported\r", line,
-                                print_ch(49 - strlen(line), '.'));
+                                print_ch((int)(49 - strlen(line)), '.'));
                     w_log(LL_AREAFIX, "areafix: Rescan is not supported for area \'%s\'", line);
                 }
 
@@ -2530,7 +2530,7 @@ char * rescan(s_link * link, char * cmd)
                       area->areaName,
                       aka2str(&link->hisAka));
                 xscatprintf(&report, " %s %s  is not linked for rescan\r", an,
-                            print_ch(49 - strlen(an), '.'));
+                            print_ch((int)(49 - strlen(an)), '.'));
                 break;
 
             default:
@@ -2545,7 +2545,7 @@ char * rescan(s_link * link, char * cmd)
     if(report == NULL)
     {
         xscatprintf(&report, " %s %s  is not linked for rescan\r", line,
-                    print_ch(49 - strlen(line), '.'));
+                    print_ch((int)(49 - strlen(line)), '.'));
         w_log(LL_AREAFIX, "areafix: Area \'%s\' is not linked for rescan", line);
     }
 
@@ -3224,7 +3224,7 @@ int tellcmd(char * cmd)
 
             return ADD;
     } /* switch */
-    return 0;/*  - Unreachable */
+    /* return 0;  - Unreachable */
 } /* tellcmd */
 
 char * processcmd(s_link * link, char * line, int cmd, unsigned int flags)
@@ -3245,7 +3245,7 @@ char * processcmd(s_link * link, char * line, int cmd, unsigned int flags)
             }
             else
             {
-                RetFix = cmd;
+                RetFix = (byte)cmd;
             }
 
             if(rc)
@@ -3342,7 +3342,7 @@ char * processcmd(s_link * link, char * line, int cmd, unsigned int flags)
         case ARCMAILSIZE:
         case RSB:
         case RULES:
-            RetFix = cmd;
+            RetFix = (byte)cmd;
             report = change_token(link, line);
             break;
 
@@ -3432,7 +3432,7 @@ void RetMsg(s_message * msg, s_link * link, char * report, char * subj)
 {
     char * text, * split, * p, * p2, * newsubj = NULL;
     char * splitStr = af_robot->splitStr ? af_robot->splitStr : " > message splitted...";
-    int splitStrLen = strlen(splitStr);
+    int splitStrLen = (int)strlen(splitStr);
     int len, msgsize = af_robot->msgSize * 1024, partnum = 0;
     s_message * tmpmsg;
     char * reply     = NULL;
@@ -3463,7 +3463,7 @@ void RetMsg(s_message * msg, s_link * link, char * report, char * subj)
 
     while(text)
     {
-        len = strlen(text);
+        len = (int)strlen(text);
 
         if(msgsize == 0 || len <= msgsize)
         {
@@ -3589,10 +3589,10 @@ void RetRules(s_message * msg, s_link * link, char * areaName)
         int rlen;
         len  = fsize(fileName);
         text = (*call_smalloc)(len + 1);
-        rlen = fread(text, len, 1, f);
+        rlen = (int)fread(text, len, 1, f);
         fclose(f);
 
-        if(rlen <= 0)
+        if(rlen == 0)
         {
             break;      /* Doesn't send empty rules file and unreadable file */
         }
@@ -3622,7 +3622,7 @@ void RetRules(s_message * msg, s_link * link, char * areaName)
         msg->text = msg_text;
         nfree(subj);
         /* nfree (text); don't free text because RetMsg() free it */
-        fileName[strlen(fileName) - 1] = nrul + '1';
+        fileName[strlen(fileName) - 1] = (char)(nrul + '1');
     }
 
     if(nrul == 0)  /*  couldn't open any rules file while first one exists! */
@@ -3650,7 +3650,7 @@ void sendAreafixMessages()
         link    = af_config->links[i];
         linkmsg = link->msg;
         xscatprintf(&(linkmsg->text), " \r--- %s %s\r", af_versionStr, af_robot->name);
-        linkmsg->textLength = strlen(linkmsg->text);
+        linkmsg->textLength = (hINT32)strlen(linkmsg->text);
         w_log(LL_AREAFIX, "%s: Write netmail msg for %s", af_robot->name, aka2str(&link->hisAka));
 
 /*
@@ -4075,7 +4075,7 @@ void afix(hs_addr addr, char * cmd)
 
     if((area = getNetMailArea(af_config, name)) != NULL)
     {
-        startarea = area - af_config->netMailAreas;
+        startarea = (int)(area - af_config->netMailAreas);
         endarea   = startarea + 1;
     }
 
@@ -4243,7 +4243,7 @@ int sendRelinkMsg(e_relinkType mode, hs_addr addr, char * cmd, e_subscribeMode s
 
     xstrcat(&(msg->text), cmd);
     xscatprintf(&(msg->text), " \r--- %s %s\r", af_versionStr, af_robot->name);
-    msg->textLength = strlen(msg->text);
+    msg->textLength = (hINT32)strlen(msg->text);
     w_log(LL_AREAFIX,
           "%s message to %s has been created",
           mode ==
