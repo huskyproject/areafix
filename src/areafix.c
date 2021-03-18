@@ -4269,7 +4269,7 @@ int relink(e_relinkType mode,
     char * fromAka = NULL, * toAka = NULL;
     char * exclMask;
     s_arealink * arealink = NULL;
-    s_link_robot * rf, * rt = NULL;
+    /* s_link_robot * rf, * rt = NULL; */
     char * ucStrA;
 
     fromLink = getLinkFromAddr(af_config, fromAddr);
@@ -4281,7 +4281,7 @@ int relink(e_relinkType mode,
     }
 
     fromAka = (*call_sstrdup)(aka2str(&fromLink->hisAka));
-    rf      = (*call_getLinkRobot)(fromLink);
+    /* rf      = (*call_getLinkRobot)(fromLink); rf is set but not used */
 
     if(mode != modeRelink)
     {
@@ -4294,7 +4294,7 @@ int relink(e_relinkType mode,
         }
 
         toAka = (*call_sstrdup)(aka2str(&toLink->hisAka));
-        rt    = (*call_getLinkRobot)(toLink);
+        /* rt    = (*call_getLinkRobot)(toLink); rt is set but not used */
         /* allocate memory to check for read/write access for new link */
         arealink = (s_arealink *)scalloc(1, sizeof(s_arealink));
     }

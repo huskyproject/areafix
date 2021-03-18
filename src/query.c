@@ -195,7 +195,7 @@ void del_tok(char ** ac, char * tok)
 char * makeAreaParam(s_link * creatingLink, s_link_robot * r, char * c_area, char * msgbDir)
 {
     char * msgbFileName = NULL;
-    char * msgbtype, * newAC = NULL, * desc, * quote_areaname;
+    char /* *msgbtype, */ * newAC = NULL, * desc, * quote_areaname;
     char * cp, * buff = NULL, * d_area;               /* temp. usage */
 
     msgbFileName = makeMsgbFileName(af_config, c_area);
@@ -225,7 +225,7 @@ char * makeAreaParam(s_link * creatingLink, s_link_robot * r, char * c_area, cha
         xstrscat(&newAC, " ", r->autoCreateDefaults, NULLP);
     }
 
-    msgbtype = fc_stristr(newAC, "-b ");
+    /* msgbtype = fc_stristr(newAC, "-b "); msgbtype is set but not used */
 
     if(!msgbDir)
     {
