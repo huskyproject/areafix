@@ -3513,7 +3513,7 @@ void RetMsg(s_message * msg, s_link * link, char * report, char * subj)
             *p2   = '\r';
             *++p2 = '\r';                        /* +2*\r */
             memcpy(++p2, splitStr, splitStrLen); /* + splitter */
-            p2   += splitStrLen;
+            p2   += (ptrdiff_t)splitStrLen;
             *p2   = '\r';                        /* +\r */
             *++p2 = '\000';                      /* + \000 */
             text  = p + 1;
