@@ -681,7 +681,7 @@ e_BadmailReasons autoCreate(char * c_area, char * descr, hs_addr pktOrigAddr, ps
     /*  fix if dummys del \n from the end of file */
     if(fseek(f, -2L, SEEK_END) == 0)
     {
-        CR = getc(f);  /*   may be it is CR aka '\r'  */
+        CR = (char)getc(f);  /*   may be it is CR aka '\r'  */
 
         if(getc(f) != '\n')
         {
@@ -1115,7 +1115,7 @@ void af_QueueReport()
             }
             else
             {
-                int days = (tnow - tmpNode->bTime) / secInDay;
+                int days = (int)((tnow - tmpNode->bTime) / secInDay);
                 sprintf(state, "%2d days", days);
             }
 
@@ -1143,7 +1143,7 @@ void af_QueueReport()
             }
             else
             {
-                int days = (tnow - tmpNode->bTime) / secInDay;
+                int days = (int)((tnow - tmpNode->bTime) / secInDay);
                 sprintf(state, "%2d days", days);
             }
 
@@ -1171,7 +1171,7 @@ void af_QueueReport()
             }
             else
             {
-                int days = (tnow - tmpNode->bTime) / secInDay;
+                int days = (int)((tnow - tmpNode->bTime) / secInDay);
                 sprintf(state, "%2d days", days);
             }
 
@@ -1429,7 +1429,7 @@ void af_QueueUpdate()
         if(tmpmsg[i])
         {
             xscatprintf(&tmpmsg[i]->text, "\r\r--- %s %s\r", af_versionStr, af_robot->name);
-            tmpmsg[i]->textLength = strlen(tmpmsg[i]->text);
+            tmpmsg[i]->textLength = (hINT32)strlen(tmpmsg[i]->text);
 /*
             processNMMsg(tmpmsg[i], NULL,
                 getNetMailArea(af_config,af_config->robotsArea),
@@ -1615,7 +1615,7 @@ int af_CloseQuery()
     }
 
     tmpNode = queryAreasHead->next;
-    nSpace  = queryAreasHead->linksCount + 1;
+    nSpace  = (int)queryAreasHead->linksCount + 1;
     p       = buf + nSpace;
 
     while(tmpNode)
