@@ -3376,12 +3376,12 @@ void preprocText(char * split, s_message * msg, char * reply, s_link * link)
         if(reply)
         {
             reply++;
+            if(reply[0])
+            {
+                xscatprintf(&(msg->text), "\001REPLY: %s\r", reply);
+            }
         }
 
-        if(reply[0])
-        {
-            xscatprintf(&(msg->text), "\001REPLY: %s\r", reply);
-        }
     }
 
     /* xstrcat(&(msg->text), "\001FLAGS NPD DIR\r"); */
