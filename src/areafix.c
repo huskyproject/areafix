@@ -493,7 +493,7 @@ char * available(s_link * link, char * cmdline)
             if((!halcnt) || (link->availlist != AVAILLIST_UNIQUEONE))
             {
                 halcnt++;
-                hal             = realloc(hal, sizeof(ps_arealist) * halcnt);
+                hal             = srealloc(hal, sizeof(ps_arealist) * halcnt);
                 hal[halcnt - 1] = newAreaList(af_config);
                 al = hal[halcnt - 1];
                 w_log(LL_DEBUGW,
