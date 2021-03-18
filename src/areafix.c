@@ -619,7 +619,7 @@ char * available(s_link * link, char * cmdline)
 int forwardRequestToLink(char * areatag, s_link * uplink, s_link * dwlink, int act)
 {
     s_message * msg;
-    char * base, pass[] = "passthrough";
+    /* char * base, pass[] = "passthrough"; */
     s_link_robot * r;
 
     if(!uplink)
@@ -667,22 +667,22 @@ int forwardRequestToLink(char * areatag, s_link * uplink, s_link * dwlink, int a
             }
             else
             {
-                base = r->baseDir;
+                /* base = r->baseDir;
 
                 if(af_config->createFwdNonPass == 0)
                 {
                     r->baseDir = pass;
-                }
+                } */
 
-                /*  create from own address */
+                /*  create from own address
                 if(isOurAka(af_config, dwlink->hisAka))
                 {
                     r->baseDir = base;
-                }
+                } */
 
                 strUpper(areatag);
                 autoCreate(areatag, NULL, uplink->hisAka, &(dwlink->hisAka));
-                r->baseDir = base;
+                /* r->baseDir = base; */
             }
         }
 
