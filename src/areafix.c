@@ -2793,7 +2793,7 @@ char * change_token(s_link * link, char * cmdline)
         case 1:  /* AREAFIXPWD, PKTPWD, FILEFIXPWD, TICPWD */
             c_new = (param != NULL) ? param : "";
 
-            if(*c_prev && stricmp(*c_prev, c_new) == 0)
+            if(c_prev && *c_prev && stricmp(*c_prev, c_new) == 0)
             {
                 w_log(LL_AREAFIX, "%s: New and old passwords are the same", af_robot->name);
                 xstrcat(&report, "New and old passwords are the same. No changes were made.\r\r");
@@ -2835,7 +2835,7 @@ char * change_token(s_link * link, char * cmdline)
                 }
                 i_new = (unsigned)atoi(param);
 
-                if(*i_prev == i_new)
+                if(i_prev && *i_prev == i_new)
                 {
                     w_log(LL_AREAFIX,
                           "%s: %s size is already set to %i kbytes",
@@ -3032,7 +3032,7 @@ int tellcmd(char * cmd)
 {
     char * line;
 
-    if(strncmp(cmd, "* Origin:", 9) == 0)
+    if(cmd == NULL || strncmp(cmd, "* Origin:", 9) == 0)
     {
         return NOTHING;
     }
