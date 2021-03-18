@@ -1603,7 +1603,7 @@ int af_CloseQuery()
         if(writeChanges && tmpNode->type[0] != '\0')
         {
             memset(buf, ' ', nSpace);
-            memcpy(buf, tmpNode->name, strlen(tmpNode->name));
+            strncpy(buf, tmpNode->name, strlen(tmpNode->name));
             t1 = *localtime(&tmpNode->bTime);
             t2 = *localtime(&tmpNode->eTime);
             sprintf(p,
