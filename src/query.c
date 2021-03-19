@@ -1449,7 +1449,7 @@ void af_QueueUpdate()
     w_log(LL_STOP, "End updating queue file");
 } /* af_QueueUpdate */
 
-int af_OpenQuery()
+void af_OpenQuery()
 {
     FILE * queryFile;
     char * line  = NULL;
@@ -1460,7 +1460,7 @@ int af_OpenQuery()
 
     if(queryAreasHead)    /*  list already exists */
     {
-        return 0;
+        return;
     }
 
     time(&tnow);
@@ -1469,13 +1469,13 @@ int af_OpenQuery()
     if(!af_robot->queueFile)   /* Queue File not defined in af_config */
     {
         w_log(LL_ERR, "queueFile for %s not defined in af_config", af_robot->name);
-        return 0;
+        return;
     }
 
     if((queryFile = fopen(af_robot->queueFile, "r")) == NULL)   /* can't open query file */
     {
         w_log(LL_ERR, "Can't open queueFile %s: %s", af_robot->queueFile, strerror(errno));
-        return 0;
+        return;
     }
 
     while((line = readLine(queryFile)) != NULL)
@@ -1566,10 +1566,9 @@ int af_OpenQuery()
         w_log(LL_ERR, "Broken format of the queue file %s\n", af_robot->queueFile);
     }
     fclose(queryFile);
-    return 0;
 } /* af_OpenQuery */
 
-int af_CloseQuery()
+void af_CloseQuery()
 {
     char buf[2 * 1024] = "";
     char * p;
@@ -1588,7 +1587,7 @@ int af_CloseQuery()
     if(!queryAreasHead)      /*  list does not exist */
     {
         w_log(LL_FUNC, __FILE__ ":%u:af_CloseQuery() end", __LINE__);
-        return 0;
+        return;
     }
 
     if(queryAreasHead->nFlag == 1)
@@ -1669,7 +1668,6 @@ int af_CloseQuery()
     }
 
     w_log(LL_FUNC, __FILE__ ":%u:af_CloseQuery() end", __LINE__);
-    return 0;
 } /* af_CloseQuery */
 
 s_query_areas * af_MakeAreaListNode()

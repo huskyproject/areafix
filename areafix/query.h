@@ -98,8 +98,8 @@ HUSKYEXT s_query_areas * af_CheckAreaInQuery(char * areatag,
                                              ps_addr dwlink,
                                              e_query_action act);
 HUSKYEXT char * af_Req2Idle(char * areatag, char * report, hs_addr linkAddr);
-HUSKYEXT int af_OpenQuery();
-HUSKYEXT int af_CloseQuery();
+HUSKYEXT void af_OpenQuery();
+HUSKYEXT void af_CloseQuery();
 HUSKYEXT void af_QueueUpdate();
 HUSKYEXT void af_QueueReport();
 HUSKYEXT int checkRefuse(char * areaName);
