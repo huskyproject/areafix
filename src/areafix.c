@@ -3441,8 +3441,9 @@ void RetMsg(s_message * msg, s_link * link, char * report, char * subj)
 {
     char * text, * split, * p, * p2, * newsubj = NULL;
     char * splitStr = af_robot->splitStr ? af_robot->splitStr : " > message splitted...";
-    int splitStrLen = (int)strlen(splitStr);
-    int len, msgsize = af_robot->msgSize * 1024, partnum = 0;
+    size_t splitStrLen = strlen(splitStr);
+    size_t len, msgsize = (size_t)af_robot->msgSize * 1024;
+    int partnum = 0;
     s_message * tmpmsg;
     char * reply     = NULL;
     s_link_robot * r = (*call_getLinkRobot)(link);
@@ -3472,7 +3473,7 @@ void RetMsg(s_message * msg, s_link * link, char * report, char * subj)
 
     while(text)
     {
-        len = (int)strlen(text);
+        len = strlen(text);
 
         if(msgsize == 0 || len <= msgsize)
         {
@@ -3522,7 +3523,7 @@ void RetMsg(s_message * msg, s_link * link, char * report, char * subj)
             *p2   = '\r';
             *++p2 = '\r';                        /* +2*\r */
             memcpy(++p2, splitStr, splitStrLen); /* + splitter */
-            p2   += (ptrdiff_t)splitStrLen;
+            p2   += splitStrLen;
             *p2   = '\r';                        /* +\r */
             *++p2 = '\000';                      /* + \000 */
             text  = p + 1;
