@@ -1456,6 +1456,7 @@ int af_OpenQuery()
     char * token = NULL;
     struct  tm tr;
     char seps[] = " \t\n";
+    int is_error = 0;
 
     if(queryAreasHead)    /*  list already exists */
     {
@@ -1494,18 +1495,16 @@ int af_OpenQuery()
             token = strtok(NULL, seps);
             if(token == NULL)
             {
-                fclose(queryFile);
-                w_log(LL_ERR, "Wrong format of %s file\n", af_robot->queueFile);
-                return 0;
+                is_error = 1;
+                break;
             }
 
             strncpy(areaNode->type, token, 4);
             token = strtok(NULL, seps);
             if (token == NULL)
             {
-                fclose(queryFile);
-                w_log(LL_ERR, "Wrong format of %s file\n", af_robot->queueFile);
-                return 0;
+                is_error = 1;
+                break;
             }
 
             memset(&tr, '\0', sizeof(tr));
@@ -1527,9 +1526,8 @@ int af_OpenQuery()
             token = strtok(NULL, seps);
             if (token == NULL)
             {
-                fclose(queryFile);
-                w_log(LL_ERR, "Wrong format of %s file\n", af_robot->queueFile);
-                return 0;
+                is_error = 1;
+                break;
             }
             memset(&tr, '\0', sizeof(tr));
 
@@ -1561,6 +1559,11 @@ int af_OpenQuery()
         }
 
         nfree(line);
+    }
+
+    if(is_error)
+    {
+        w_log(LL_ERR, "Broken format of the queue file %s\n", af_robot->queueFile);
     }
     fclose(queryFile);
     return 0;
