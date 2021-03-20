@@ -92,7 +92,7 @@
 #define FLAG_CMD_LINE 1
 #define FLAG_FROM_LOCAL_AKA 2
 
-unsigned char RetFix;
+unsigned char RetFix     = 0;
 static int rescanMode    = 0;
 static int foundToRescan = 0;
 static int rulesCount    = 0;

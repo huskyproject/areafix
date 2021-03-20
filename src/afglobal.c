@@ -38,5 +38,5 @@ int af_quiet             = 0;
 int af_silent_mode       = 0;
 int af_report_changes    = 0;
 int af_send_notify       = 0;
-sApp * af_app;
-int af_pause;
+sApp * af_app            = NULL;
+int af_pause             = 0;
