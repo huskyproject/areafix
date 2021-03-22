@@ -1,0 +1,133 @@
+{
+    "version": 1,
+    "warnings": [
+        {
+            "CodeCurrent": 2092755107,
+            "CodeNext": 768558191,
+            "CodePrev": 2142123665,
+            "ErrorCode": "V1042",
+            "FileName": "afglobal.c",
+            "Message": "This file is marked with copyleft license, which requires you to open the derived source code."
+        },
+        {
+            "CodeCurrent": 125,
+            "CodeNext": 0,
+            "CodePrev": 2615138975,
+            "ErrorCode": "V796",
+            "FileName": "areafix.c",
+            "Message": "It is possible that 'break' statement is missing in switch statement."
+        },
+        {
+            "CodeCurrent": 125,
+            "CodeNext": 0,
+            "CodePrev": 2615138975,
+            "ErrorCode": "V796",
+            "FileName": "areafix.c",
+            "Message": "It is possible that 'break' statement is missing in switch statement."
+        },
+        {
+            "CodeCurrent": 973933969,
+            "CodeNext": 123,
+            "CodePrev": 123,
+            "ErrorCode": "V526",
+            "FileName": "areafix.c",
+            "Message": "The 'strcmp' function returns _ if corresponding strings are equal. Consider examining the condition for mistakes."
+        },
+        {
+            "CodeCurrent": 125,
+            "CodeNext": 0,
+            "CodePrev": 709043,
+            "ErrorCode": "V796",
+            "FileName": "areafix.c",
+            "Message": "It is possible that 'break' statement is missing in switch statement."
+        },
+        {
+            "CodeCurrent": 710405,
+            "CodeNext": 0,
+            "CodePrev": 17016,
+            "ErrorCode": "V1037",
+            "FileName": "areafix.c",
+            "Message": "Two or more case-branches perform the same actions. Check lines: _, _"
+        },
+        {
+            "CodeCurrent": 2092755107,
+            "CodeNext": 768558191,
+            "CodePrev": 2142123665,
+            "ErrorCode": "V1042",
+            "FileName": "areafix.c",
+            "Message": "This file is marked with copyleft license, which requires you to open the derived source code."
+        },
+        {
+            "CodeCurrent": 2092755107,
+            "CodeNext": 768558191,
+            "CodePrev": 2142123665,
+            "ErrorCode": "V1042",
+            "FileName": "callback.c",
+            "Message": "This file is marked with copyleft license, which requires you to open the derived source code."
+        },
+        {
+            "CodeCurrent": 1542745364,
+            "CodeNext": 123,
+            "CodePrev": 0,
+            "ErrorCode": "V526",
+            "FileName": "query.c",
+            "Message": "The 'strcasecmp' function returns _ if corresponding strings are equal. Consider examining the condition for mistakes."
+        },
+        {
+            "CodeCurrent": 78332045,
+            "CodeNext": 519445,
+            "CodePrev": 6060817,
+            "ErrorCode": "V575",
+            "FileName": "query.c",
+            "Message": "The potential null pointer is passed into 'fputs' function. Inspect the second argument."
+        },
+        {
+            "CodeCurrent": 78332045,
+            "CodeNext": 519445,
+            "CodePrev": 6060817,
+            "ErrorCode": "V595",
+            "FileName": "query.c",
+            "Message": "The 'queryFile' pointer was utilized before it was verified against nullptr. Check lines: _, _."
+        },
+        {
+            "CodeCurrent": 2092755107,
+            "CodeNext": 768558191,
+            "CodePrev": 2142123665,
+            "ErrorCode": "V1042",
+            "FileName": "query.c",
+            "Message": "This file is marked with copyleft license, which requires you to open the derived source code."
+        },
+        {
+            "CodeCurrent": 2538738219,
+            "CodeNext": 125,
+            "CodePrev": 0,
+            "ErrorCode": "V501",
+            "FileName": "version.c",
+            "Message": "There are identical sub-expressions to the left and to the right of the '==' operator: BRANCH_CURRENT == BRANCH_CURRENT"
+        },
+        {
+            "CodeCurrent": 2538738219,
+            "CodeNext": 125,
+            "CodePrev": 0,
+            "ErrorCode": "V526",
+            "FileName": "version.c",
+            "Message": "The 'strcmp' function returns _ if corresponding strings are equal. Consider examining the condition for mistakes."
+        },
+        {
+            "CodeCurrent": 2325666199,
+            "CodeNext": 125,
+            "CodePrev": 123,
+            "ErrorCode": "V501",
+            "FileName": "version.c",
+            "Message": "There are identical sub-expressions to the left and to the right of the '!=' operator: BRANCH_CURRENT != BRANCH_CURRENT"
+        },
+        {
+            "CodeCurrent": 1028704567,
+            "CodeNext": 42,
+            "CodePrev": 1725059867,
+            "ErrorCode": "V1042",
+            "FileName": "version.c",
+            "Message": "This file is marked with copyleft license, which requires you to open the derived source code."
+        }
+    ]
+}
