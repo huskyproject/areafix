@@ -995,7 +995,7 @@ char * af_Req2Idle(char * areatag, char * report, hs_addr linkAddr)
     return report;
 } /* af_Req2Idle */
 
-char * af_GetQFlagName()
+char * af_GetQFlagName(void)
 {
     char * chanagedflag     = NULL;
     char * logdir           = NULL;
@@ -1032,7 +1032,7 @@ char * af_GetQFlagName()
     return chanagedflag;
 } /* af_GetQFlagName */
 
-void af_QueueReport()
+void af_QueueReport(void)
 {
     s_query_areas * tmpNode = NULL;
     const char rmask[]      = "%-37.37s %-4.4s %11.11s %-16.16s %-7.7s\r";
@@ -1236,7 +1236,7 @@ void af_QueueReport()
     w_log(LL_FUNC, "af_QueueReport(): end");
 } /* af_QueueReport */
 
-void af_QueueUpdate()
+void af_QueueUpdate(void)
 {
     s_query_areas * tmpNode = NULL;
     s_link * lastRlink      = NULL;
@@ -1449,7 +1449,7 @@ void af_QueueUpdate()
     w_log(LL_STOP, "End updating queue file");
 } /* af_QueueUpdate */
 
-void af_OpenQuery()
+void af_OpenQuery(void)
 {
     FILE * queryFile;
     char * line  = NULL;
@@ -1568,7 +1568,7 @@ void af_OpenQuery()
     fclose(queryFile);
 } /* af_OpenQuery */
 
-void af_CloseQuery()
+void af_CloseQuery(void)
 {
     char buf[2 * 1024] = "";
     char * p;
@@ -1670,7 +1670,7 @@ void af_CloseQuery()
     w_log(LL_FUNC, __FILE__ ":%u:af_CloseQuery() end", __LINE__);
 } /* af_CloseQuery */
 
-s_query_areas * af_MakeAreaListNode()
+s_query_areas * af_MakeAreaListNode(void)
 {
     s_query_areas * areaNode = NULL;
 
