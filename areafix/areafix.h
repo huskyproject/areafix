@@ -122,7 +122,6 @@ HUSKYEXT unsigned char RetFix;
 HUSKYEXT char * list(s_listype type, s_link * link, char * cmdline);
 HUSKYEXT char * help(s_link * link);
 HUSKYEXT char * available(s_link * link, char * cmdline);
-HUSKYEXT int changeconfig(char * fileName, s_area * area, s_link * link, int action);
 HUSKYEXT char * subscribe(s_link * link, char * cmd);
 HUSKYEXT char * errorRQ(char * line);
 HUSKYEXT char * unsubscribe(s_link * link, char * cmd);
@@ -132,13 +131,12 @@ HUSKYEXT void preprocText(char * split, s_message * msg, char * reply, s_link * 
 HUSKYEXT char * textHead(void);
 HUSKYEXT char * areaStatus(char * report, char * preport);
 HUSKYEXT void RetMsg(s_message * msg, s_link * link, char * report, char * subj);
-HUSKYEXT void sendAreafixMessages();
+HUSKYEXT void sendAreafixMessages(void);
 HUSKYEXT char * print_ch(int len, char ch);
 HUSKYEXT int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd);
 HUSKYEXT void afix(hs_addr addr, char * cmd);
 HUSKYEXT int pauseArea(e_pauseAct pauseAct, s_link * searchLink, s_area * searchArea);
 HUSKYEXT char * rescan(s_link * link, char * cmd);
-HUSKYEXT char * errorRQ(char * line);
 HUSKYEXT int isPatternLine(char * s);
 
 /*  forwardRequest()
@@ -156,7 +154,6 @@ HUSKYEXT e_forwardRequest_result forwardRequest(char * areatag,
                                                 s_link * dwlink,
                                                 s_link ** lastRlink);
 HUSKYEXT int forwardRequestToLink(char * areatag, s_link * uplink, s_link * dwlink, int act);
-HUSKYEXT void sendAreafixMessages();
 HUSKYEXT char * do_delete(s_link * link, s_area * area);
 HUSKYEXT int relink(e_relinkType mode,
                     char * pattern,
