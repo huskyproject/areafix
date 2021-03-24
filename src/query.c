@@ -981,7 +981,7 @@ char * af_Req2Idle(char * areatag, char * report, hs_addr linkAddr)
                 }
 
                 xscatprintf(&report, " %s %s  request canceled\r", areaNode->name,
-                            print_ch((int)(49 - strlen(areaNode->name)), '.'));
+                            print_ch(49 - strlen(areaNode->name), '.'));
                 w_log(LL_AREAFIX,
                       "%s: request canceled for [%s] area: %s",
                       af_robot->name,
