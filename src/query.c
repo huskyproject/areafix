@@ -981,7 +981,7 @@ char * af_Req2Idle(char * areatag, char * report, hs_addr linkAddr)
                 }
 
                 xscatprintf(&report, " %s %s  request canceled\r", areaNode->name,
-                            print_ch(49 - strlen(areaNode->name), '.'));
+                            repeat_char(49 - strlen(areaNode->name), '.'));
                 w_log(LL_AREAFIX,
                       "%s: request canceled for [%s] area: %s",
                       af_robot->name,
@@ -1189,7 +1189,7 @@ void af_QueueReport(void)
 
     w_log(LL_START, "Start generating queue report");
     xscatprintf(&header, rmask, ucStrA, "Act", "From", "By", "Details");
-    xscatprintf(&header, "%s\r", print_ch(79, '-'));
+    xscatprintf(&header, "%s\r", repeat_char(79, '-'));
     xstrcat(&header, report);
     report = header;
 
