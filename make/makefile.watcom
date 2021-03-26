@@ -44,6 +44,8 @@ OBJS=afglobal.obj areafix.obj callback.obj query.obj version.obj
 $(TARGET): $(OBJS)
 	$(WLIB) $(TARGET) $(OBJS)
 
+all: $(TARGET)
+
 .IGNORE
 clean: .SYMBOLIC
 	rm $(OBJS)
