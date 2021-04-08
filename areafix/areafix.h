@@ -133,7 +133,7 @@ HUSKYEXT char * areaStatus(char * report, char * preport);
 HUSKYEXT void RetMsg(s_message * msg, s_link * link, char * report, char * subj);
 HUSKYEXT void sendAreafixMessages(void);
 HUSKYEXT char * repeat_char(size_t len, char ch);
-HUSKYEXT int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd);
+HUSKYEXT void processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd);
 HUSKYEXT void afix(hs_addr addr, char * cmd);
 HUSKYEXT int pauseArea(e_pauseAct pauseAct, s_link * searchLink, s_area * searchArea);
 HUSKYEXT char * rescan(s_link * link, char * cmd);

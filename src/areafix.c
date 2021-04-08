@@ -3693,7 +3693,7 @@ void sendAreafixMessages()
 } /* sendAreafixMessages */
 
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
-int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
+void processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
 {
     unsigned int security = 0, notforme = 0, flags = 0;
     s_link * curlink = NULL; /* perform areafix changes for this link */
@@ -4001,8 +4001,8 @@ int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
         RetMsg(msg, link, report, "Areafix reply: security violation");
         w_log(LL_AREAFIX, "areafix: Security violation from %s", aka2str(&link->hisAka));
         nfree(tmplink);
-        w_log(LL_FUNC, __FILE__ ":%u:processAreaFix() rc=1", __LINE__);
-        return 1;
+        w_log(LL_FUNC, __FILE__ ":%u:processAreaFix()", __LINE__);
+        return;
     }
 
     if(report != NULL)
@@ -4034,8 +4034,8 @@ int processAreaFix(s_message * msg, s_pktHeader * pktHeader, unsigned force_pwd)
     w_log(LL_AREAFIX, "areafix: Successfully done for %s", aka2str(&link->hisAka));
     /*  send msg to the links (forward requests to areafix) */
     sendAreafixMessages();
-    w_log(LL_FUNC, __FILE__ "::processAreaFix() end (rc=1)");
-    return 1;
+    w_log(LL_FUNC, __FILE__ "::processAreaFix() end");
+    return;
 } /* processAreaFix */
 
 void MsgToStruct(HMSG SQmsg, XMSG xmsg, s_message * msg)
