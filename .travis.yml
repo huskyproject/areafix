@@ -1,13 +1,19 @@
-os: linux
 dist: bionic
-language: c
 
 jobs:
   include:
+    - os: linux
+      language: c
       env:
         - MATRIX_EVAL="CC=gcc" CF=-DBUILD_SHARED_LIBS=OFF
+    - os: linux
+      language: c
+      env:
         - MATRIX_EVAL="CC='gcc -m32'" CF="-DBUILD_SHARED_LIBS=OFF -DCMAKE_LIBRARY_PATH=/usr/lib32"
           PACKAGES="gcc-multilib lib32z1-dev" ARCH="i686"
+    - os: linux
+      language: c
+      env:
         - MATRIX_EVAL="CC=gcc" CF=-DBUILD_SHARED_LIBS=ON
 
 before_install:
