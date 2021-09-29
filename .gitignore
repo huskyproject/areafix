@@ -10,3 +10,5 @@ build/
 *.bak
 *.vcxproj.user
 strace_out
+cvsdate.h
+Build/
