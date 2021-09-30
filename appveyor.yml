@@ -19,6 +19,11 @@ install:
   - cmd: git clone https://github.com/huskyproject/smapi  C:\projects\smapi
   - cmd: git clone https://github.com/huskyproject/fidoconf  C:\projects\fidoconf
 build_script:
+  - ps:
+      cd C:\projects\huskylib; $huskylib_mdate=git log -1 --date=short --format=format:"%cd" huskylib/*.h src/*.c; echo "char cvs_date[]=""$huskylib_mdate"";" > cvsdate.h
+      cd C:\projects\smapi; $smapi_mdate=git log -1 --date=short --format=format:"%cd" smapi/*.h src/*.c; echo "char cvs_date[]=""$smapi_mdate"";" > cvsdate.h
+      cd C:\projects\fidoconf; $fidoconf_mdate=git log -1 --date=short --format=format:"%cd" fidoconf/*.h src/*.c; echo "char cvs_date[]=""$fidoconf_mdate"";" > cvsdate.h
+      cd C:\projects\areafix; $areafix_mdate=git log -1 --date=short --format=format:"%cd" areafix/*.h src/*.c; echo "char cvs_date[]=""$areafix_mdate"";" > cvsdate.h
   - cmd: 
       cd C:\projects\huskylib && mkdir build && cd build && cmake --version &&  cmake .. -G "%GENERATOR%" %CF% && cmake --build . -- /P:Configuration=Release &&
       cd C:\projects\smapi && mkdir build && cd build && cmake --version &&  cmake .. -G "%GENERATOR%" %CF% && cmake --build . -- /P:Configuration=Release &&
