@@ -161,6 +161,7 @@ else
 endif
 
 # Depend
+ifeq ($(MAKECMDGOALS),depend)
 areafix_depend: $(areafix_DEPS) ;
 
 # Build dependency makefiles for every source file
@@ -172,6 +173,7 @@ $(areafix_DEPS): $(areafix_DEPDIR)%$(_DEP): $(areafix_SRCDIR)%.c | $(areafix_DEP
 
 $(areafix_DEPDIR): | $(areafix_BUILDDIR) do_not_run_depend_as_root
 	[ -d $@ ] || $(MKDIR) $(MKDIROPT) $@
+endif
 
 $(areafix_BUILDDIR):
 	[ -d $@ ] || $(MKDIR) $(MKDIROPT) $@
