@@ -41,7 +41,8 @@ endif
 areafix_TARGET_BLD = $(areafix_BUILDDIR)$(areafix_TARGET)
 
 # List of HUSKY libraries required to build binary file(s)
-areafix_LIBS =
+areafix_LIBS := $(fidoconf_TARGET_BLD) $(smapi_TARGET_BLD) \
+                $(huskylib_TARGET_BLD)
 
 areafix_OBJS := $(addprefix $(areafix_OBJDIR),$(areafix_OBJFILES))
 
@@ -88,12 +89,13 @@ ifdef RANLIB
 endif
 
 # Build the dynamic library
-$(areafix_OBJDIR)$(areafix_TARGETDLL).$(areafix_VER): $(areafix_OBJS) | do_not_run_make_as_root
+$(areafix_OBJDIR)$(areafix_TARGETDLL).$(areafix_VER): \
+    $(areafix_OBJS) $(areafix_LIBS) | do_not_run_make_as_root
 ifeq (~$(MKSHARED)~,~ld~)
-	$(LD) $(LFLAGS) -o $(areafix_OBJDIR)$(areafix_TARGETDLL).$(areafix_VER) $(areafix_OBJS)
+	$(LD) $(LFLAGS) -o $@ $^
 else
 	$(CC) $(LFLAGS) -shared -Wl,-soname,$(areafix_TARGETDLL).$(areafix_VER) \
-	-o $(areafix_OBJDIR)$(areafix_TARGETDLL).$(areafix_VER) $(areafix_OBJS)
+	-o $@ $(areafix_OBJS)
 endif
 
 # Compile .c files
