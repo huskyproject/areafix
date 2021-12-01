@@ -6,9 +6,9 @@
 #
 
 # Version
-areafix_g1:=$(GREP) -Po 'define\s+AF_VER_MAJOR\s+\K\d+'
-areafix_g2:=$(GREP) -Po 'define\s+AF_VER_MINOR\s+\K\d+'
-areafix_g3:=$(GREP) -Po 'define\s+AF_VER_PATCH\s+\K\d+'
+areafix_g1:=$(GREP) -Po 'define\s+areafix_VER_MAJOR\s+\K\d+'
+areafix_g2:=$(GREP) -Po 'define\s+areafix_VER_MINOR\s+\K\d+'
+areafix_g3:=$(GREP) -Po 'define\s+areafix_VER_PATCH\s+\K\d+'
 areafix_g4:=$(GREP) -Po 'char\s+cvs_date\[\]\s*=\s*"\K\d+-\d+-\d+'
 areafix_VERMAJOR := $(shell $(areafix_g1) $(areafix_ROOTDIR)$(areafix_H_DIR)version.h)
 areafix_VERMINOR := $(shell $(areafix_g2) $(areafix_ROOTDIR)$(areafix_H_DIR)version.h)

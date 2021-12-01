@@ -39,10 +39,10 @@ extern "C" {
 /*        BRANCH_CURRENT=1, BRANCH_STABLE=2, BRANCH_RELEASE=3 */
 /* }branch_t; */
 /* this is version number of FidoConfig */
-#define AF_VER_MAJOR 1
-#define AF_VER_MINOR 9
-#define AF_VER_PATCH 0
-#define AF_VER_BRANCH BRANCH_CURRENT
+#define areafix_VER_MAJOR  1
+#define areafix_VER_MINOR  9
+#define areafix_VER_PATCH  0
+#define areafix_VER_BRANCH BRANCH_CURRENT
 /* Check version of areafix library
  * return zero if test failed; non-zero if passed
  * test cvs needed for DLL version only,

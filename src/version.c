@@ -50,7 +50,7 @@ HUSKYEXT int CheckAreafixVersion(int need_major,
     static
 #include "../cvsdate.h"   /* char cvs_date[]=datestring; */
 
-    if(need_major == AF_VER_MAJOR && need_minor == AF_VER_MINOR)
+    if(need_major == areafix_VER_MAJOR && need_minor == areafix_VER_MINOR)
     {
         if(need_branch == BRANCH_CURRENT)
         {
@@ -60,11 +60,11 @@ HUSKYEXT int CheckAreafixVersion(int need_major,
                         "Areafix library: strange, current patch level can't be non-zero\n");
             }
 
-            return (AF_VER_BRANCH == BRANCH_CURRENT) && !(cvs && strcmp(cvs, cvs_date));
+            return (areafix_VER_BRANCH == BRANCH_CURRENT) && !(cvs && strcmp(cvs, cvs_date));
         }
         else
         {
-            return AF_VER_BRANCH != BRANCH_CURRENT;
+            return areafix_VER_BRANCH != BRANCH_CURRENT;
         }
     }
 
