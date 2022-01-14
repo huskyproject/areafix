@@ -50,11 +50,11 @@ areafix_CDEFS := $(CDEFS) -I$(areafix_ROOTDIR) \
                           -I$(smapi_ROOTDIR) \
                           -I$(huskylib_ROOTDIR)
 
-.PHONY: areafix_all areafix_install areafix_install-dynlib \
+.PHONY: areafix_build areafix_install areafix_install-dynlib \
     areafix_uninstall areafix_clean areafix_distclean areafix_depend \
     areafix_rm_OBJS areafix_rm_BLD areafix_rm_DEP areafix_rm_DEPS
 
-areafix_all: $(areafix_TARGET_BLD)
+areafix_build: $(areafix_TARGET_BLD)
 
 ifneq ($(MAKECMDGOALS), depend)
 ifneq ($(MAKECMDGOALS), distclean)
