@@ -132,7 +132,8 @@ areafix_distclean: areafix_clean areafix_rm_BLD
 	-[ -d "$(areafix_BUILDDIR)" ] && $(RMDIR) $(areafix_BUILDDIR) || true
 
 areafix_rm_BLD: areafix_rm_DEP
-	-$(RM) $(RMOPT) $(areafix_BUILDDIR)$(areafix_TARGET)
+	-$(RM) $(RMOPT) $(areafix_BUILDDIR)$(areafix_TARGETLIB)
+	-$(RM) $(RMOPT) $(areafix_BUILDDIR)$(areafix_TARGETDLL)*
 
 areafix_rm_DEP: areafix_rm_DEPS
 	-[ -d "$(areafix_DEPDIR)" ] && $(RMDIR) $(areafix_DEPDIR) || true
