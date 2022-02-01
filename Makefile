@@ -158,7 +158,7 @@ areafix_depend: $(areafix_DEPS) ;
 $(areafix_DEPS): $(areafix_DEPDIR)%$(_DEP): $(areafix_SRCDIR)%.c | $(areafix_DEPDIR)
 	@set -e; rm -f $@; \
 	$(CC) -MM $(CFLAGS) $(areafix_CDEFS) $< > $@.$$$$; \
-	sed 's,\($*\)$(_OBJ)[ :]*,$(areafix_OBJDIR)\1$(_OBJ) $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)$(__OBJ)[ :]*,$(areafix_OBJDIR)\1$(_OBJ) $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 $(areafix_DEPDIR): | $(areafix_BUILDDIR) do_not_run_depend_as_root
