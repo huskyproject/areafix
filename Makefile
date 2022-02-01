@@ -20,7 +20,11 @@ areafix_TARGETLIB = $(L)$(LIBPREFIX)$(areafix_LIBNAME)$(LIBSUFFIX)$(_LIB)
 areafix_TARGETDLL = $(B)$(DLLPREFIX)$(areafix_LIBNAME)$(DLLSUFFIX)$(_DLL)
 
 ifeq ($(DYNLIBS), 1)
-    areafix_TARGET = $(areafix_TARGETDLL).$(areafix_VER)
+    ifeq ($(findstring Windows,$(OS)),)
+        areafix_TARGET = $(areafix_TARGETDLL).$(areafix_VER)
+    else
+        areafix_TARGET = $(areafix_TARGETDLL)
+    endif
 else
     areafix_TARGET = $(areafix_TARGETLIB)
 endif
@@ -76,13 +80,14 @@ ifdef RANLIB
 endif
 
 # Build the dynamic library
-$(areafix_OBJDIR)$(areafix_TARGETDLL).$(areafix_VER): \
+ifeq ($(DYNLIBS),1)
+$(areafix_OBJDIR)$(areafix_TARGET): \
     $(areafix_OBJS) $(areafix_LIBS) | do_not_run_make_as_root
-ifeq (~$(MKSHARED)~,~ld~)
-	$(LD) $(LFLAGS) -o $@ $^
-else
-	$(CC) $(LFLAGS) -shared -Wl,-soname,$(areafix_TARGETDLL).$(areafix_VER) \
-	-o $@ $(areafix_OBJS)
+    ifeq ($(findstring gcc,$(MKSHARED)),)
+		$(LD) $(LFLAGS) -o $@ $^
+    else
+		$(CC) $(LFLAGS) -shared -Wl,-soname,$(areafix_TARGET) -o $@ $^
+    endif
 endif
 
 # Compile .c files
