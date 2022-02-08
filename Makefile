@@ -83,7 +83,7 @@ endif
 ifeq ($(DYNLIBS),1)
 $(areafix_OBJDIR)$(areafix_TARGET): \
     $(areafix_OBJS) $(areafix_LIBS) | do_not_run_make_as_root
-    ifeq ($(findstring gcc,$(MKSHARED)),)
+    ifeq ($(filter gcc clang,$(MKSHARED)),)
 		$(LD) $(LFLAGS) -o $@ $^
     else
 		$(CC) $(LFLAGS) -shared -Wl,-soname,$(areafix_TARGET) -o $@ $^
