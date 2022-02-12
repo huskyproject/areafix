@@ -35,19 +35,6 @@ areafix_TARGET_BLD = $(areafix_BUILDDIR)$(areafix_TARGET)
 areafix_LIBS := $(fidoconf_TARGET_BLD) $(smapi_TARGET_BLD) \
                 $(huskylib_TARGET_BLD)
 
-areafix_OBJS := $(addprefix $(areafix_OBJDIR),$(areafix_OBJFILES))
-
-areafix_DEPS := $(areafix_OBJFILES)
-ifdef O
-    areafix_DEPS := $(areafix_DEPS:$(O)=)
-endif
-ifdef _OBJ
-    areafix_DEPS := $(areafix_DEPS:$(_OBJ)=$(_DEP))
-else
-    areafix_DEPS := $(addsuffix $(_DEP),$(areafix_DEPS))
-endif
-areafix_DEPS := $(addprefix $(areafix_DEPDIR),$(areafix_DEPS))
-
 areafix_CDEFS := $(CDEFS) -I$(areafix_ROOTDIR) \
                           -I$(areafix_ROOTDIR)$(areafix_H_DIR) \
                           -I$(fidoconf_ROOTDIR) \
@@ -73,7 +60,7 @@ $(areafix_TARGET_BLD): $(areafix_OBJDIR)$(areafix_TARGET)
 	$(LN) $(LNHOPT) $< $(areafix_BUILDDIR)
 
 # Build the static library
-$(areafix_OBJDIR)$(areafix_TARGETLIB): $(areafix_OBJS) | do_not_run_make_as_root
+$(areafix_OBJDIR)$(areafix_TARGETLIB): $(areafix_ALL_OBJS) | do_not_run_make_as_root
 	cd $(areafix_OBJDIR); $(AR) $(AR_R) $(areafix_TARGETLIB) $(^F)
 ifdef RANLIB
 	cd $(areafix_OBJDIR); $(RANLIB) $(areafix_TARGETLIB)
@@ -82,7 +69,7 @@ endif
 # Build the dynamic library
 ifeq ($(DYNLIBS),1)
 $(areafix_OBJDIR)$(areafix_TARGET): \
-    $(areafix_OBJS) $(areafix_LIBS) | do_not_run_make_as_root
+    $(areafix_ALL_OBJS) $(areafix_LIBS) | do_not_run_make_as_root
     ifeq ($(filter gcc clang,$(MKSHARED)),)
 		$(LD) $(LFLAGS) -o $@ $^
     else
@@ -91,7 +78,7 @@ $(areafix_OBJDIR)$(areafix_TARGET): \
 endif
 
 # Compile .c files
-$(areafix_OBJS): $(areafix_OBJDIR)%$(_OBJ): $(areafix_SRCDIR)%.c | $(areafix_OBJDIR)
+$(areafix_ALL_OBJS): $(areafix_OBJDIR)%$(_OBJ): $(areafix_SRCDIR)%.c | $(areafix_OBJDIR)
 	$(CC) $(CFLAGS) $(areafix_CDEFS) -o $(areafix_OBJDIR)$*$(_OBJ) $(areafix_SRCDIR)$*.c
 
 $(areafix_OBJDIR): | $(areafix_BUILDDIR) do_not_run_make_as_root
@@ -154,21 +141,3 @@ ifeq ($(DYNLIBS), 1)
 else
     areafix_uninstall: ;
 endif
-
-# Depend
-ifeq ($(MAKECMDGOALS),depend)
-areafix_depend: $(areafix_DEPS) ;
-
-# Build dependency makefiles for every source file
-$(areafix_DEPS): $(areafix_DEPDIR)%$(_DEP): $(areafix_SRCDIR)%.c | $(areafix_DEPDIR)
-	@set -e; rm -f $@; \
-	$(CC) -MM $(CFLAGS) $(areafix_CDEFS) $< > $@.$$$$; \
-	sed 's,\($*\)$(__OBJ)[ :]*,$(areafix_OBJDIR)\1$(_OBJ) $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
-
-$(areafix_DEPDIR): | $(areafix_BUILDDIR) do_not_run_depend_as_root
-	[ -d $@ ] || $(MKDIR) $(MKDIROPT) $@
-endif
-
-$(areafix_BUILDDIR):
-	[ -d $@ ] || $(MKDIR) $(MKDIROPT) $@
