@@ -3395,7 +3395,7 @@ void preprocText(char * split, s_message * msg, char * reply, s_link * link)
 
     }
 
-    /* xstrcat(&(msg->text), "\001FLAGS NPD DIR\r"); */
+    /* xstrcat(&(msg->text), "\001FLAGS DIR\r"); */
     if(r->reportsFlags)
     {
         xstrscat(&(msg->text), "\001FLAGS ", r->reportsFlags, "\r", NULLP);
