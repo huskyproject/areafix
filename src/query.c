@@ -997,7 +997,7 @@ char * af_Req2Idle(char * areatag, char * report, hs_addr linkAddr)
 
 char * af_GetQFlagName(void)
 {
-    char * chanagedflag     = NULL;
+    char * changedFlag     = NULL;
     char * logdir           = NULL;
     const char * czChangFlg = af_app->module == M_HTICK ? czChangFlg_htick : czChangFlg_hpt;
 
@@ -1008,28 +1008,28 @@ char * af_GetQFlagName(void)
     if(af_config->lockfile)
     {
         logdir = dirname(af_config->lockfile); /* slash-trailed */
-        xstrscat(&chanagedflag, logdir, (char *)czChangFlg, NULLP);
+        xstrscat(&changedFlag, logdir, (char *)czChangFlg, NULLP);
         nfree(logdir);
     }
     else if(af_config->echotosslog)
     {
         logdir = dirname(af_config->echotosslog); /* slash-trailed */
-        xstrscat(&chanagedflag, logdir, (char *)czChangFlg, NULLP);
+        xstrscat(&changedFlag, logdir, (char *)czChangFlg, NULLP);
         nfree(logdir);
     }
     else if(af_config->semaDir)
     {
         logdir = dirname(af_config->echotosslog); /* slash-trailed */
-        xstrscat(&chanagedflag, logdir, (char *)czChangFlg, NULLP);
+        xstrscat(&changedFlag, logdir, (char *)czChangFlg, NULLP);
         nfree(logdir);
     }
     else
     {
-        chanagedflag = (*call_sstrdup)(czChangFlg);
+        changedFlag = (*call_sstrdup)(czChangFlg);
     }
 
     w_log(LL_FUNC, "af_GetQFlagName(): end");
-    return chanagedflag;
+    return changedFlag;
 } /* af_GetQFlagName */
 
 void af_QueueReport(void)
@@ -1579,7 +1579,7 @@ void af_CloseQuery(void)
     FILE * queryFile        = NULL;
     s_query_areas * delNode = NULL;
     s_query_areas * tmpNode = NULL;
-    char * chanagedflag     = NULL;
+    char * changedFlag     = NULL;
     FILE * QFlag            = NULL;
 
     w_log(LL_FUNC, __FILE__ ":%u:af_CloseQuery() begin", __LINE__);
@@ -1604,14 +1604,14 @@ void af_CloseQuery(void)
         }
         else
         {
-            if((chanagedflag = af_GetQFlagName()) != NULL)
+            if((changedFlag = af_GetQFlagName()) != NULL)
             {
-                if((QFlag = fopen(chanagedflag, "w")) != NULL)
+                if((QFlag = fopen(changedFlag, "w")) != NULL)
                 {
                     fclose(QFlag);
                 }
 
-                nfree(chanagedflag);
+                nfree(changedFlag);
             }
         }
     }
