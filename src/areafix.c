@@ -416,6 +416,8 @@ char * help(s_link * link)
         w_log(LL_AREAFIX, "%s: HELP sent to %s", af_robot->name, link->name);
         return help;
     }
+    else
+        w_log(LL_ERR, "%s: Help file is not defined", af_robot->name);
 
     return NULL;
 } /* help */
