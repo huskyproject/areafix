@@ -417,7 +417,9 @@ char * help(s_link * link)
         return help;
     }
     else
-        w_log(LL_ERR, "%s: Help file is not defined", af_robot->name);
+    {
+        w_log(LL_ERR, "%s: HelpFile is not defined", af_robot->name);
+    }
 
     return NULL;
 } /* help */
